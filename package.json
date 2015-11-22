@@ -1,7 +1,7 @@
 {
 	"name": "elm",
 	"description": "Syntax highlighting for elm",
-	"version": "0.0.1",
+	"version": "0.0.2",
 	"publisher": "sbrink",
 	"author": {
 		"name": "Sascha Brink"
@@ -13,6 +13,7 @@
 	"categories": [
 		"Languages"
 	],
+	"private": true,
 	"repository": {
 		"type": "git",
 		"url": "https://github.com/sbrink/vscode-elm.git"
