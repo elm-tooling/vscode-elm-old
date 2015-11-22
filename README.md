@@ -1,13 +1,23 @@
-# README
-## This is the README for your extension "elm" 
-You can author your README using Visual Studio Code.  Here are some useful editor keyboard shortcuts:
+# Elm support for Visual Studio Code
 
-* Split the editor (`Cmd+\` on OSX or `Ctrl+\` on Windows and Linux)
-* Toggle preview (`Shift+CMD+V` on OSX or `Shift+Ctrl+V` on Windows and Linux)
-* Press `Ctrl+Space` (Windows, Linux) or `Cmd+Space` (OSX) to see a list of Markdown snippets
+Elm needs a good IDE. So let's extend VS Code and make developing in [elm](http://elm-lang.org) even more enjoyable. 
 
-### For more information
-* [Visual Studio Code's Markdown Support](http://code.visualstudio.com/docs/languages/markdown)
-* [Markdown Syntax Reference](https://help.github.com/articles/markdown-basics/)
+## Current features
+
+* Syntax highlighting
+
+## Todo
+
+* Autocompletion 
+* Add useful code snippets
+* Refactoring support
+
+## Help wanted
+
+Building all these things will take some time. So pull requests are much appreciated!
+
+## License
+
+MIT
 
 ** Enjoy!**
