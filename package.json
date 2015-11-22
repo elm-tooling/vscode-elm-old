@@ -3,12 +3,20 @@
 	"description": "Syntax highlighting for elm",
 	"version": "0.0.1",
 	"publisher": "sbrink",
+	"author": {
+		"name": "Sascha Brink"
+	},
+    "icon": "images/elmIcon.png",
 	"engines": {
 		"vscode": "^0.10.1"
 	},
 	"categories": [
 		"Languages"
 	],
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/sbrink/vscode-elm.git"
+	},
 	"contributes": {
 		"languages": [{
 			"id": "elm",
