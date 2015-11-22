@@ -1,15 +1,16 @@
 # Elm support for Visual Studio Code
 
-Elm needs a good IDE. So let's extend VS Code and make developing in [elm](http://elm-lang.org) even more enjoyable. 
+Elm needs a good IDE. So let's extend VS Code and make developing in [elm](http://elm-lang.org) even more enjoyable.
 
 ## Current features
 
 * Syntax highlighting
 * [Snippets](snippets/elm.json)
+* **Experimental** support for error highlighting
 
 ## Todo
 
-* Autocompletion 
+* Autocompletion
 * Add more useful code snippets
 * Refactoring support
 

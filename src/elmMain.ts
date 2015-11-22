@@ -27,15 +27,17 @@ export interface ICheckResult {
 
 export function checkForErrors(filename): Promise<ICheckResult[]> {
   return new Promise((resolve, reject) => {
-	var cmd = 'elm-make ' + filename + ' --report=json --output /dev/null'
-	cp.exec(cmd, {}, (err, stdout, stderr) => {
+	let cwd = path.dirname(filename)
+	console.log('cwd', cwd)
+	let cmd = 'elm-make ' + filename + ' --report=json --output /dev/null'
+	cp.exec(cmd, { cwd: cwd }, (err, stdout, stderr) => {
   	  try {
 		if (err && (<any>err).code == "ENOENT") {
 			vscode.window.showInformationMessage("The 'elm-make' compiler is not available.  Install Elm from http://elm-lang.org/.");
 			return resolve([]);
 		}
 		console.log('stdout', stdout.toString());
-		var lines:ICheckResult[] = JSON.parse(stdout.toString());
+		let lines:ICheckResult[] = JSON.parse(stdout.toString());
 		resolve(lines);
 	  } catch(e) {
 		reject(e);
@@ -62,7 +64,10 @@ export function createDiagnostics(document: vscode.TextDocument) {
 				error.region.end.line - 1,
 				error.region.end.column - 1
 				);
-			return new vscode.Diagnostic(lineRange, error.details.replace(/\[\d+m/g, ''), vscode.DiagnosticSeverity.Error);
+			return new vscode.Diagnostic(
+				lineRange,
+				error.overview + " - " + error.details.replace(/\[\d+m/g, ''),
+				vscode.DiagnosticSeverity.Error);
 		})
 		compileErrors.set(document.uri, diagnostics);
 		console.log('check success', compilerErrors);
