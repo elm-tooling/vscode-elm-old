@@ -1,7 +1,7 @@
 {
 	"name": "elm",
-	"description": "Syntax highlighting for elm",
-	"version": "0.0.3",
+	"description": "Elm support for VS Code",
+	"version": "0.0.4",
 	"publisher": "sbrink",
 	"author": {
 		"name": "Sascha Brink"
