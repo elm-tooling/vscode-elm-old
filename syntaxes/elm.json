@@ -1,0 +1,950 @@
+{
+  "fileTypes": [
+    "elm"
+  ],
+  "name": "Elm",
+  "patterns": [
+    {
+      "captures": {
+        "1": {
+          "name": "punctuation.definition.entity.elm"
+        },
+        "2": {
+          "name": "punctuation.definition.entity.elm"
+        }
+      },
+      "match": "(`)[a-zA-Z_']*?(`)",
+      "name": "keyword.operator.function.infix.elm"
+    },
+    {
+      "match": "\\(\\)",
+      "name": "constant.language.unit.elm"
+    },
+    {
+      "match": "\\[\\]",
+      "name": "constant.language.empty-list.elm"
+    },
+    {
+      "begin": "^\\b(module)\\s+",
+      "beginCaptures": {
+        "1": {
+          "name": "keyword.other.elm"
+        }
+      },
+      "end": "\\b(where)\\b",
+      "endCaptures": {
+        "1": {
+          "name": "keyword.other.elm"
+        }
+      },
+      "name": "meta.declaration.module.elm",
+      "patterns": [
+        {
+          "include": "#module_name"
+        },
+        {
+          "include": "#module_exports"
+        },
+        {
+          "match": "[a-z]+",
+          "name": "invalid"
+        }
+      ]
+    },
+    {
+      "begin": "^\\b(import)\\s+((open)\\s+)?",
+      "beginCaptures": {
+        "1": {
+          "name": "keyword.other.elm"
+        },
+        "3": {
+          "name": "invalid"
+        }
+      },
+      "end": "($|;)",
+      "name": "meta.import.elm",
+      "patterns": [
+        {
+          "match": "(as|exposing)",
+          "name": "keyword.import.elm"
+        },
+        {
+          "match": "\\(\\.\\.\\)",
+          "name": "keyword.import.elm"
+        },
+        {
+          "include": "#module_name"
+        },
+        {
+          "include": "#module_exports"
+        }
+      ]
+    },
+    {
+      "begin": "(\\[)(markdown)(\\|)",
+      "beginCaptures": {
+        "1": {
+          "name": "keyword.other.elm"
+        },
+        "2": {
+          "name": "support.function.prelude.elm"
+        },
+        "3": {
+          "name": "keyword.other.elm"
+        }
+      },
+      "end": "(\\|\\])",
+      "endCaptures": {
+        "1": {
+          "name": "keyword.other.elm"
+        }
+      },
+      "name": "entity.markdown.elm",
+      "patterns": [
+        {
+          "include": "text.html.basic"
+        }
+      ]
+    },
+    {
+      "match": "\\b(type|case|of|let|in|as|port|exposing|alias|infixl|infixr|infix|hiding|export|foreign|perform|deriving)\\s+",
+      "name": "keyword.other.elm"
+    },
+    {
+      "match": "\\b(if|then|else)\\s+",
+      "name": "keyword.control.elm"
+    },
+    {
+      "comment": "Floats are always decimal",
+      "match": "\\b([0-9]+\\.[0-9]+([eE][+-]?[0-9]+)?|[0-9]+[eE][+-]?[0-9]+)\\b",
+      "name": "constant.numeric.float.elm"
+    },
+    {
+      "match": "\\b([0-9]+)\\b",
+      "name": "constant.numeric.elm"
+    },
+    {
+      "include": "#std_library"
+    },
+    {
+      "begin": "\"\"\"",
+      "beginCaptures": {
+        "0": {
+          "name": "punctuation.definition.string.begin.elm"
+        }
+      },
+      "end": "\"\"\"",
+      "endCaptures": {
+        "0": {
+          "name": "punctuation.definition.string.end.elm"
+        }
+      },
+      "name": "string.quoted.triple.elm",
+      "patterns": [
+        {
+          "match": "\\\\(NUL|SOH|STX|ETX|EOT|ENQ|ACK|BEL|BS|HT|LF|VT|FF|CR|SO|SI|DLE|DC1|DC2|DC3|DC4|NAK|SYN|ETB|CAN|EM|SUB|ESC|FS|GS|RS|US|SP|DEL|[abfnrtv\\\\\\\"'\\&]|x[0-9a-fA-F]{1,5})",
+          "name": "constant.character.escape.elm"
+        },
+        {
+          "match": "\\^[A-Z@\\[\\]\\\\\\^_]",
+          "name": "constant.character.escape.control.elm"
+        }
+      ]
+    },
+    {
+      "begin": "\"",
+      "beginCaptures": {
+        "0": {
+          "name": "punctuation.definition.string.begin.elm"
+        }
+      },
+      "end": "\"",
+      "endCaptures": {
+        "0": {
+          "name": "punctuation.definition.string.end.elm"
+        }
+      },
+      "name": "string.quoted.double.elm",
+      "patterns": [
+        {
+          "match": "\\\\(NUL|SOH|STX|ETX|EOT|ENQ|ACK|BEL|BS|HT|LF|VT|FF|CR|SO|SI|DLE|DC1|DC2|DC3|DC4|NAK|SYN|ETB|CAN|EM|SUB|ESC|FS|GS|RS|US|SP|DEL|[abfnrtv\\\\\\\"'\\&]|x[0-9a-fA-F]{1,5})",
+          "name": "constant.character.escape.elm"
+        },
+        {
+          "match": "\\^[A-Z@\\[\\]\\\\\\^_]",
+          "name": "constant.character.escape.control.elm"
+        }
+      ]
+    },
+    {
+      "captures": {
+        "1": {
+          "name": "punctuation.definition.string.begin.elm"
+        },
+        "2": {
+          "name": "constant.character.escape.elm"
+        },
+        "3": {
+          "name": "punctuation.definition.string.end.elm"
+        }
+      },
+      "match": "(?x)\n\t\t\t(')\n\t\t\t(?:\n\t\t\t\t[\\ -\\[\\]-~]\t\t\t\t\t\t\t\t# Basic Char\n\t\t\t  | (\\\\(?:NUL|SOH|STX|ETX|EOT|ENQ|ACK|BEL|BS|HT|LF|VT|FF|CR|SO|SI|DLE\n\t\t\t\t\t|DC1|DC2|DC3|DC4|NAK|SYN|ETB|CAN|EM|SUB|ESC|FS|GS|RS\n\t\t\t\t\t|US|SP|DEL|[abfnrtv\\\\\\\"'\\&]|x[0-9a-fA-F]{1,5}))\t\t# Escapes\n\t\t\t  | (\\^[A-Z@\\[\\]\\\\\\^_])\t\t\t\t\t\t# Control Chars\n\t\t\t)\n\t\t\t(')\n\t\t\t",
+      "name": "string.quoted.single.elm"
+    },
+    {
+      "begin": "^(port\\s+)?([a-z_][a-zA-Z0-9_']*|\\([|!%$+\\-.,=</>]+\\))\\s*((:)([:]+)?)",
+      "beginCaptures": {
+        "1": {
+          "name": "keyword.other.port.elm"
+        },
+        "2": {
+          "name": "entity.name.function.elm"
+        },
+        "4": {
+          "name": "keyword.other.colon.elm"
+        },
+        "5": {
+          "name": "invalid"
+        }
+      },
+      "end": "$\\n?",
+      "name": "meta.function.type-declaration.elm",
+      "patterns": [
+        {
+          "include": "#type_signature"
+        }
+      ]
+    },
+    {
+      "match": "\\b(\\(\\)|\\[\\]|True|False|Int|Char|Bool|String|LT|EQ|GT|Color|Linear|Radial|Just|Nothing|Signal|Under|Over|Through|Text|FPath|FShape|FImage|FElement|FGroup|Solid|Texture|Grad|Flat|Round|Padded|Smooth|Sharp|Clipped|DUp|DDown|DLeft|DRight|DIn|DOut|Image|Container|Flow|Spacer|RawHtml|Custom|Plain|Fitted|Cropped|Tiled|Absolute|Relative|P|Z|N)\\b",
+      "name": "support.constant.elm"
+    },
+    {
+      "match": "\\bport\\s+",
+      "name": "keyword.other.port.elm"
+    },
+    {
+      "match": "\\b[A-Z]\\w*\\b",
+      "name": "constant.other.elm"
+    },
+    {
+      "include": "#comments"
+    },
+    {
+      "match": "^[a-z][A-Za-z0-9_']*\\s+",
+      "name": "entity.name.function.elm"
+    },
+    {
+      "match": "\\b(show|abs|acos|always|asin|atan|atan2|ceiling|clamp|compare|cos|curry|degrees|div|e|flip|floor|fromPolar|fst|id|isInfinite|isNaN|logBase|max|min|mod|not|otherwise|pi|radians|rem|round|sin|snd|sqrt|tan|toFloat|toPolar|truncate|turns|uncurry|xor|black|blue|brown|charcoal|complement|darkBlue|darkBrown|darkCharcoal|darkGray|darkGreen|darkGrey|darkOrange|darkPurple|darkRed|darkYellow|gray|grayscale|green|grey|greyscale|hsv|hsva|lightBlue|lightBrown|lightCharcoal|lightGray|lightGreen|lightGrey|lightOrange|lightPurple|lightRed|lightYellow|linear|orange|purple|radial|red|rgb|rgba|white|yellow|all|and|any|concat|concatMap|drop|filter|foldl|foldl1|foldr|foldr1|head|intersperse|isEmpty|join|last|length|map|maximum|minimum|or|partition|product|repeat|reverse|scanl|scanl1|sort|sortBy|sortWith|sum|tail|take|unzip|zip|zipWith|cons|isJust|isNothing|justs|maybe|combine|constant|count|countIf|dropIf|dropRepeats|dropWhen|foldp|keepIf|keepWhen|lift|lift2|lift3|lift4|lift5|lift6|lift7|lift8|merge|merges|sampleOn|asText|bold|centered|color|defaultStyle|height|italic|justified|leftAligned|line|link|markdown|monospace|plainText|rightAligned|style|toText|typeface|delay|every|fps|fpsWhen|hour|inHours|inMilliseconds|inMinutes|inSeconds|millisecond|minute|second|since|timestamp|alpha|circle|collage|dashed|defaultLine|dotted|filled|form|gradient|group|groupTransform|move|moveX|moveY|ngon|outlined|oval|path|polygon|rect|rotate|scale|segment|solid|sprite|square|textured|toForm|traced|above|absolute|below|beside|bottomLeft|bottomLeftAt|bottomRight|bottomRightAt|color|container|croppedImage|down|empty|fittedImage|flow|height|heightOf|image|inward|layers|left|link|midBottom|midBottomAt|midLeft|midLeftAt|midRight|midRightAt|midTop|midTopAt|middle|middleAt|opacity|outward|relative|right|size|sizeOf|spacer|tag|tiledImage|topLeft|topLeftAt|topRight|topRightAt|up|width|widthOf)\\s+",
+      "name": "support.function.prelude.elm"
+    },
+    {
+      "include": "#infix_op"
+    },
+    {
+      "match": "[|!%$?~+:\\-.=</>&\\\\*^]+",
+      "name": "keyword.operator.elm"
+    },
+    {
+      "match": ",",
+      "name": "punctuation.separator.comma.elm"
+    }
+  ],
+  "repository": {
+    "block_comment": {
+      "applyEndPatternLast": 1,
+      "begin": "\\{-(?!#)",
+      "captures": {
+        "0": {
+          "name": "punctuation.definition.comment.elm"
+        }
+      },
+      "end": "-\\}",
+      "name": "comment.block.elm",
+      "patterns": [
+        {
+          "include": "#block_comment"
+        }
+      ]
+    },
+    "comments": {
+      "patterns": [
+        {
+          "captures": {
+            "1": {
+              "name": "punctuation.definition.comment.elm"
+            }
+          },
+          "begin": "--",
+          "end": "$",
+          "name": "comment.line.double-dash.elm"
+        },
+        {
+          "include": "#block_comment"
+        }
+      ]
+    },
+    "infix_op": {
+      "match": "(\\([|!%$+:\\-.=</>]+\\)|\\(,+\\))",
+      "name": "entity.name.function.infix.elm"
+    },
+    "module_exports": {
+      "begin": "\\(",
+      "end": "\\)",
+      "name": "meta.declaration.exports.elm",
+      "patterns": [
+        {
+          "match": "\\b[a-z][a-zA-Z_'0-9]*",
+          "name": "entity.name.function.elm"
+        },
+        {
+          "match": "\\b[A-Z][A-Za-z_'0-9]*",
+          "name": "storage.type.elm"
+        },
+        {
+          "match": ",",
+          "name": "punctuation.separator.comma.elm"
+        },
+        {
+          "include": "#infix_op"
+        },
+        {
+          "comment": "So named because I don't know what to call this.",
+          "match": "\\(.*?\\)",
+          "name": "meta.other.unknown.elm"
+        }
+      ]
+    },
+    "module_name": {
+      "match": "[A-Z][A-Za-z._']*",
+      "name": "support.other.module.elm"
+    },
+    "type_signature": {
+      "patterns": [
+        {
+          "captures": {
+            "1": {
+              "name": "entity.other.inherited-class.elm"
+            },
+            "2": {
+              "name": "variable.other.generic-type.elm"
+            },
+            "3": {
+              "name": "keyword.other.big-arrow.elm"
+            }
+          },
+          "match": "\\(\\s*([A-Z][A-Za-z]*)\\s+([a-z][A-Za-z_']*)\\)\\s*(=>)",
+          "name": "meta.class-constraint.elm"
+        },
+        {
+          "match": "->",
+          "name": "keyword.other.arrow.elm"
+        },
+        {
+          "match": "=>",
+          "name": "keyword.other.big-arrow.elm"
+        },
+        {
+          "match": "\\b(Int|Float|Char|Bool|String|True|False|Order|Color|Gradient|Maybe|Signal|Line|Text|Style|Time|BasicForm|FillStyle|LineCap|LineJoin|Form|LineStyle|Path|Shape|Direction|ElementPrim|ImageStyle|Pos|Three|Element|Position|Properties)\\b",
+          "name": "support.type.prelude.elm"
+        },
+        {
+          "match": "\\b[a-z][a-zA-Z0-9_']*\\b",
+          "name": "variable.other.generic-type.elm"
+        },
+        {
+          "match": "\\b[A-Z][a-zA-Z0-9_']*\\b",
+          "name": "storage.type.elm"
+        },
+        {
+          "match": "\\(\\)",
+          "name": "support.constant.unit.elm"
+        },
+        {
+          "include": "#comments"
+        }
+      ]
+    },
+    "std_library": {
+      "patterns": [
+        {
+          "include": "#basics"
+        },
+        {
+          "include": "#bitwise"
+        },
+        {
+          "include": "#char"
+        },
+        {
+          "include": "#color"
+        },
+        {
+          "include": "#date"
+        },
+        {
+          "include": "#debug"
+        },
+        {
+          "include": "#dict"
+        },
+        {
+          "include": "#either"
+        },
+        {
+          "include": "#http"
+        },
+        {
+          "include": "#javascript"
+        },
+        {
+          "include": "#json"
+        },
+        {
+          "include": "#keyboard"
+        },
+        {
+          "include": "#list"
+        },
+        {
+          "include": "#maybe"
+        },
+        {
+          "include": "#mouse"
+        },
+        {
+          "include": "#random"
+        },
+        {
+          "include": "#regex"
+        },
+        {
+          "include": "#set"
+        },
+        {
+          "include": "#signal"
+        },
+        {
+          "include": "#string"
+        },
+        {
+          "include": "#text"
+        },
+        {
+          "include": "#time"
+        },
+        {
+          "include": "#touch"
+        },
+        {
+          "include": "#trampoline"
+        },
+        {
+          "include": "#transform2d"
+        },
+        {
+          "include": "#websocket"
+        },
+        {
+          "include": "#window"
+        },
+        {
+          "include": "#graphics.collage"
+        },
+        {
+          "include": "#graphics.element"
+        },
+        {
+          "include": "#graphics.input"
+        },
+        {
+          "include": "#graphics.input.field"
+        },
+        {
+          "include": "#javascript.experimental"
+        }
+      ]
+    },
+    "basics": {
+      "captures": {
+        "1": {
+          "name": "variable.parameter"
+        },
+        "2": {
+          "name": "variable.parameter"
+        },
+        "3": {
+          "name": "support.function.elm"
+        }
+      },
+      "match": "\\b(Basics)(.)(abs|acos|always|asin|atan|atan2|ceiling|clamp|compare|cos|curry|degrees|div|e|flip|floor|fromPolar|fst|id|isInfinite|isNaN|logBase|max|min|mod|not|otherwise|pi|radians|rem|round|sin|snd|sqrt|tan|toFloat|toPolar|truncate|turns|uncurry|xor|Order)\\b",
+      "name": "variable.parameter"
+    },
+    "bitwise": {
+      "captures": {
+        "1": {
+          "name": "variable.parameter"
+        },
+        "2": {
+          "name": "variable.parameter"
+        },
+        "3": {
+          "name": "support.function.elm"
+        }
+      },
+      "match": "\\b(Bitwise)(.)(and|complement|or|shiftLeft|shiftRight|shiftRightLogical|xor)\\b",
+      "name": "variable.parameter"
+    },
+    "char": {
+      "captures": {
+        "1": {
+          "name": "variable.parameter"
+        },
+        "2": {
+          "name": "variable.parameter"
+        },
+        "3": {
+          "name": "support.function.elm"
+        }
+      },
+      "match": "\\b(Char)(.)(fromCode|isDigit|isHexDigit|isLower|isOctDigit|isUpper|toCode|toLocaleLower|toLocaleUpper|toLower|toUpper|KeyCode)\\b",
+      "name": "variable.parameter"
+    },
+    "color": {
+      "captures": {
+        "1": {
+          "name": "variable.parameter"
+        },
+        "2": {
+          "name": "variable.parameter"
+        },
+        "3": {
+          "name": "support.function.elm"
+        }
+      },
+      "match": "\\b(Color)(.)(black|blue|brown|charcoal|complement|darkBlue|darkBrown|darkCharcoal|darkGray|darkGreen|darkGrey|darkOrange|darkPurple|darkRed|darkYellow|gray|grayscale|green|grey|greyscale|hsv|hsva|lightBlue|lightBrown|lightCharcoal|lightGray|lightGreen|lightGrey|lightOrange|lightPurple|lightRed|lightYellow|linear|orange|purple|radial|red|rgb|rgba|white|yellow|Color|Gradient)\\b",
+      "name": "variable.parameter"
+    },
+    "date": {
+      "captures": {
+        "1": {
+          "name": "variable.parameter"
+        },
+        "2": {
+          "name": "variable.parameter"
+        },
+        "3": {
+          "name": "support.function.elm"
+        }
+      },
+      "match": "\\b(Date)(.)(day|dayOfWeek|fromTime|hour|minute|month|read|second|toTime|year|Date|Day|Month)\\b",
+      "name": "variable.parameter"
+    },
+    "debug": {
+      "captures": {
+        "1": {
+          "name": "variable.parameter"
+        },
+        "2": {
+          "name": "variable.parameter"
+        },
+        "3": {
+          "name": "support.function.elm"
+        }
+      },
+      "match": "\\b(Debug)(.)(log)\\b",
+      "name": "variable.parameter"
+    },
+    "dict": {
+      "captures": {
+        "1": {
+          "name": "variable.parameter"
+        },
+        "2": {
+          "name": "variable.parameter"
+        },
+        "3": {
+          "name": "support.function.elm"
+        }
+      },
+      "match": "\\b(Dict)(.)(diff|empty|findWithDefault|foldl|foldr|fromList|insert|intersect|keys|lookup|map|member|remove|singleton|toList|union|update|values)\\b",
+      "name": "variable.parameter"
+    },
+    "either": {
+      "captures": {
+        "1": {
+          "name": "variable.parameter"
+        },
+        "2": {
+          "name": "variable.parameter"
+        },
+        "3": {
+          "name": "support.function.elm"
+        }
+      },
+      "match": "\\b(Either)(.)(either|isLeft|isRight|lefts|partition|rights|Either)\\b",
+      "name": "variable.parameter"
+    },
+    "http": {
+      "captures": {
+        "1": {
+          "name": "variable.parameter"
+        },
+        "2": {
+          "name": "variable.parameter"
+        },
+        "3": {
+          "name": "support.function.elm"
+        }
+      },
+      "match": "\\b(Http)(.)(get|post|request|send|sendGet|Request|Response)\\b",
+      "name": "variable.parameter"
+    },
+    "javascript": {
+      "captures": {
+        "1": {
+          "name": "variable.parameter"
+        },
+        "2": {
+          "name": "variable.parameter"
+        },
+        "3": {
+          "name": "support.function.elm"
+        }
+      },
+      "match": "\\b(JavaScript)(.)(fromBool|fromFloat|fromInt|fromList|fromString|toBool|toFloat|toInt|toList|toString|JSArray|JSBool|JSDomNode|JSNumber|JSObject|JSString)\\b",
+      "name": "variable.parameter"
+    },
+    "json": {
+      "captures": {
+        "1": {
+          "name": "variable.parameter"
+        },
+        "2": {
+          "name": "variable.parameter"
+        },
+        "3": {
+          "name": "support.function.elm"
+        }
+      },
+      "match": "\\b(Json)(.)(fromJSObject|fromJSString|fromString|toJSObject|toJSString|toString|JsonValue)\\b",
+      "name": "variable.parameter"
+    },
+    "keyboard": {
+      "captures": {
+        "1": {
+          "name": "variable.parameter"
+        },
+        "2": {
+          "name": "variable.parameter"
+        },
+        "3": {
+          "name": "support.function.elm"
+        }
+      },
+      "match": "\\b(Keyboard)(.)(arrows|ctrl|directions|enter|isDown|keysDown|lastPressed|shift|space|wasd|KeyCode)\\b",
+      "name": "variable.parameter"
+    },
+    "list": {
+      "captures": {
+        "1": {
+          "name": "variable.parameter"
+        },
+        "2": {
+          "name": "variable.parameter"
+        },
+        "3": {
+          "name": "support.function.elm"
+        }
+      },
+      "match": "\\b(List)(.)(all|and|any|concat|concatMap|drop|filter|foldl|foldl1|foldr|foldr1|head|intersperse|isEmpty|join|last|length|map|maximum|minimum|or|partition|product|repeat|reverse|scanl|scanl1|sort|sortBy|sortWith|sum|tail|take|unzip|zip|zipWith)\\b",
+      "name": "variable.parameter"
+    },
+    "maybe": {
+      "captures": {
+        "1": {
+          "name": "variable.parameter"
+        },
+        "2": {
+          "name": "variable.parameter"
+        },
+        "3": {
+          "name": "support.function.elm"
+        }
+      },
+      "match": "\\b(Maybe)(.)(cons|isJust|isNothing|justs|maybe|Maybe)\\b",
+      "name": "variable.parameter"
+    },
+    "mouse": {
+      "captures": {
+        "1": {
+          "name": "variable.parameter"
+        },
+        "2": {
+          "name": "variable.parameter"
+        },
+        "3": {
+          "name": "support.function.elm"
+        }
+      },
+      "match": "\\b(Mouse)(.)(clicks|isDown|position|x|y)\\b",
+      "name": "variable.parameter"
+    },
+    "random": {
+      "captures": {
+        "1": {
+          "name": "variable.parameter"
+        },
+        "2": {
+          "name": "variable.parameter"
+        },
+        "3": {
+          "name": "support.function.elm"
+        }
+      },
+      "match": "\\b(Random)(.)(float|floatList|range)\\b",
+      "name": "variable.parameter"
+    },
+    "regex": {
+      "captures": {
+        "1": {
+          "name": "variable.parameter"
+        },
+        "2": {
+          "name": "variable.parameter"
+        },
+        "3": {
+          "name": "support.function.elm"
+        }
+      },
+      "match": "\\b(Regex)(.)(caseInsensitive|contains|escape|find|regex|replace|split|Match|HowMany|Regex)\\b",
+      "name": "variable.parameter"
+    },
+    "set": {
+      "captures": {
+        "1": {
+          "name": "variable.parameter"
+        },
+        "2": {
+          "name": "variable.parameter"
+        },
+        "3": {
+          "name": "support.function.elm"
+        }
+      },
+      "match": "\\b(Set)(.)(diff|empty|foldl|foldr|fromList|insert|intersect|map|member|remove|singleton|toList|union)\\b",
+      "name": "variable.parameter"
+    },
+    "signal": {
+      "captures": {
+        "1": {
+          "name": "variable.parameter"
+        },
+        "2": {
+          "name": "variable.parameter"
+        },
+        "3": {
+          "name": "support.function.elm"
+        }
+      },
+      "match": "\\b(Signal)(.)(combine|constant|count|countIf|dropIf|dropRepeats|dropWhen|foldp|keepIf|keepWhen|lift|lift2|lift3|lift4|lift5|lift6|lift7|lift8|merge|merges|sampleOn|Signal)\\b",
+      "name": "variable.parameter"
+    },
+    "string": {
+      "captures": {
+        "1": {
+          "name": "variable.parameter"
+        },
+        "2": {
+          "name": "variable.parameter"
+        },
+        "3": {
+          "name": "support.function.elm"
+        }
+      },
+      "match": "\\b(String)(.)(all|any|append|concat|cons|contains|dropLeft|dropRight|endsWith|filter|foldl|foldr|fromList|indexes|indices|isEmpty|join|left|length|lines|map|pad|padLeft|padRight|repeat|reverse|right|show|split|startsWith|sub|toFloat|toInt|toList|toLower|toUpper|trim|trimLeft|trimRight|uncons|words)\\b",
+      "name": "variable.parameter"
+    },
+    "text": {
+      "captures": {
+        "1": {
+          "name": "variable.parameter"
+        },
+        "2": {
+          "name": "variable.parameter"
+        },
+        "3": {
+          "name": "support.function.elm"
+        }
+      },
+      "match": "\\b(Text)(.)(asText|bold|centered|color|defaultStyle|height|italic|justified|leftAligned|line|link|markdown|monospace|plainText|rightAligned|style|toText|typeface|Style|Line|Text)\\b",
+      "name": "variable.parameter"
+    },
+    "time": {
+      "captures": {
+        "1": {
+          "name": "variable.parameter"
+        },
+        "2": {
+          "name": "variable.parameter"
+        },
+        "3": {
+          "name": "support.function.elm"
+        }
+      },
+      "match": "\\b(Time)(.)(delay|every|fps|fpsWhen|hour|inHours|inMilliseconds|inMinutes|inSeconds|millisecond|minute|second|since|timestamp|Time)\\b",
+      "name": "variable.parameter"
+    },
+    "touch": {
+      "captures": {
+        "1": {
+          "name": "variable.parameter"
+        },
+        "2": {
+          "name": "variable.parameter"
+        },
+        "3": {
+          "name": "support.function.elm"
+        }
+      },
+      "match": "\\b(Touch)(.)(taps|touches|Touch)\\b",
+      "name": "variable.parameter"
+    },
+    "trampoline": {
+      "captures": {
+        "1": {
+          "name": "variable.parameter"
+        },
+        "2": {
+          "name": "variable.parameter"
+        },
+        "3": {
+          "name": "support.function.elm"
+        }
+      },
+      "match": "\\b(Trampoline)(.)(trampoline|Trampoline)\\b",
+      "name": "variable.parameter"
+    },
+    "transform2d": {
+      "captures": {
+        "1": {
+          "name": "variable.parameter"
+        },
+        "2": {
+          "name": "variable.parameter"
+        },
+        "3": {
+          "name": "support.function.elm"
+        }
+      },
+      "match": "\\b(Transform2D)(.)(identity|matrix|multiply|rotation|scale|scaleX|scaleY|translation|Transform2D)\\b",
+      "name": "variable.parameter"
+    },
+    "websocket": {
+      "captures": {
+        "1": {
+          "name": "variable.parameter"
+        },
+        "2": {
+          "name": "variable.parameter"
+        },
+        "3": {
+          "name": "support.function.elm"
+        }
+      },
+      "match": "\\b(WebSocket)(.)(connect)\\b",
+      "name": "variable.parameter"
+    },
+    "window": {
+      "captures": {
+        "1": {
+          "name": "variable.parameter"
+        },
+        "2": {
+          "name": "variable.parameter"
+        },
+        "3": {
+          "name": "support.function.elm"
+        }
+      },
+      "match": "\\b(Window)(.)(dimensions|height|width)\\b",
+      "name": "variable.parameter"
+    },
+    "graphics.collage": {
+      "captures": {
+        "1": {
+          "name": "variable.parameter"
+        },
+        "2": {
+          "name": "variable.parameter"
+        },
+        "3": {
+          "name": "support.function.elm"
+        }
+      },
+      "match": "\\b(Graphics.Collage)(.)(alpha|circle|collage|dashed|defaultLine|dotted|filled|form|gradient|group|groupTransform|move|moveX|moveY|ngon|outlined|oval|path|polygon|rect|rotate|scale|segment|solid|sprite|square|textured|toForm|traced|Form|LineStyle|Path|Shape|BasicForm|FillStyle|LineCap|LineJoin)\\b",
+      "name": "variable.parameter"
+    },
+    "graphics.element": {
+      "captures": {
+        "1": {
+          "name": "variable.parameter"
+        },
+        "2": {
+          "name": "variable.parameter"
+        },
+        "3": {
+          "name": "support.function.elm"
+        }
+      },
+      "match": "\\b(Graphics.Element)(.)(above|absolute|below|beside|bottomLeft|bottomLeftAt|bottomRight|bottomRightAt|color|container|croppedImage|down|empty|fittedImage|flow|height|heightOf|image|inward|layers|left|link|midBottom|midBottomAt|midLeft|midLeftAt|midRight|midRightAt|midTop|midTopAt|middle|middleAt|opacity|outward|relative|right|size|sizeOf|spacer|tag|tiledImage|topLeft|topLeftAt|topRight|topRightAt|up|width|widthOf|Element|Position|Properties|Direction|ElementPrim|ImageStyle|Pos|Three)\\b",
+      "name": "variable.parameter"
+    },
+    "graphics.input": {
+      "captures": {
+        "1": {
+          "name": "variable.parameter"
+        },
+        "2": {
+          "name": "variable.parameter"
+        },
+        "3": {
+          "name": "support.function.elm"
+        }
+      },
+      "match": "\\b(Graphics.Input)(.)(button|checkbox|clickable|customButton|dropDown|hoverable|input|Input|Handle)\\b",
+      "name": "variable.parameter"
+    },
+    "graphics.input.field": {
+      "captures": {
+        "1": {
+          "name": "variable.parameter"
+        },
+        "2": {
+          "name": "variable.parameter"
+        },
+        "3": {
+          "name": "support.function.elm"
+        }
+      },
+      "match": "\\b(Graphics.Input.Field)(.)(defaultStyle|email|field|noContent|noHighlight|noOutline|password|uniformly|Content|Dimensions|Highlight|Outline|Selection|Style|Direction)\\b",
+      "name": "variable.parameter"
+    },
+    "javascript.experimental": {
+      "captures": {
+        "1": {
+          "name": "variable.parameter"
+        },
+        "2": {
+          "name": "variable.parameter"
+        },
+        "3": {
+          "name": "support.function.elm"
+        }
+      },
+      "match": "\\b(JavaScript.Experimental)(.)(fromRecord|toRecord)\\b",
+      "name": "variable.parameter"
+    }
+  },
+  "scopeName": "source.elm"
+}

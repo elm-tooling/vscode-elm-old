@@ -1,0 +1,25 @@
+{
+	"name": "elm",
+	"description": "Syntax highlighting for elm",
+	"version": "0.0.1",
+	"publisher": "sbrink",
+	"engines": {
+		"vscode": "^0.10.1"
+	},
+	"categories": [
+		"Languages"
+	],
+	"contributes": {
+		"languages": [{
+			"id": "elm",
+			"aliases": ["Elm", "elm"],
+			"extensions": [".elm"],
+			"configuration": "./elm.configuration.json"
+		}],
+		"grammars": [{
+			"language": "elm",
+			"scopeName": "source.elm",
+			"path": "./syntaxes/elm.json"
+		}]
+	}
+}
