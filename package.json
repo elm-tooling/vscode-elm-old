@@ -1,7 +1,7 @@
 {
 	"name": "elm",
 	"description": "Elm support for VS Code",
-	"version": "0.0.5",
+	"version": "0.0.6",
 	"publisher": "sbrink",
 	"author": {
 		"name": "Sascha Brink"

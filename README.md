@@ -2,6 +2,8 @@
 
 Elm needs a good IDE. So let's extend VS Code and make developing in [elm](http://elm-lang.org) even more enjoyable.
 
+![Error highlighting](images/errorHighlighting.gif)
+
 ## Current features
 
 * Syntax highlighting
@@ -13,6 +15,7 @@ Elm needs a good IDE. So let's extend VS Code and make developing in [elm](http:
 * Autocompletion
 * Add more useful code snippets
 * Refactoring support
+
 
 ## Help wanted
 
