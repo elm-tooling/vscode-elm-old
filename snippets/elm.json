@@ -1,0 +1,96 @@
+{
+  ".source.elm": {
+    "number -> number": {
+      "prefix": "negate",
+      "body": "negate ${1:number}"
+    },
+    "Float -> Float": {
+      "prefix": "turns",
+      "body": "turns ${1:float}"
+    },
+    "a -> b -> a": {
+      "prefix": "always",
+      "body": "always ${1:a} ${2:b}"
+    },
+    "Float -> Float -> Float": {
+      "prefix": "logBase",
+      "body": "logBase ${1:float} ${2:float}"
+    },
+    "Float -> Int": {
+      "prefix": "truncate",
+      "body": "truncate ${1:float}"
+    },
+    "number -> number -> number -> number": {
+      "prefix": "clamp",
+      "body": "clamp ${1:number} ${2:number} ${3:number}"
+    },
+    "comparable -> comparable -> Order": {
+      "prefix": "compare",
+      "body": "compare ${1:comparable} ${2:comparable}"
+    },
+    "((a,b) -> c) -> a -> b -> c": {
+      "prefix": "curry",
+      "body": "curry ${1:function} ${2:a} ${3:b}"
+    },
+    "Float": {
+      "prefix": "pi",
+      "body": "pi"
+    },
+    "(a -> b -> c) -> (b -> a -> c)": {
+      "prefix": "flip",
+      "body": "flip ${1:function} ${2:function}"
+    },
+    "(Float,Float) -> (Float,Float)": {
+      "prefix": "toPolar",
+      "body": "toPolar ${1:tuple}"
+    },
+    "(a,b) -> a": {
+      "prefix": "fst",
+      "body": "fst ${1:tuple}"
+    },
+    "a -> a": {
+      "prefix": "identity",
+      "body": "identity ${1:a}"
+    },
+    "Float -> Bool": {
+      "prefix": "isNaN",
+      "body": "isNaN ${1:float}"
+    },
+    "comparable -> comparable -> comparable": {
+      "prefix": "min",
+      "body": "min ${1:comparable} ${2:comparable}"
+    },
+    "Bool -> Bool": {
+      "prefix": "not",
+      "body": "not ${1:bool}"
+    },
+    "Bool": {
+      "prefix": "otherwise",
+      "body": "otherwise"
+    },
+    "Int -> Int -> Int": {
+      "prefix": "rem",
+      "body": "rem ${1:int} ${2:int}"
+    },
+    "(a,b) -> b": {
+      "prefix": "snd",
+      "body": "snd ${1:tuple}"
+    },
+    "Int -> Float": {
+      "prefix": "toFloat",
+      "body": "toFloat ${1:int}"
+    },
+    "a -> String": {
+      "prefix": "toString",
+      "body": "toString ${1:a}"
+    },
+    "(a -> b -> c) -> (a,b) -> c": {
+      "prefix": "uncurry",
+      "body": "uncurry ${1:function} ${2:tuple}"
+    },
+    "Bool -> Bool -> Bool": {
+      "prefix": "xor",
+      "body": "xor ${1:bool} ${2:bool}"
+    }
+  }
+}

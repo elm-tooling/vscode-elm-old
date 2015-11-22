@@ -1,7 +1,7 @@
 {
 	"name": "elm",
 	"description": "Syntax highlighting for elm",
-	"version": "0.0.2",
+	"version": "0.0.3",
 	"publisher": "sbrink",
 	"author": {
 		"name": "Sascha Brink"
@@ -11,7 +11,8 @@
 		"vscode": "^0.10.1"
 	},
 	"categories": [
-		"Languages"
+		"Languages",
+		"Snippets"
 	],
 	"private": true,
 	"repository": {
@@ -29,6 +30,10 @@
 			"language": "elm",
 			"scopeName": "source.elm",
 			"path": "./syntaxes/elm.json"
+		}],
+		"snippets": [{
+			"language": "elm",
+			"path": "./snippets/elm.json"
 		}]
 	}
 }
