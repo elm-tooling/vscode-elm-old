@@ -36,7 +36,30 @@ export function checkForErrors(filename): Promise<ICheckResult[]> {
 			vscode.window.showInformationMessage("The 'elm-make' compiler is not available.  Install Elm from http://elm-lang.org/.");
 			return resolve([]);
 		}
-		console.log('stdout', stdout.toString());
+		if (stderr) {
+			let errorResult: ICheckResult = {
+				tag: 'error',
+				overview: '',
+				subregion: '',
+				details: stderr.toString(),
+				region: {
+					start: {
+						line: 1,
+						column: 1
+					},
+					end:{
+						line: 1,
+						column: 1
+					}
+				},
+				type: 'error',
+				file: filename
+			}
+			resolve([errorResult])
+		}
+
+		// console.log('stderror', stderr.toString());
+		// console.log('stdout', stdout.toString());
 		let lines:ICheckResult[] = JSON.parse(stdout.toString());
 		resolve(lines);
 	  } catch(e) {
@@ -89,6 +112,7 @@ export function activate(disposables: vscode.Disposable[]) {
 //    }, undefined, disposables);
 
     vscode.workspace.onDidOpenTextDocument(document => {
+		console.log('OPENED')
         createDiagnostics(document)
     });
 
