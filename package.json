@@ -1,78 +1,100 @@
 {
-	"name": "elm",
-	"description": "Elm Language Support for Visual Studio Code",
-	"version": "0.1.1",
-	"publisher": "sbrink",
-	"author": {
-		"name": "Sascha Brink"
-	},
-    "icon": "images/elmIcon.png",
-	"engines": {
-		"vscode": "^0.10.1"
-	},
-	"categories": [
-		"Languages",
-		"Snippets"
-	],
-	"private": true,
-	"repository": {
-		"type": "git",
-		"url": "https://github.com/sbrink/vscode-elm.git"
-	},
-	"contributes": {
-		"languages": [{
-			"id": "elm",
-			"aliases": ["Elm", "elm"],
-			"extensions": [".elm"],
-			"configuration": "./elm.configuration.json"
-		}],
-    "commands": [{
-			"command": "elm.replStart",
-			"title": "Elm: REPL - Start"
-		},{
-			"command": "elm.replSendLine",
-			"title": "Elm: REPL - Send Line"
-		},{
-			"command": "elm.replSendSelection",
-			"title": "Elm: REPL - Send Selection"
-		},{
-			"command": "elm.replSendFile",
-			"title": "Elm: REPL - Send File"
-		}],
-		"outputChannels": [
-			"Elm REPL"
-		],
-		"keybindings": [{
+  "name": "elm",
+  "description": "Elm Language Support for Visual Studio Code",
+  "version": "0.1.1",
+  "publisher": "sbrink",
+  "author": {
+    "name": "Sascha Brink"
+  },
+  "icon": "images/elmIcon.png",
+  "galleryBanner": {
+    "color": "#232323",
+    "theme": "dark"
+  },
+  "engines": {
+    "vscode": "^0.10.1"
+  },
+  "categories": [
+    "Languages",
+    "Snippets"
+  ],
+  "private": true,
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/sbrink/vscode-elm.git"
+  },
+  "contributes": {
+    "languages": [
+      {
+        "id": "elm",
+        "aliases": [
+          "Elm",
+          "elm"
+        ],
+        "extensions": [
+          ".elm"
+        ],
+        "configuration": "./elm.configuration.json"
+      }
+    ],
+    "commands": [
+      {
+        "command": "elm.replStart",
+        "title": "Elm: REPL - Start"
+      },
+      {
+        "command": "elm.replSendLine",
+        "title": "Elm: REPL - Send Line"
+      },
+      {
+        "command": "elm.replSendSelection",
+        "title": "Elm: REPL - Send Selection"
+      },
+      {
+        "command": "elm.replSendFile",
+        "title": "Elm: REPL - Send File"
+      }
+    ],
+    "outputChannels": [
+      "Elm REPL"
+    ],
+    "keybindings": [
+      {
         "command": "elm.replSendLine",
         "key": "alt+/",
         "mac": "alt+/"
-    },
-		{
-				"command": "elm.replSendSelection",
-				"key": "alt+Enter",
-				"mac": "alt+Enter"
-		}],
-		"grammars": [{
-			"language": "elm",
-			"scopeName": "source.elm",
-			"path": "./syntaxes/elm.json"
-		}],
-		"snippets": [{
-			"language": "elm",
-			"path": "./snippets/elm.json"
-		}]
-	},
-	"activationEvents": [
-		"onLanguage:elm",
+      },
+      {
+        "command": "elm.replSendSelection",
+        "key": "alt+Enter",
+        "mac": "alt+Enter"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "elm",
+        "scopeName": "source.elm",
+        "path": "./syntaxes/elm.json"
+      }
+    ],
+    "snippets": [
+      {
+        "language": "elm",
+        "path": "./snippets/elm.json"
+      }
+    ]
+  },
+  "activationEvents": [
+    "onLanguage:elm",
     "onCommand:elm.replStart"
-	],
-	"main": "./out/src/elmMain",
-	"scripts": {
-		"vscode:prepublish": "node ./node_modules/vscode/bin/compile",
-		"compile": "node ./node_modules/vscode/bin/compile -watch -p ./"
-	},
-	"devDependencies": {
-		"typescript": "^1.6.2",
-		"vscode": "0.10.x"
-	}
+  ],
+  "main": "./out/src/elmMain",
+  "scripts": {
+    "vscode:prepublish": "node ./node_modules/vscode/bin/compile",
+    "compile": "node ./node_modules/vscode/bin/compile -watch -p ./"
+  },
+  "devDependencies": {
+    "typescript": "^1.6.2",
+    "vscode": "0.10.x"
+  }
 }
