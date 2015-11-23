@@ -7,5 +7,5 @@ export function activate(ctx: vscode.ExtensionContext) {
   ctx.subscriptions.push(vscode.workspace.onDidSaveTextDocument((document: vscode.TextDocument) => {
     runLinter(document);
   }));
-  activateRepl().forEach( d => ctx.subscriptions.push(d))
+  activateRepl().forEach((d: vscode.Disposable) => ctx.subscriptions.push(d));
 }
