@@ -1,21 +1,56 @@
 # Elm support for Visual Studio Code
 
-Elm needs a good IDE. So let's extend VS Code and make developing in [elm](http://elm-lang.org) even more enjoyable.
+Elm needs a good IDE. So let's extend VS Code and make developing in [elm](http://elm-lang.org) even more enjoyable. Currently 3 people are actively maintaining/developing this plugin.
 
 ![Error highlighting](images/errorHighlighting.gif)
 
-## Current features
 
-* Syntax highlighting
-* [Snippets](snippets/elm.json)
-* **Experimental** support for error highlighting
+## Feature overview
 
-## Todo
+* [x] Syntax highlighting
+* [x] [Snippets](snippets/elm.json)
+* [x] **Experimental** support for error highlighting
+* [x] REPL - Run any line in an interactive shell
+* [ ] TODO: Autocompletion
+* [ ] TODO: Add more useful code snippets
+* [ ] TODO: Refactoring support
 
-* Autocompletion
-* Add more useful code snippets
-* Refactoring support
 
+## Feature details
+
+### Syntax highlighting
+
+Syntax highlighting is essential. The full language is supported. Can we improve the highlighting further? Please create an [issue](https://github.com/sbrink/vscode-elm/issues)!
+
+### Error highlighting
+
+![Error highlighting](images/errorHighlighting.gif)
+
+We support error highlighting **on save**. If you check *Auto save* under File, you should get feedback immediately.
+
+This is marked **experimental** because we still have to improve the project detection.
+We'll solve this in the next days.
+
+### REPL
+
+![Error highlighting](images/repl.gif)
+
+Not sure about the output of a function? Test it from inside the editor.
+
+Open the actions menu and use one of the following commands:
+
+* Elm: REPL - Start
+* Elm: REPL - Send Line
+* Elm: REPL - Send Selection
+* Elm: REPL - Send File
+
+
+### Snippets
+
+We support snippets for the basic language features. To use them, press `Ctrl+Space` and start typing.
+Or start with some characters and use `Ctrl+Space` for autocompletion.
+
+Want to know more? Look at the [snippet definitions](snippets/elm.json)
 
 ## Help wanted
 

@@ -8,7 +8,7 @@
 	},
     "icon": "images/elmIcon.png",
 	"engines": {
-		"vscode": "^0.10.1"
+		"vscode": "^0.10.2"
 	},
 	"categories": [
 		"Languages",
