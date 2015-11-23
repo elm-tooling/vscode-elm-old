@@ -26,6 +26,32 @@
 			"extensions": [".elm"],
 			"configuration": "./elm.configuration.json"
 		}],
+    "commands": [{
+			"command": "elm.replStart",
+			"title": "Elm: REPL - Start"
+		},{
+			"command": "elm.replSendLine",
+			"title": "Elm: REPL - Send Line"
+		},{
+			"command": "elm.replSendSelection",
+			"title": "Elm: REPL - Send Selection"
+		},{
+			"command": "elm.replSendFile",
+			"title": "Elm: REPL - Send File"
+		}],
+		"outputChannels": [
+			"Elm REPL"
+		],
+		"keybindings": [{
+        "command": "elm.replSendLine",
+        "key": "alt+/",
+        "mac": "alt+/"
+    },
+		{
+				"command": "elm.replSendSelection",
+				"key": "alt+Enter",
+				"mac": "alt+Enter"
+		}],
 		"grammars": [{
 			"language": "elm",
 			"scopeName": "source.elm",
@@ -37,7 +63,8 @@
 		}]
 	},
 	"activationEvents": [
-		"onLanguage:elm"
+		"onLanguage:elm",
+    "onCommand:elm.replStart"
 	],
 	"main": "./out/src/elmMain",
 	"scripts": {
