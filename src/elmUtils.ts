@@ -17,3 +17,14 @@ export function execCmd(cmd: string, opt: {}): Promise<string> {
     }
   });
 }
+  
+  
+export function getIndicesOf(searchStr : string, str : string) : number[] {
+  var startIndex = 0, searchStrLen = searchStr.length;
+  var index, indices = [];
+  while ((index = str.indexOf(searchStr, startIndex)) > -1) {
+    indices.push(index);
+    startIndex = index + searchStrLen;
+  }
+  return indices;
+}
