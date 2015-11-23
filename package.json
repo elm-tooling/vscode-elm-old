@@ -1,14 +1,14 @@
 {
 	"name": "elm",
 	"description": "Elm Language Support for Visual Studio Code",
-	"version": "0.1.0",
+	"version": "0.1.1",
 	"publisher": "sbrink",
 	"author": {
 		"name": "Sascha Brink"
 	},
     "icon": "images/elmIcon.png",
 	"engines": {
-		"vscode": "^0.10.2"
+		"vscode": "^0.10.1"
 	},
 	"categories": [
 		"Languages",
