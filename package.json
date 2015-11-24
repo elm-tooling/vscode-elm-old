@@ -16,12 +16,16 @@
   },
   "categories": [
     "Languages",
-    "Snippets"
+    "Snippets",
+    "Linters"
   ],
   "private": true,
   "repository": {
     "type": "git",
     "url": "https://github.com/sbrink/vscode-elm.git"
+  },
+  "bugs": {
+    "url": "https://github.com/sbrink/vscode-elm/issues"
   },
   "contributes": {
     "configuration": {
