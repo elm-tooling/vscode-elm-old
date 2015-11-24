@@ -1,7 +1,7 @@
 {
   "name": "elm",
   "description": "Elm Language Support for Visual Studio Code",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "publisher": "sbrink",
   "author": {
     "name": "Sascha Brink"
@@ -39,7 +39,7 @@
                 "description": "Set the port of the Elm Reactor server."
             }
         }
-    },    
+    },
     "languages": [
       {
         "id": "elm",
