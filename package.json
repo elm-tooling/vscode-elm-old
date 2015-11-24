@@ -24,6 +24,22 @@
     "url": "https://github.com/sbrink/vscode-elm.git"
   },
   "contributes": {
+    "configuration": {
+        "type": "object",
+        "title": "Elm configuration",
+        "properties": {
+            "elm.reactorHost": {
+                "type": "string",
+                "default": "127.0.0.1",
+                "description": "Set the address of the Elm Reactor server."
+            },
+            "elm.reactorPort": {
+                "type": "numver",
+                "default": 8000,
+                "description": "Set the port of the Elm Reactor server."
+            }
+        }
+    },    
     "languages": [
       {
         "id": "elm",
@@ -53,6 +69,14 @@
       {
         "command": "elm.replSendFile",
         "title": "Elm: REPL - Send File"
+      },
+      {
+        "command": "elm.reactorStart",
+        "title": "Elm: Reactor - Start"
+      },
+      {
+        "command": "elm.reactorStop",
+        "title": "Elm: Reactor - Stop"
       }
     ],
     "outputChannels": [
@@ -86,7 +110,8 @@
   },
   "activationEvents": [
     "onLanguage:elm",
-    "onCommand:elm.replStart"
+    "onCommand:elm.replStart",
+    "onCommand:elm.reactorStart"
   ],
   "main": "./out/src/elmMain",
   "scripts": {
