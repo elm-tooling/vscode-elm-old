@@ -1,7 +1,7 @@
 {
   "name": "elm",
   "description": "Elm Language Support for Visual Studio Code",
-  "version": "0.1.2",
+  "version": "0.2.0",
   "publisher": "sbrink",
   "author": {
     "name": "Sascha Brink"
@@ -25,20 +25,20 @@
   },
   "contributes": {
     "configuration": {
-        "type": "object",
-        "title": "Elm configuration",
-        "properties": {
-            "elm.reactorHost": {
-                "type": "string",
-                "default": "127.0.0.1",
-                "description": "Set the address of the Elm Reactor server."
-            },
-            "elm.reactorPort": {
-                "type": "numver",
-                "default": 8000,
-                "description": "Set the port of the Elm Reactor server."
-            }
+      "type": "object",
+      "title": "Elm configuration",
+      "properties": {
+        "elm.reactorHost": {
+          "type": "string",
+          "default": "127.0.0.1",
+          "description": "Set the address of the Elm Reactor server."
+        },
+        "elm.reactorPort": {
+          "type": "numver",
+          "default": 8000,
+          "description": "Set the port of the Elm Reactor server."
         }
+      }
     },
     "languages": [
       {
@@ -121,5 +121,8 @@
   "devDependencies": {
     "typescript": "^1.6.2",
     "vscode": "0.10.x"
+  },
+  "dependencies": {
+    "elm-oracle": "^0.2.0"
   }
 }

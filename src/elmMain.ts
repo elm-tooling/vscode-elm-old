@@ -2,6 +2,10 @@ import * as vscode from 'vscode';
 import {runLinter} from './elmLinter';
 import {activateRepl} from './elmRepl';
 import {activateReactor} from './elmReactor';
+import {ElmDefinitionProvider} from './elmDefinition';
+import {ElmHoverProvider} from './elmInfo';
+
+const ELM_MODE: vscode.DocumentFilter = { language: 'elm', scheme: 'file' };
 
 // this method is called when your extension is activated
 export function activate(ctx: vscode.ExtensionContext) {
@@ -11,4 +15,6 @@ export function activate(ctx: vscode.ExtensionContext) {
   activateRepl().forEach((d: vscode.Disposable) => ctx.subscriptions.push(d));
   activateReactor().forEach((d: vscode.Disposable) => ctx.subscriptions.push(d));
 
+  ctx.subscriptions.push(vscode.languages.registerHoverProvider(ELM_MODE, new ElmHoverProvider()));
+  // ctx.subscriptions.push(vscode.languages.registerDefinitionProvider(ELM_MODE, new ElmDefinitionProvider()));
 }

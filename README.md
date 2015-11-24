@@ -10,6 +10,7 @@ Elm needs a good IDE. So let's extend VS Code and make developing in [elm](http:
 * [x] Syntax highlighting
 * [x] [Snippets](snippets/elm.json)
 * [x] **Experimental** support for error highlighting
+* [x] Function information
 * [x] REPL - Run any line in an interactive shell
 * [x] Reactor support (Webserver/Debugger) - Starting/Stopping
 * [ ] TODO: Autocompletion
@@ -33,10 +34,15 @@ We support error highlighting **on save**. If you check *Auto save* under File, 
 This is marked **experimental** because we still have to improve the project detection.
 We'll solve this in the next days.
 
+### Function information
+
+![Function info](images/functionInfo.gif)
+
+You can hover over a function and get the signature and comment.
 
 ### REPL
 
-![Error highlighting](images/repl.gif)
+![REPL](images/repl.gif)
 
 Not sure about the output of a function? Test it from inside the editor.
 
@@ -50,7 +56,7 @@ Open the actions menu and use one of the following commands:
 
 ### Reactor support
 
-![Error highlighting](images/reactor.gif)
+![Reactor support](images/reactor.gif)
 
 Reactor is the webserver which comes with Elm.
 
