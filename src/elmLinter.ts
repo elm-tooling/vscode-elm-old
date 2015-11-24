@@ -43,7 +43,7 @@ function checkForErrors(filename): Promise<IElmIssue[]> {
     let cwd: string = path.dirname(filename);
     let cmd: string = 'elm-make ' + filename + ' --report=json --output /dev/null';
 
-    cp.exec(cmd, { cwd: cwd }, (err, stdout, stderr) => {
+    cp.exec(cmd, { cwd: cwd }, (err: Error, stdout: Buffer, stderr: Buffer) => {
       try {
         if (err && (<any>err).code === 'ENOENT') {
           vscode.window.showInformationMessage("The 'elm-make' compiler is not available.  Install Elm from http://elm-lang.org/.");
@@ -81,7 +81,7 @@ function checkForErrors(filename): Promise<IElmIssue[]> {
   });
 }
 
-export function runLinter(document: vscode.TextDocument) {
+export function runLinter(document: vscode.TextDocument): void {
   if (document.languageId !== 'elm') {
     return;
   }
