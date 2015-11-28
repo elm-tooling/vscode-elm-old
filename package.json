@@ -38,9 +38,14 @@
           "description": "Set the address of the Elm Reactor server."
         },
         "elm.reactorPort": {
-          "type": "numver",
+          "type": "number",
           "default": 8000,
           "description": "Set the port of the Elm Reactor server."
+        },
+        "elm.makeOutput": {
+          "type": "string",
+          "default": "elm.js",
+          "description": "Elm Make's output file name (relative to root folder)"
         }
       }
     },
@@ -81,10 +86,16 @@
       {
         "command": "elm.reactorStop",
         "title": "Elm: Reactor - Stop"
+      },
+      {
+        "command": "elm.make",
+        "title": "Elm: Make"
       }
     ],
     "outputChannels": [
-      "Elm REPL"
+      "Elm REPL",
+      "Elm Make",
+      "Elm Reactor"
     ],
     "keybindings": [
       {
@@ -96,6 +107,11 @@
         "command": "elm.replSendSelection",
         "key": "alt+Enter",
         "mac": "alt+Enter"
+      },
+      {
+        "command": "elm.make",
+        "key": "ctrl+f5",
+        "mac": "cmd+f5"
       }
     ],
     "grammars": [
