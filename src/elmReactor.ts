@@ -3,6 +3,7 @@ import * as cp from 'child_process';
 
 let reactor: cp.ChildProcess;
 let oc: vscode.OutputChannel = vscode.window.createOutputChannel('Elm Reactor');
+let statusBarStopButton: vscode.StatusBarItem;
 
 function startReactor(): void {
   try {
@@ -25,6 +26,7 @@ function startReactor(): void {
       }
     });
     oc.show(vscode.ViewColumn.Three);
+    statusBarStopButton.show();
   } catch (e) {
     console.error('Starting Elm reactor failed', e);
     vscode.window.showErrorMessage('Starting Elm reactor failed');
@@ -35,13 +37,19 @@ function stopReactor(): void {
   if (reactor) {
     reactor.kill();
     reactor = null;
+    statusBarStopButton.hide();
+    oc.dispose();
+    oc.hide();
   } else {
     vscode.window.showInformationMessage('Elm Reactor not running');
   }
-
 }
 
 export function activateReactor(): vscode.Disposable[] {
+  statusBarStopButton = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left);
+  statusBarStopButton.text = '$(primitive-square)';
+  statusBarStopButton.command = 'elm.reactorStop';
+  statusBarStopButton.tooltip = 'Stop reactor';
   return [
     vscode.commands.registerCommand('elm.reactorStart', startReactor),
     vscode.commands.registerCommand('elm.reactorStop', stopReactor)];
