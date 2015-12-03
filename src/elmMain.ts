@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import {runLinter} from './elmLinter';
 import {activateRepl} from './elmRepl';
 import {activateReactor} from './elmReactor';
+import {activateMake} from './elmMake';
 import {ElmDefinitionProvider} from './elmDefinition';
 import {ElmHoverProvider} from './elmInfo';
 
@@ -14,6 +15,7 @@ export function activate(ctx: vscode.ExtensionContext) {
   }));
   activateRepl().forEach((d: vscode.Disposable) => ctx.subscriptions.push(d));
   activateReactor().forEach((d: vscode.Disposable) => ctx.subscriptions.push(d));
+  activateMake().forEach((d: vscode.Disposable) => ctx.subscriptions.push(d));
 
   ctx.subscriptions.push(vscode.languages.registerHoverProvider(ELM_MODE, new ElmHoverProvider()));
   // ctx.subscriptions.push(vscode.languages.registerDefinitionProvider(ELM_MODE, new ElmDefinitionProvider()));
