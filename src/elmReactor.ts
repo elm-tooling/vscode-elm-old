@@ -16,7 +16,7 @@ function startReactor(): void {
     const host: string = <string>config.get('reactorHost');
     const port: string = <string>config.get('reactorPort');
     reactor = cp.spawn('elm', ['reactor', '-a=' + host, '-p=' + port], { cwd: vscode.workspace.rootPath,
-                                                                         detached: process.platform != "win32" });
+                                                                         detached: !isWindows });
     reactor.stdout.on('data', (data: Buffer) => {
       if (data && data.toString().startsWith('| ') === false) {
         oc.append(data.toString());
