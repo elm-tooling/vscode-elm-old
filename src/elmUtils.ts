@@ -17,11 +17,11 @@ export function execCmd(cmd: string, opt: {}): Promise<string> {
       });
     } catch (e) {
       reject(e);
-    }
+    } 
   });
 }
 
-function findProj(dir: string): string {
+export function findProj(dir: string): string {
   if (fs.lstatSync(dir).isDirectory())
   {
     const files = fs.readdirSync(dir);
