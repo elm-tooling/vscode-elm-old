@@ -1,4 +1,7 @@
 import * as cp from 'child_process';
+import * as vscode from 'vscode';
+import * as fs from 'fs'
+import * as path from 'path'
 
 export function execCmd(cmd: string, opt: {}): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -14,11 +17,41 @@ export function execCmd(cmd: string, opt: {}): Promise<string> {
       });
     } catch (e) {
       reject(e);
-    }
+    } 
   });
 }
-  
-  
+
+export function findProj(dir: string): string {
+  if (fs.lstatSync(dir).isDirectory())
+  {
+    const files = fs.readdirSync(dir);
+    const file = files.find((v, i) => v == "elm-package.json");
+    if (file != undefined) return dir + path.sep + file;
+    var parent = "";
+    if (dir.lastIndexOf(path.sep) > 0) {
+      parent = dir.substr(0, dir.lastIndexOf(path.sep));
+    }
+    if (parent == "")
+    {
+      return "";
+    }
+    else {
+      return findProj(parent);
+    }
+
+  }
+}
+
+export function detectProjectRoot(editor: vscode.TextEditor): string {
+  const proj = findProj(path.dirname(editor.document.fileName));
+  if (proj !== "")
+  {
+    return path.dirname(proj);
+  }
+  return undefined;
+}
+
+
 export function getIndicesOf(searchStr : string, str : string) : number[] {
   var startIndex = 0, searchStrLen = searchStr.length;
   var index, indices = [];
