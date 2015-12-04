@@ -4,6 +4,7 @@ import * as cp from 'child_process';
 let reactor: cp.ChildProcess;
 let oc: vscode.OutputChannel = vscode.window.createOutputChannel('Elm Reactor');
 let statusBarStopButton: vscode.StatusBarItem;
+let isWindows = process.platform == "win32";
 
 function startReactor(): void {
   try {
@@ -14,7 +15,8 @@ function startReactor(): void {
     const config: vscode.WorkspaceConfiguration = vscode.workspace.getConfiguration('elm');
     const host: string = <string>config.get('reactorHost');
     const port: string = <string>config.get('reactorPort');
-    reactor = cp.spawn('elm', ['reactor', '-a=' + host, '-p=' + port], { cwd: vscode.workspace.rootPath });
+    reactor = cp.spawn('elm', ['reactor', '-a=' + host, '-p=' + port], { cwd: vscode.workspace.rootPath,
+                                                                         detached: !isWindows });
     reactor.stdout.on('data', (data: Buffer) => {
       if (data && data.toString().startsWith('| ') === false) {
         oc.append(data.toString());
@@ -35,7 +37,11 @@ function startReactor(): void {
 
 function stopReactor(): void {
   if (reactor) {
-    reactor.kill();
+    if (isWindows) {
+      cp.spawn('taskkill', ['/pid', reactor.pid.toString(), '/f', '/t' ])
+    } else {
+      process.kill(-reactor.pid, 'SIGKILL');
+    }  
     reactor = null;
     statusBarStopButton.hide();
     oc.dispose();
