@@ -3,6 +3,8 @@
 import {HoverProvider, Hover, TextDocument, Position, Range, CancellationToken} from 'vscode';
 import * as cp from 'child_process';
 import * as path from 'path';
+import {pluginPath, detectProjectRoot} from './elmUtils';
+import * as vscode from 'vscode';
 
 interface IOracleResult {
   name: string;
@@ -17,11 +19,13 @@ export class ElmHoverProvider implements HoverProvider {
     return new Promise((resolve: Function, reject: Function) => {
       let p: cp.ChildProcess;
       let filename: string = document.fileName;
-      let filePath: string = path.dirname(filename);
+      let cwd = detectProjectRoot(vscode.window.activeTextEditor) || vscode.workspace.rootPath;
+      let fn = path.relative(cwd, filename)
       let wordAtPosition: Range = document.getWordRangeAtPosition(position);
       let currentWord: string = document.getText(wordAtPosition);
+      let oracle = pluginPath + path.sep + 'node_modules' + path.sep + '.bin' + path.sep + 'elm-oracle \"' + fn + '\" ' + currentWord;
 
-      p = cp.execFile('elm-oracle', [filename, currentWord], { cwd: filePath }, (err: Error, stdout: Buffer, stderr: Buffer) => {
+      p = cp.exec('node ' + oracle, { cwd: cwd }, (err: Error, stdout: Buffer, stderr: Buffer) => {
         try {
           if (err) {
             return resolve(null);

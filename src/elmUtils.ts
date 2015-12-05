@@ -3,6 +3,8 @@ import * as vscode from 'vscode';
 import * as fs from 'fs'
 import * as path from 'path'
 
+export const isWindows = process.platform == "win32";
+
 export function execCmd(cmd: string, opt: {}): Promise<string> {
   return new Promise((resolve, reject) => {
     try {
@@ -17,7 +19,7 @@ export function execCmd(cmd: string, opt: {}): Promise<string> {
       });
     } catch (e) {
       reject(e);
-    } 
+    }
   });
 }
 
@@ -61,3 +63,5 @@ export function getIndicesOf(searchStr : string, str : string) : number[] {
   }
   return indices;
 }
+
+export const pluginPath = (isWindows ? process.env["USERPROFILE"] : process.env["HOME"]) + path.sep + '.vscode' + path.sep + 'extensions' + path.sep + 'sbrink.elm'
