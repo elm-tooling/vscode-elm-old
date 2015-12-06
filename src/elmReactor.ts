@@ -1,10 +1,10 @@
 import * as vscode from 'vscode';
 import * as cp from 'child_process';
+import {isWindows} from './elmUtils';
 
 let reactor: cp.ChildProcess;
 let oc: vscode.OutputChannel = vscode.window.createOutputChannel('Elm Reactor');
 let statusBarStopButton: vscode.StatusBarItem;
-let isWindows = process.platform == "win32";
 
 function startReactor(): void {
   try {
@@ -41,7 +41,7 @@ function stopReactor(): void {
       cp.spawn('taskkill', ['/pid', reactor.pid.toString(), '/f', '/t' ])
     } else {
       process.kill(-reactor.pid, 'SIGKILL');
-    }  
+    }
     reactor = null;
     statusBarStopButton.hide();
     oc.dispose();
