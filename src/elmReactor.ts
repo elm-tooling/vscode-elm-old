@@ -8,10 +8,8 @@ let statusBarStopButton: vscode.StatusBarItem;
 
 function startReactor(): void {
   try {
-    if (reactor) {
-      reactor.kill();
-      oc.clear();
-    }
+    stopReactor(/*notify*/ false);
+    
     const config: vscode.WorkspaceConfiguration = vscode.workspace.getConfiguration('elm');
     const host: string = <string>config.get('reactorHost');
     const port: string = <string>config.get('reactorPort');
@@ -35,7 +33,7 @@ function startReactor(): void {
   }
 }
 
-function stopReactor(): void {
+function stopReactor(notify: boolean): void {
   if (reactor) {
     if (isWindows) {
       cp.spawn('taskkill', ['/pid', reactor.pid.toString(), '/f', '/t' ])
@@ -47,7 +45,9 @@ function stopReactor(): void {
     oc.dispose();
     oc.hide();
   } else {
-    vscode.window.showInformationMessage('Elm Reactor not running');
+    if (notify) {
+      vscode.window.showInformationMessage('Elm Reactor not running');
+    }  
   }
 }
 
@@ -58,5 +58,5 @@ export function activateReactor(): vscode.Disposable[] {
   statusBarStopButton.tooltip = 'Stop reactor';
   return [
     vscode.commands.registerCommand('elm.reactorStart', startReactor),
-    vscode.commands.registerCommand('elm.reactorStop', stopReactor)];
+    vscode.commands.registerCommand('elm.reactorStop', () => stopReactor(/*notify*/ true))];
 }
