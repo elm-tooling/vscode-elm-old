@@ -60,3 +60,7 @@ export function activateReactor(): vscode.Disposable[] {
     vscode.commands.registerCommand('elm.reactorStart', startReactor),
     vscode.commands.registerCommand('elm.reactorStop', () => stopReactor(/*notify*/ true))];
 }
+
+export function deactivateReactor(): void {
+  stopReactor(/*notify*/ false);
+}
