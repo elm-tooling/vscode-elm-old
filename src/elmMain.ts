@@ -21,7 +21,7 @@ export function activate(ctx: vscode.ExtensionContext) {
 
   ctx.subscriptions.push(vscode.languages.setLanguageConfiguration('elm', configuration))
   ctx.subscriptions.push(vscode.languages.registerHoverProvider(ELM_MODE, new ElmHoverProvider()));
-  ctx.subscriptions.push(vscode.languages.registerCompletionItemProvider(ELM_MODE, new ElmCompletionProvider(), ['.'] ))
+  ctx.subscriptions.push(vscode.languages.registerCompletionItemProvider(ELM_MODE, new ElmCompletionProvider(), '.'))
 
   // ctx.subscriptions.push(vscode.languages.registerDefinitionProvider(ELM_MODE, new ElmDefinitionProvider()));
 }
