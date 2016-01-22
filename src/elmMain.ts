@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import {runLinter} from './elmLinter';
 import {activateRepl} from './elmRepl';
-import {activateReactor} from './elmReactor';
+import {activateReactor, deactivateReactor} from './elmReactor';
 import {activateMake} from './elmMake';
 import {ElmDefinitionProvider} from './elmDefinition';
 import {ElmHoverProvider} from './elmInfo';
@@ -24,4 +24,8 @@ export function activate(ctx: vscode.ExtensionContext) {
   ctx.subscriptions.push(vscode.languages.registerCompletionItemProvider(ELM_MODE, new ElmCompletionProvider(), '.'))
 
   // ctx.subscriptions.push(vscode.languages.registerDefinitionProvider(ELM_MODE, new ElmDefinitionProvider()));
+}
+
+export function deactivate() {
+  deactivateReactor();
 }
