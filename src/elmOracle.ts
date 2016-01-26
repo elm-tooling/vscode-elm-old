@@ -19,8 +19,8 @@ export function GetOracleResults(document: vscode.TextDocument, position: vscode
       let fn = path.relative(cwd, filename)
       let wordAtPosition = document.getWordRangeAtPosition(position);
       let currentWord: string = document.getText(wordAtPosition);
-      let oracle = pluginPath + path.sep + 'node_modules' + path.sep + '.bin' + path.sep + 'elm-oracle \"' + fn + '\" ' + currentWord;
-
+      let oracle = pluginPath + path.sep + 'node_modules' + path.sep + 'elm-oracle' + path.sep + 'bin' + path.sep + 'elm-oracle \"' + fn + '\" ' + currentWord;
+    
       p = cp.exec('node ' + oracle, { cwd: cwd }, (err: Error, stdout: Buffer, stderr: Buffer) => {
         try {
           if (err) {
