@@ -6,6 +6,7 @@ import {activateMake} from './elmMake';
 import {ElmDefinitionProvider} from './elmDefinition';
 import {ElmHoverProvider} from './elmInfo';
 import {ElmCompletionProvider} from './elmAutocomplete';
+import {ElmSymbolProvider} from './elmSymbol';
 import {configuration} from './elmConfiguration';
 
 const ELM_MODE: vscode.DocumentFilter = { language: 'elm', scheme: 'file' };
@@ -21,7 +22,8 @@ export function activate(ctx: vscode.ExtensionContext) {
 
   ctx.subscriptions.push(vscode.languages.setLanguageConfiguration('elm', configuration))
   ctx.subscriptions.push(vscode.languages.registerHoverProvider(ELM_MODE, new ElmHoverProvider()));
-  ctx.subscriptions.push(vscode.languages.registerCompletionItemProvider(ELM_MODE, new ElmCompletionProvider(), '.'))
+  ctx.subscriptions.push(vscode.languages.registerCompletionItemProvider(ELM_MODE, new ElmCompletionProvider(), '.'));
+  ctx.subscriptions.push(vscode.languages.registerDocumentSymbolProvider(ELM_MODE, new ElmSymbolProvider()));
 
   // ctx.subscriptions.push(vscode.languages.registerDefinitionProvider(ELM_MODE, new ElmDefinitionProvider()));
 }
