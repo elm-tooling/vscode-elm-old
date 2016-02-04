@@ -15,7 +15,7 @@ export function GetOracleResults(document: vscode.TextDocument, position: vscode
   return new Promise((resolve: Function, reject: Function) => {
       let p: cp.ChildProcess;
       let filename: string = document.fileName;
-      let cwd = detectProjectRoot(vscode.window.activeTextEditor) || vscode.workspace.rootPath;
+      let cwd = detectProjectRoot(document.fileName) || vscode.workspace.rootPath;
       let fn = path.relative(cwd, filename)
       let wordAtPosition = document.getWordRangeAtPosition(position);
       let currentWord: string = document.getText(wordAtPosition);

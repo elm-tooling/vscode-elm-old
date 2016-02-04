@@ -17,7 +17,7 @@ function runMake(editor : vscode.TextEditor) : void {
     const file = editor.document.fileName
     const config: vscode.WorkspaceConfiguration = vscode.workspace.getConfiguration('elm');
     const name: string = <string>config.get('makeOutput');
-    const cwd: string = utils.detectProjectRoot(vscode.window.activeTextEditor) || vscode.workspace.rootPath;
+    const cwd: string = utils.detectProjectRoot(file) || vscode.workspace.rootPath;
     make = cp.spawn('elm-make', [file,'--yes', '--output=' + name], {cwd: cwd})
     make.stdout.on('data', (data: Buffer) => {
       if (data) {

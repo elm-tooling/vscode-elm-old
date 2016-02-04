@@ -44,8 +44,8 @@ export function findProj(dir: string): string {
   }
 }
 
-export function detectProjectRoot(editor: vscode.TextEditor): string {
-  const proj = findProj(path.dirname(editor.document.fileName));
+export function detectProjectRoot(fileName: string): string {
+  const proj = findProj(path.dirname(fileName));
   if (proj !== "")
   {
     return path.dirname(proj);
