@@ -1,31 +1,54 @@
-//
-// Note: This example test is leveraging the Mocha test framework.
-// Please refer to their documentation on https://mochajs.org/ for help.
-//
-
-// The module 'assert' provides assertion methods from node
 import * as assert from 'assert';
-
-// You can import and use all API from the 'vscode' module
-// as well as import your extension to test it
-import * as vscode from 'vscode';
-import * as elmMain from './../src/elmMain';
-import * as elmUtils from './../src/elmUtils';
 import * as path from 'path'
+import * as vscode from 'vscode';
+import { window } from 'vscode';
+import { execCmd, findProj } from '../src/elmUtils';
 
-// Defines a Mocha test suite to group tests of similar kind together
-suite("Extension Tests", () => {
+suite("ElmUtils.execCmd", () => {
 
-	// Defines a Mocha unit test
+  suite("Non-existant command", () => {
+
+    test("With showMessageOnError: false, rejects", () => {
+      return execCmd("cmdThatDoesntExist").then(
+        () => { assert.fail("Command should reject not resolve"); },
+        () => { /* Do nothing, this is what we want */ }
+      );
+    });
+
+    test("With showMessageOnError: true, shows message and doesn't resolve or reject", (done) => {
+      // poor-man's spy
+      let shownMsg, _showErrorMessage = window.showErrorMessage
+      window.showErrorMessage = function(msg) {
+        shownMsg = msg;
+        return Promise.resolve(undefined);
+      }
+
+      execCmd("cmdThatDoesntExist", { showMessageOnError: true }).then(
+        () => { assert.fail("Command should not resolve"); },
+        () => { assert.fail("Command should not reject"); }
+      ).catch(e => { throw e });
+      
+      setTimeout(() => {
+        assert.equal(shownMsg,
+          "cmdThatDoesntExist is not available in your path. " +
+          "Install Elm from http://elm-lang.org/.");
+        window.showErrorMessage = _showErrorMessage;
+        done();
+      }, 1000);
+    });
+  });
+});
+
+suite("ElmUtils.findProj", () => {
+
   test("findProj finds the correct folder", () => {
     var expected = path.join(__dirname, '../../test/fixtures/elm-package.json');
-    console.log(expected);
-    var check = (p:string) => {
+    var check = (p: string) => {
       var resolvedDir = path.join(__dirname, '../../', p);
-      return elmUtils.findProj(resolvedDir);
+      return findProj(resolvedDir);
     }
     assert.equal(check('test/fixtures/src'), expected);
     assert.equal(check('test/fixtures'), expected);
     assert.equal(check('test'), '');
-	});
+  });
 });
