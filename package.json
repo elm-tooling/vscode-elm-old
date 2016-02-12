@@ -1,7 +1,7 @@
 {
   "name": "elm",
   "description": "Elm Language Support for Visual Studio Code",
-  "version": "0.4.1",
+  "version": "0.5.0",
   "publisher": "sbrink",
   "author": {
     "name": "Sascha Brink"
@@ -90,12 +90,17 @@
       {
         "command": "elm.make",
         "title": "Elm: Make"
+      },
+      {
+        "command": "elm.install",
+        "title": "Elm: Install dependencies"
       }
     ],
     "outputChannels": [
       "Elm REPL",
       "Elm Make",
-      "Elm Reactor"
+      "Elm Reactor",
+      "Elm Pakcage"
     ],
     "keybindings": [
       {
