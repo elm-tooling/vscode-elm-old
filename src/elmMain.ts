@@ -3,6 +3,7 @@ import {runLinter} from './elmLinter';
 import {activateRepl} from './elmRepl';
 import {activateReactor, deactivateReactor} from './elmReactor';
 import {activateMake} from './elmMake';
+import {activatePackage} from './elmPackage';
 import {ElmDefinitionProvider} from './elmDefinition';
 import {ElmHoverProvider} from './elmInfo';
 import {ElmCompletionProvider} from './elmAutocomplete';
@@ -19,6 +20,7 @@ export function activate(ctx: vscode.ExtensionContext) {
   activateRepl().forEach((d: vscode.Disposable) => ctx.subscriptions.push(d));
   activateReactor().forEach((d: vscode.Disposable) => ctx.subscriptions.push(d));
   activateMake().forEach((d: vscode.Disposable) => ctx.subscriptions.push(d));
+  activatePackage().forEach((d: vscode.Disposable) => ctx.subscriptions.push(d));
 
   ctx.subscriptions.push(vscode.languages.setLanguageConfiguration('elm', configuration))
   ctx.subscriptions.push(vscode.languages.registerHoverProvider(ELM_MODE, new ElmHoverProvider()));
