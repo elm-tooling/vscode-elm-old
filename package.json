@@ -136,11 +136,12 @@
   "main": "./out/src/elmMain",
   "scripts": {
     "vscode:prepublish": "node ./node_modules/vscode/bin/compile",
-    "compile": "node ./node_modules/vscode/bin/compile -watch -p ./"
+    "compile": "node ./node_modules/vscode/bin/compile -watch -p ./",
+    "test": "node ./node_modules/vscode/bin/test"
   },
   "devDependencies": {
     "typescript": "^1.6.2",
-    "vscode": "0.10.x"
+    "vscode": "^0.10.7"
   },
   "dependencies": {
     "elm-oracle": "^0.2.0"
