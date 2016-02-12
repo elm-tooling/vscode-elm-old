@@ -41,7 +41,7 @@ function elmMakeIssueToDiagnostic(issue: IElmIssue): vscode.Diagnostic {
 function checkForErrors(filename): Promise<IElmIssue[]> {
   return new Promise((resolve, reject) => {
     const cwd: string = utils.detectProjectRoot(vscode.window.activeTextEditor) || vscode.workspace.rootPath;
-    let cmd: string = 'elm-make ' + filename + ' --report=json --output /dev/null';
+    let cmd: string = 'elm-make "' + filename + '" --report=json --output /dev/null';
 
     cp.exec(cmd, { cwd: cwd }, (err: Error, stdout: Buffer, stderr: Buffer) => {
       try {
