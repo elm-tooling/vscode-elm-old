@@ -6,9 +6,8 @@ export class ElmCompletionProvider implements vscode.CompletionItemProvider {
     return oracle.GetOracleResults(document, position)
       .then((result) => {
         var r = result.map((v, i, arr) => {
-          var ci : vscode.CompletionItem = new vscode.CompletionItem();
+          var ci : vscode.CompletionItem = new vscode.CompletionItem(v.fullName);
           ci.kind = 0;
-          ci.label = v.fullName;
           ci.insertText = v.fullName;
           ci.detail = v.signature;
           ci.documentation = v.comment;

@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/sbrink/vscode-elm.svg?branch=master)](https://travis-ci.org/sbrink/vscode-elm)
+
 # Elm support for Visual Studio Code
 
 Elm needs a good IDE. So let's extend VS Code and make developing in [elm](http://elm-lang.org) even more enjoyable. Currently 3 people are actively maintaining/developing this plugin.
