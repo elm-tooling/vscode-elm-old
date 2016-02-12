@@ -64,4 +64,4 @@ export function getIndicesOf(searchStr : string, str : string) : number[] {
   return indices;
 }
 
-export const pluginPath = (isWindows ? process.env["USERPROFILE"] : process.env["HOME"]) + path.sep + '.vscode' + path.sep + 'extensions' + path.sep + 'sbrink.elm'
+export const pluginPath = (isWindows ? process.env["USERPROFILE"] : process.env["HOME"]) + path.sep + '.vscode' + path.sep + 'extensions' + path.sep + 'sbrink.elm-0.3.0'
