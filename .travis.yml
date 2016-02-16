@@ -12,6 +12,9 @@ before_install:
     fi
     
 install:
+  - node --version
+  - npm --version
+  - npm install -g elm
   - npm install
   - npm run vscode:prepublish
     

@@ -1,76 +1,76 @@
 import * as vscode from 'vscode';
-import * as cp from 'child_process';
-import {getIndicesOf} from './elmUtils';
+import { TextEditor, window, workspace } from 'vscode'
+import { execCmd, ExecutingCmd } from './elmUtils';
 
-let repl: cp.ChildProcess;
+let repl = {} as ExecutingCmd;
 let oc: vscode.OutputChannel = vscode.window.createOutputChannel('Elm REPL');
 
-function startRepl(): void {
-  if (repl) {
-    repl.kill();
-    oc.clear();
-  }
-  repl = cp.spawn('elm', ['repl'], { cwd: vscode.workspace.rootPath });
-  repl.stdout.on('data', (data: Buffer) => {
-    if (data && data.toString().startsWith('| ') === false) {
-      oc.append(data.toString());
-    }
-  });
-  repl.stderr.on('data', (data: Buffer) => {
-    if (data) {
-      oc.append(data.toString());
-    }
-  });
-  oc.show(vscode.ViewColumn.Three);
-}
+function startRepl(fileName: string, forceRestart = false)
+  : Promise<(data: string) => void> {
 
-function send(msg: string) {
-  if (!repl) {
-    startRepl();
-  }
-  const indices: number = msg.indexOf('\n');
-  if (indices === -1) {
-    oc.append(msg + '\n');
-    repl.stdin.write(msg + '\n', 'utf-8');
+  if (repl.isRunning) {
+    return Promise.resolve(repl.writeToInput);
   }
   else {
-    msg.split('\r\n').forEach((m) => {
-      let a: string = m + '\\\n';
-      oc.append(m + '\n');
-      repl.stdin.write(a, 'utf-8');
-    });
-    oc.append('\r\n');
-    repl.stdin.write('\n');
-  }
+    return new Promise((resolve) => {
+      repl = execCmd(
+        'elm-repl',
+        {
+          fileName: fileName,
+          showMessageOnError: true,
+          onStart: () => resolve(repl.writeToInput),
+          
+          // strip output text of leading '>'s and '|'s
+          onStdout: (data) => oc.append(data.replace(/^((>|\|)\s*)+/mg, "")),
+          
+          onStderr: (data) => oc.append(data)
+        }
+      );
+
+      oc.show(vscode.ViewColumn.Three);
+    })
+  }  
 }
 
-function sendLine(editor: vscode.TextEditor) {
+function send(editor: TextEditor, msg: string) {
+
   if (editor.document.languageId !== 'elm') {
     return;
   }
-  const line: vscode.TextLine = editor.document.lineAt(editor.selection.start);
-  send(line.text);
+
+  startRepl(editor.document.fileName).then((writeToRepl) => {
+    const
+      // Multiline input has to have '\' at the end of each line
+      inputMsg = msg.replace(/\n/g, "\\\n") + "\n",
+      // Prettify input for display
+      displayMsg = "> " + msg.replace(/\n/g, "\n| ") + "\n";
+
+    writeToRepl(inputMsg);
+    oc.append(displayMsg);
+    
+    // when the output window is first shown it steals focus
+    // switch it back to the text document
+    window.showTextDocument(editor.document);
+  });
+}
+
+function sendLine(editor: TextEditor) {
+  send(editor, editor.document.lineAt(editor.selection.start).text);
 }
 
 function sendSelection(editor: vscode.TextEditor): void {
-  if (editor.document.languageId !== 'elm') {
-    return;
-  }
-  const range: vscode.Range = new vscode.Range(editor.selection.anchor, editor.selection.active)
-  send(editor.document.getText(range));
+  send(editor, editor.document.getText(editor.selection));
 }
 
 function sendFile(editor: vscode.TextEditor): void {
-  if (editor.document.languageId !== 'elm') {
-    return;
-  }
-  send(editor.document.getText());
+  send(editor, editor.document.getText());
 }
 
 export function activateRepl(): vscode.Disposable[] {
   return [
-    vscode.commands.registerCommand('elm.replStart', startRepl),
+    vscode.commands.registerCommand('elm.replStart', () => startRepl(workspace.rootPath + "/x")),
     vscode.commands.registerTextEditorCommand('elm.replSendLine', sendLine),
     vscode.commands.registerTextEditorCommand('elm.replSendSelection', sendSelection),
-    vscode.commands.registerTextEditorCommand('elm.replSendFile', sendFile)]
+    vscode.commands.registerTextEditorCommand('elm.replSendFile', sendFile)
+  ];
 }
