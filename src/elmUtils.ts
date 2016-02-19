@@ -68,7 +68,7 @@ export function execCmd
           if (options.showMessageOnError) {
             const cmdName = cmd.split(' ', 1)[0]
             const cmdWasNotFound
-              // this (windows) is probably going to fail on non-English systems
+              // Windows method apparently still works on non-English systems
               = isWindows && err.message.includes(`'${cmdName}' is not recognized`)
               || !isWindows && (<any>err).code === 127
 

@@ -136,7 +136,8 @@
   "activationEvents": [
     "onLanguage:elm",
     "onCommand:elm.replStart",
-    "onCommand:elm.reactorStart"
+    "onCommand:elm.reactorStart",
+    "onCommand:elm.install"
   ],
   "main": "./out/src/elmMain",
   "scripts": {
