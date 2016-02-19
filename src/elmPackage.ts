@@ -1,29 +1,16 @@
 import * as vscode from 'vscode';
-import * as cp from 'child_process';
+import { execCmd } from './elmUtils';
 
-let pack: cp.ChildProcess;
 let oc: vscode.OutputChannel = vscode.window.createOutputChannel('Elm Package');
 
-function runInstall(): void {
-  try {
-    const cwd: string = vscode.workspace.rootPath;
-    pack = cp.spawn('elm-package', ['install', '--yes' ], { cwd: cwd })
-    pack.stdout.on('data', (data: Buffer) => {
-        if (data) {
-          oc.append(data.toString());
-        }
-      });
-    pack.stderr.on('data', (data: Buffer) => {
-      if (data) {
-        oc.append(data.toString());
-      }
-    });
-    oc.show(vscode.ViewColumn.Three);
-  }
-  catch(e){
-     console.error('Running Elm Package failed', e);
-     vscode.window.showErrorMessage('Running Elm Package failed');
-  }
+function runInstall(): Thenable<void> {
+  oc.show(vscode.ViewColumn.Three);
+  
+  return execCmd('elm-package install --yes', {
+    onStdout: (data) => oc.append(data),
+    onStderr: (data) => oc.append(data),
+    showMessageOnError: true
+  }).then(() => { });
 }
 
 export function activatePackage(): vscode.Disposable[] {
