@@ -93,7 +93,7 @@
       },
       {
         "command": "elm.install",
-        "title": "Elm: Install dependencies"
+        "title": "Elm: Install packages/dependencies"
       }
     ],
     "outputChannels": [
@@ -150,6 +150,7 @@
     "vscode": "^0.10.7"
   },
   "dependencies": {
-    "elm-oracle": "^0.2.0"
+    "elm-oracle": "^0.2.0",
+    "request": "^2.69.0"
   }
 }
