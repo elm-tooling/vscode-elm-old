@@ -9,6 +9,7 @@ import {ElmHoverProvider} from './elmInfo';
 import {ElmCompletionProvider} from './elmAutocomplete';
 import {ElmSymbolProvider} from './elmSymbol';
 import {configuration} from './elmConfiguration';
+import {ElmFormatProvider} from './elmFormat';
 
 const ELM_MODE: vscode.DocumentFilter = { language: 'elm', scheme: 'file' };
 
@@ -26,6 +27,7 @@ export function activate(ctx: vscode.ExtensionContext) {
   ctx.subscriptions.push(vscode.languages.registerHoverProvider(ELM_MODE, new ElmHoverProvider()));
   ctx.subscriptions.push(vscode.languages.registerCompletionItemProvider(ELM_MODE, new ElmCompletionProvider(), '.'));
   ctx.subscriptions.push(vscode.languages.registerDocumentSymbolProvider(ELM_MODE, new ElmSymbolProvider()));
+  ctx.subscriptions.push(vscode.languages.registerDocumentFormattingEditProvider(ELM_MODE, new ElmFormatProvider()))
 
   // ctx.subscriptions.push(vscode.languages.registerDefinitionProvider(ELM_MODE, new ElmDefinitionProvider()));
 }
