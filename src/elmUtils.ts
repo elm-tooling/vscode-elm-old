@@ -27,8 +27,8 @@ export interface ExecCmdOptions {
  *  and also a wrapper to access ChildProcess-like methods.
  */
 export interface ExecutingCmd extends Promise<{ stdout: string, stderr: string }> {
-  /** Send data to the process's stdin */
-  writeToInput(data: string): void,
+  /** The process's stdin */
+  stdin: NodeJS.WritableStream
   /** End the process */
   kill(),
   /** Is the process running */
@@ -91,7 +91,7 @@ export function execCmd
       }
     }
   });
-  executingCmd.writeToInput = childProcess.stdin.write.bind(childProcess.stdin);
+  executingCmd.stdin = childProcess.stdin;
   executingCmd.kill = killProcess;
   executingCmd.isRunning = true;
 

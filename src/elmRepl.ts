@@ -9,7 +9,7 @@ function startRepl(fileName: string, forceRestart = false)
   : Promise<(data: string) => void> {
 
   if (repl.isRunning) {
-    return Promise.resolve(repl.writeToInput);
+    return Promise.resolve(repl.stdin.write.bind(repl.stdin));
   }
   else {
     return new Promise((resolve) => {
@@ -18,7 +18,7 @@ function startRepl(fileName: string, forceRestart = false)
         {
           fileName: fileName,
           showMessageOnError: true,
-          onStart: () => resolve(repl.writeToInput),
+          onStart: () => resolve(repl.stdin.write.bind(repl.stdin)),
           
           // strip output text of leading '>'s and '|'s
           onStdout: (data) => oc.append(data.replace(/^((>|\|)\s*)+/mg, "")),
