@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import * as cp from 'child_process';
 import * as path from 'path';
 import * as utils from './elmUtils';
+import * as readline from 'readline';
 
 interface IElmIssue {
   tag: string;
@@ -41,43 +42,62 @@ function elmMakeIssueToDiagnostic(issue: IElmIssue): vscode.Diagnostic {
 function checkForErrors(filename): Promise<IElmIssue[]> {
   return new Promise((resolve, reject) => {
     const cwd: string = utils.detectProjectRoot(filename) || vscode.workspace.rootPath;
-    let cmd: string = 'elm-make "' + filename + '" --report=json --output /dev/null';
-
-    cp.exec(cmd, { cwd: cwd }, (err: Error, stdout: Buffer, stderr: Buffer) => {
-      try {
-        if (err && (<any>err).code === 'ENOENT') {
-          vscode.window.showInformationMessage("The 'elm-make' compiler is not available.  Install Elm from http://elm-lang.org/.");
-          return resolve([]);
-        }
-        if (stderr) {
-          let errorResult: IElmIssue = {
-            tag: 'error',
-            overview: '',
-            subregion: '',
-            details: stderr.toString(),
-            region: {
-              start: {
-                line: 1,
-                column: 1
-              },
-              end: {
-                line: 1,
-                column: 1
-              }
-            },
-            type: 'error',
-            file: filename
-          };
-          resolve([errorResult]);
-        }
-
-        let lines: IElmIssue[] = JSON.parse(stdout.toString());
-        resolve(lines);
-      } catch (e) {
-        reject(e);
+    const make: cp.ChildProcess = cp.spawn('elm-make', [filename, '--report', 'json', '--output', '/dev/null'], { cwd: cwd });
+    // output is actually optional
+    // (fixed in https://github.com/Microsoft/vscode/commit/b4917afe9bdee0e9e67f4094e764f6a72a997c70,
+    // but unreleased at this time)
+    const stdoutlines: readline.ReadLine = readline.createInterface({ input: make.stdout, output: undefined });
+    const lines: IElmIssue[] = [];
+    stdoutlines.on('line', (line: string) => {
+      // Ignore compiler success.
+      if (line.startsWith("Successfully generated")) {
+        return;
+      }
+      // Elm writes out JSON arrays of diagnostics, with one array per line.
+      // Multiple lines may be received.
+      lines.push(...<IElmIssue[]>JSON.parse(line))
+    });
+    const stderr: Buffer[] = [];
+    make.stderr.on('data', (data: Buffer) => {
+      if (data) {
+        stderr.push(data);
       }
     });
-
+    make.on('error', (err: Error) => {
+      stdoutlines.close();
+      if (err && (<any>err).code === 'ENOENT') {
+        vscode.window.showInformationMessage("The 'elm-make' compiler is not available.  Install Elm from http://elm-lang.org/.");
+        resolve([]);
+      } else {
+        reject(err);
+      }
+    });
+    make.on('close', (code: number, signal: string) => {
+      stdoutlines.close();
+      if (stderr.length) {
+        let errorResult: IElmIssue = {
+          tag: 'error',
+          overview: '',
+          subregion: '',
+          details: Buffer.concat(stderr).toString(),
+          region: {
+            start: {
+              line: 1,
+              column: 1
+            },
+            end: {
+              line: 1,
+              column: 1
+            }
+          },
+          type: 'error',
+          file: filename
+        };
+        resolve([errorResult]);
+      } else {
+        resolve(lines);
+      }
+    });
   });
 }
 
