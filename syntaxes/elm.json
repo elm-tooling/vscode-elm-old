@@ -31,7 +31,7 @@
           "name": "keyword.other.elm"
         }
       },
-      "end": "\\b(where)\\b",
+      "end": "\\b(where|exposing)\\b",
       "endCaptures": {
         "1": {
           "name": "keyword.other.elm"
