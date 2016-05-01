@@ -31,7 +31,7 @@
           "name": "keyword.other.elm"
         }
       },
-      "end": "\\b(where|exposing)\\b",
+      "end": "\\b(where)\\b|$|;",
       "endCaptures": {
         "1": {
           "name": "keyword.other.elm"
@@ -41,6 +41,10 @@
       "patterns": [
         {
           "include": "#module_name"
+        },
+        {
+          "match": "(exposing)",
+          "name": "keyword.import.elm"
         },
         {
           "include": "#module_exports"
