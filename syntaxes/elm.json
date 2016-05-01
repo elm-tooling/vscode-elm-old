@@ -44,7 +44,7 @@
         },
         {
           "match": "(exposing)",
-          "name": "keyword.import.elm"
+          "name": "keyword.other.elm"
         },
         {
           "include": "#module_exports"
