@@ -18,7 +18,7 @@ export class ElmFormatProvider implements vscode.DocumentFormattingEditProvider 
     
     return format
       .then(({ stdout }) => {
-        const wholeDocument = new Range(0, 0, Number.MAX_VALUE, Number.MAX_VALUE);
+        const wholeDocument = new Range(0, 0, document.lineCount, document.getText().length);
         return [TextEdit.replace(wholeDocument, stdout)];
       })
       .catch((err) => { 
