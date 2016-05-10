@@ -25,7 +25,7 @@
       "name": "constant.language.empty-list.elm"
     },
     {
-      "begin": "^\\b(module)\\s+",
+      "begin": "^\\b((port |effect )?module)\\s+",
       "beginCaptures": {
         "1": {
           "name": "keyword.other.elm"
