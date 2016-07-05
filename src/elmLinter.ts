@@ -42,7 +42,14 @@ function elmMakeIssueToDiagnostic(issue: IElmIssue): vscode.Diagnostic {
 function checkForErrors(filename): Promise<IElmIssue[]> {
   return new Promise((resolve, reject) => {
     const cwd: string = utils.detectProjectRoot(filename) || vscode.workspace.rootPath;
-    const make: cp.ChildProcess = cp.spawn('elm-make', [filename, '--report', 'json', '--output', '/dev/null'], { cwd: cwd });
+    let make: cp.ChildProcess;
+    const args = [filename, '--report', 'json', '--output', '/dev/null'];
+    if (utils.isWindows) {
+      make = cp.exec('elm-make ' + args.join(' '), { cwd: cwd });
+    }
+    else {
+      make = cp.spawn('elm-make', args, { cwd: cwd });
+    }
     // output is actually optional
     // (fixed in https://github.com/Microsoft/vscode/commit/b4917afe9bdee0e9e67f4094e764f6a72a997c70,
     // but unreleased at this time)
