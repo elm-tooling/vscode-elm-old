@@ -5,7 +5,7 @@ import * as utils from './elmUtils';
 let make: cp.ChildProcess;
 let oc: vscode.OutputChannel = vscode.window.createOutputChannel('Elm Make');
 
-function runMake(editor : vscode.TextEditor) : void {
+function execMake(editor : vscode.TextEditor, warn : boolean) : void {
   try {
     if (editor.document.languageId !== 'elm') {
       return;
@@ -18,7 +18,10 @@ function runMake(editor : vscode.TextEditor) : void {
     const config: vscode.WorkspaceConfiguration = vscode.workspace.getConfiguration('elm');
     const name: string = <string>config.get('makeOutput');
     const cwd: string = utils.detectProjectRoot(file) || vscode.workspace.rootPath;
-    const args = [file, '--yes', '--output=' + name];
+    let args = [file, '--yes', '--output=' + name];
+    if (warn) {
+      args.push("--warn");
+    }
     if (utils.isWindows) {
       make = cp.exec('elm-make ' + args.join(' '), { cwd: cwd });
     }
@@ -43,7 +46,16 @@ function runMake(editor : vscode.TextEditor) : void {
   }
 }
 
+function runMake(editor: vscode.TextEditor) : void {
+  execMake(editor, false);
+}
+
+function runMakeWarn(editor: vscode.TextEditor) : void {
+  execMake(editor, true);
+}
+
 export function activateMake(): vscode.Disposable[] {
   return [
-    vscode.commands.registerTextEditorCommand('elm.make', runMake)];
+    vscode.commands.registerTextEditorCommand('elm.make', runMake),
+    vscode.commands.registerTextEditorCommand('elm.makeWarn', runMakeWarn)];
 }
