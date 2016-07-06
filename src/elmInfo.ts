@@ -7,7 +7,7 @@ export class ElmHoverProvider implements vscode.HoverProvider {
       .then((result) => {
         if (result.length > 0) {
             let text = result[0].signature + '\n\n' + result[0].comment;
-            let hover = new vscode.Hover({ language: 'elm', value: text });
+            let hover = new vscode.Hover(text);
             return hover;
         }
         else {
