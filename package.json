@@ -94,6 +94,10 @@
       {
         "command": "elm.install",
         "title": "Elm: Install packages/dependencies"
+      },
+      {
+        "command": "elm.clean",
+        "title": "Elm: Clean build artifact"
       }
     ],
     "outputChannels": [
@@ -137,7 +141,8 @@
     "onLanguage:elm",
     "onCommand:elm.replStart",
     "onCommand:elm.reactorStart",
-    "onCommand:elm.install"
+    "onCommand:elm.install",
+    "onCommand:elm.clean"
   ],
   "main": "./out/src/elmMain",
   "scripts": {
@@ -147,6 +152,7 @@
   },
   "devDependencies": {
     "typescript": "^1.6.2",
+    "rimraf": "^2.5.2",
     "vscode": "^0.10.7"
   },
   "dependencies": {

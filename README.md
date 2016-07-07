@@ -74,6 +74,18 @@ Or start with some characters and use `Ctrl+Space` for autocompletion.
 
 Want to know more? Look at the [snippet definitions](snippets/elm.json)
 
+### Format
+
+[elm-format](https://github.com/avh4/elm-format) is supported via the editor's `Format Code` command. To format your code using `elm-format`, press `Shift+Alt+F` on Windows, `Shift+Option+F` on Mac, or `Ctrl+Shift+I` on Linux.
+
+You can also configure `elm-format` to run on save by enabling the `elm.formatOnSave` in your settings.
+
+```
+// settings.json
+{
+    "elm.formatOnSave": true
+}
+```
 
 
 ## Help wanted
