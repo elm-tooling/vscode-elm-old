@@ -92,6 +92,10 @@
         "title": "Elm: Make"
       },
       {
+        "command": "elm.makeWarn",
+        "title": "Elm: Make --warn"
+      },
+      {
         "command": "elm.install",
         "title": "Elm: Install packages/dependencies"
       },

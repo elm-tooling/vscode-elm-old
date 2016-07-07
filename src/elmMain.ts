@@ -3,6 +3,7 @@ import {runLinter} from './elmLinter';
 import {activateRepl} from './elmRepl';
 import {activateReactor, deactivateReactor} from './elmReactor';
 import {activateMake} from './elmMake';
+import {activateMakeWarn} from './elmMakeWarn';
 import {activatePackage} from './elmPackage';
 import {activateClean} from './elmClean';
 import {ElmDefinitionProvider} from './elmDefinition';
