@@ -11,6 +11,8 @@ interface IOracleResult {
   comment: string;
 }
 
+let oraclePath = pluginPath + path.sep + 'node_modules' + path.sep + 'elm-oracle' + path.sep + 'bin' + path.sep + 'elm-oracle';
+
 export function GetOracleResults(document: vscode.TextDocument, position: vscode.Position): Thenable<IOracleResult[]> {
   return new Promise((resolve: Function, reject: Function) => {
       let p: cp.ChildProcess;
@@ -19,9 +21,9 @@ export function GetOracleResults(document: vscode.TextDocument, position: vscode
       let fn = path.relative(cwd, filename)
       let wordAtPosition = document.getWordRangeAtPosition(position);
       let currentWord: string = document.getText(wordAtPosition);
-      let oracle = pluginPath + path.sep + 'node_modules' + path.sep + 'elm-oracle' + path.sep + 'bin' + path.sep + 'elm-oracle \"' + fn + '\" ' + currentWord;
+      let oracleCmd = oraclePath + ' "' + fn + '" ' + currentWord;
     
-      p = cp.exec('node ' + oracle, { cwd: cwd }, (err: Error, stdout: Buffer, stderr: Buffer) => {
+      p = cp.exec('node ' + oracleCmd, { cwd: cwd }, (err: Error, stdout: Buffer, stderr: Buffer) => {
         try {
           if (err) {
             return resolve(null);
@@ -32,6 +34,5 @@ export function GetOracleResults(document: vscode.TextDocument, position: vscode
           reject(e);
         }
       });
-      p.stdin.end(document.getText());
     });
 }
