@@ -46,6 +46,11 @@
           "type": "string",
           "default": "elm.js",
           "description": "Elm Make's output file name (relative to root folder)"
+        },
+        "elm.makeCommand": {
+          "type": "string",
+          "default": "elm-make",
+          "description": "Command to run when executing elm-make"
         }
       }
     },
