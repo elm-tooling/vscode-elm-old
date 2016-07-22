@@ -17,16 +17,17 @@ function execMake(editor : vscode.TextEditor, warn : boolean) : void {
     const file = editor.document.fileName
     const config: vscode.WorkspaceConfiguration = vscode.workspace.getConfiguration('elm');
     const name: string = <string>config.get('makeOutput');
+    const makeCommand: string = <string>config.get('makeCommand');
     const cwd: string = utils.detectProjectRoot(file) || vscode.workspace.rootPath;
     let args = [file, '--yes', '--output=' + name];
     if (warn) {
       args.push("--warn");
     }
     if (utils.isWindows) {
-      make = cp.exec('elm-make ' + args.join(' '), { cwd: cwd });
+      make = cp.exec(makeCommand + ' ' + args.join(' '), { cwd: cwd });
     }
     else {
-      make = cp.spawn('elm-make', args, { cwd: cwd });
+      make = cp.spawn(makeCommand, args, { cwd: cwd });
     }
     make.stdout.on('data', (data: Buffer) => {
       if (data) {
