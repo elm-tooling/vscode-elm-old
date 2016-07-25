@@ -1,7 +1,7 @@
 {
   "name": "elm",
   "description": "Elm Language Support for Visual Studio Code",
-  "version": "0.7.0",
+  "version": "0.8.1",
   "publisher": "sbrink",
   "author": {
     "name": "Sascha Brink"
@@ -46,6 +46,11 @@
           "type": "string",
           "default": "elm.js",
           "description": "Elm Make's output file name (relative to root folder)"
+        },
+        "elm.makeCommand": {
+          "type": "string",
+          "default": "elm-make",
+          "description": "Command to run when executing elm-make"
         }
       }
     },
@@ -156,10 +161,10 @@
   },
   "devDependencies": {
     "typescript": "^1.6.2",
-    "rimraf": "^2.5.2",
     "vscode": "^0.10.7"
   },
   "dependencies": {
+    "rimraf": "^2.5.2",
     "elm-oracle": "^0.2.0",
     "request": "^2.69.0"
   }
