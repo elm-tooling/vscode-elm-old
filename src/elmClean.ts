@@ -8,10 +8,8 @@ function runClean(editor: vscode.TextEditor) {
   try {
     const cwd: string = (editor.document) ? utils.detectProjectRoot(editor.document.fileName) : vscode.workspace.rootPath
     const elmStuffDir = path.join(cwd, 'elm-stuff', 'build-artifacts');
-    console.log(elmStuffDir);
     rimraf(elmStuffDir, (error) => {
       if (error) {
-        console.error('Running Elm Clean failed', error);
         vscode.window.showErrorMessage('Running Elm Clean failed');
       } else {
         vscode.window.showInformationMessage('Successfully deleted the build-artifacts folder');
@@ -19,7 +17,6 @@ function runClean(editor: vscode.TextEditor) {
     });
   }
   catch (e) {
-    console.error('Running Elm Clean failed', e);
     vscode.window.showErrorMessage('Running Elm Clean failed');
   }
 }
