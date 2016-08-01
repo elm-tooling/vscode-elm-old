@@ -87,6 +87,8 @@ You can also configure `elm-format` to run on save by enabling the `elm.formatOn
 }
 ```
 
+### Clean Build Artifacts
+You can delete your `elm-stuff/build-artifacts` directly from vscode by using `Elm: Clean build artifacts` command. 
 
 ## Help wanted
 
