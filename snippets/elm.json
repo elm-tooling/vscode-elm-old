@@ -143,12 +143,12 @@
       ],
       "description": "Update record"
     },
-    "Anonumous function": {
+    "Anonymous function": {
       "prefix": "anonymous",
       "body": [
         "(\\ ${argument} -> ${argument} < 0)"
       ],
-      "description": "Anonumous function"
+      "description": "Anonymous function"
     },
     "Union type": {
       "prefix": "union",
@@ -230,13 +230,16 @@
     "Main Program": {
       "prefix": "mainprogram",
       "body": [
+        "--uncomment if needed -- import Html.App as App",
+        "",
         "main : Program Never",
         "main =",
         "  App.program",
-        "    { init = init",
+        "    { init = (model, Cmd Msg)",
         "    , view = view",
         "    , update = update",
         "    , subscriptions = subscriptions",
+        "    }",
         "$1"
       ],
       "description": "Main Program Never"
@@ -249,6 +252,20 @@
         "  ${Sub.none}"
       ],
       "description": "Subscriptions"
-    }
+    },
+	"defaultModel": {
+		"prefix": "elmdmodel",
+		"body": [
+			"type alias Model",
+			"  { statusText : String",
+			"  }",
+			"",
+			"model : Model",
+			"model =",
+			"  { statusText = \"Ready\"",
+			"  }"
+		],
+		"description": "A default model with type declaration"
+	}
   }
 }
