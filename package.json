@@ -51,6 +51,11 @@
           "type": "string",
           "default": "elm-make",
           "description": "Command to run when executing elm-make"
+        },
+        "elm.formatOnSave": {
+          "type": "boolean",
+          "default": false,
+          "description": "Runs elm-format on the file every time it is saved"
         }
       }
     },
