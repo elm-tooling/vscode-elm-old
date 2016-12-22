@@ -15,7 +15,7 @@ Elm needs a good IDE. So let's extend VS Code and make developing in [elm](http:
 * [x] Function information
 * [x] REPL - Run any line in an interactive shell
 * [x] Reactor support (Webserver/Debugger) - Starting/Stopping
-* [x] TODO: Autocompletion
+* [x] Autocompletion
 * [ ] TODO: Add more useful code snippets
 * [ ] TODO: Refactoring support
 
