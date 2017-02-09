@@ -95,7 +95,7 @@
     "Module": {
       "prefix": "module",
       "body": [
-        "module ${Name} where",
+        "module ${Name} exposing ($1..)",
         "$1"
       ],
       "description": "Module definition"
