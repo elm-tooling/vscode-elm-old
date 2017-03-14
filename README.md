@@ -7,6 +7,23 @@ Elm needs a good IDE. So let's extend VS Code and make developing in [elm](http:
 ![Error highlighting](images/errorHighlighting.gif)
 
 
+## Elm Installation
+
+### Global Installation
+
+Follow (this guide)[https://guide.elm-lang.org/install.html]
+
+
+### Project (Local) Installation
+
+Run `npm install --save-dev elm`
+
+Then, in `workspace.json`, add the following:
+
+```
+"elm.makeCommand": "./node_modules/.bin/elm-make"
+```
+
 ## Feature overview
 
 * [x] Syntax highlighting
