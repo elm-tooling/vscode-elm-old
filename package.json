@@ -42,6 +42,11 @@
           "default": 8000,
           "description": "Set the port of the Elm Reactor server."
         },
+        "elm.formatCommand": {
+          "type": "string",
+          "default": "elm-format",
+          "description": "Command to run when executing elm-format"
+        },
         "elm.makeOutput": {
           "type": "string",
           "default": "elm.js",

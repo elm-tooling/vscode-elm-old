@@ -45,7 +45,9 @@ export function runFormatOnSave(document: vscode.TextDocument) {
 }
 
 function elmFormat(document: vscode.TextDocument) {
-  const format = execCmd('elm-format --stdin');
+  const config: vscode.WorkspaceConfiguration = vscode.workspace.getConfiguration('elm');
+  const formatCommand: string = <string>config.get('formatCommand');
+  const format = execCmd(formatCommand + ' --stdin');
 
   format.stdin.write(document.getText());
   format.stdin.end();
