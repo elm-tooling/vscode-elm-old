@@ -11,7 +11,7 @@ Elm needs a good IDE. So let's extend VS Code and make developing in [elm](http:
 
 ### Global Installation
 
-Follow (this guide)[https://guide.elm-lang.org/install.html]
+Follow [this guide](https://guide.elm-lang.org/install.html).
 
 
 ### Project (Local) Installation
