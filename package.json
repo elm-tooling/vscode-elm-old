@@ -150,6 +150,10 @@
         "title": "Elm: Install packages/dependencies"
       },
       {
+        "command": "elm.browsePackage",
+        "title": "Elm: Browse packages/dependencies documentation"
+      },
+      {
         "command": "elm.clean",
         "title": "Elm: Clean build artifact"
       }
@@ -196,6 +200,7 @@
     "onCommand:elm.replStart",
     "onCommand:elm.reactorStart",
     "onCommand:elm.install",
+    "onCommand:elm.browsePackage",
     "onCommand:elm.clean"
   ],
   "main": "./out/src/elmMain",
@@ -209,8 +214,11 @@
     "vscode": "^0.10.7"
   },
   "dependencies": {
-    "rimraf": "^2.5.2",
     "elm-oracle": "^0.2.0",
-    "request": "^2.69.0"
+    "mac-open": "^0.1.3",
+    "open": "0.0.5",
+    "request": "^2.69.0",
+    "rimraf": "^2.5.2",
+    "vscode-uri": "^1.0.0"
   }
 }
