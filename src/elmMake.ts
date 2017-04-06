@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import * as cp from 'child_process';
 import * as utils from './elmUtils';
+var path = require('path');
 
 let make: cp.ChildProcess;
 let oc: vscode.OutputChannel = vscode.window.createOutputChannel('Elm Make');
@@ -14,11 +15,12 @@ function execMake(editor : vscode.TextEditor, warn : boolean) : void {
       make.kill();
       oc.clear();
     }
-    const file = editor.document.fileName
+    const file = editor.document.fileName;
+    const cwd: string = utils.detectProjectRoot(file) || vscode.workspace.rootPath;
+    
     const config: vscode.WorkspaceConfiguration = vscode.workspace.getConfiguration('elm');
     const name: string = <string>config.get('makeOutput');
-    const makeCommand: string = <string>config.get('makeCommand');
-    const cwd: string = utils.detectProjectRoot(file) || vscode.workspace.rootPath;
+    const makeCommand: string = path.resolve(cwd, <string>config.get('makeCommand'));
     let args = [file, '--yes', '--output=' + name];
     if (warn) {
       args.push("--warn");
