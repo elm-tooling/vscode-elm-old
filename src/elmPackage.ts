@@ -1,8 +1,58 @@
 import * as vscode from 'vscode';
+import * as path from 'path';
 import { execCmd } from './elmUtils';
 const request = require('request');
+const open = require('open');
+const open_darwin = require('mac-open');
+const platform = process.platform;
 
 let oc: vscode.OutputChannel = vscode.window.createOutputChannel('Elm Package');
+
+function browsePackage(): Thenable<void> {
+  const quickPickPackageOptions: vscode.QuickPickOptions = {
+    matchOnDescription: true,
+    placeHolder: "Choose a package"
+  };
+  const quickPickVersionOptions: vscode.QuickPickOptions = {
+    matchOnDescription: false,
+    placeHolder: "Choose a version, or press <esc> to browse the latest"
+  };
+
+  return getJSON()
+    .then(transformToPackageQuickPickItems)
+    .then(packages => vscode.window.showQuickPick(packages, quickPickPackageOptions))
+    .then(selectedPackage => {
+      if (selectedPackage === undefined) return; //no package
+      return vscode.window.showQuickPick(transformToPackageVersionQuickPickItems(selectedPackage), quickPickVersionOptions)
+        .then(selectedVersion => {
+          oc.show(vscode.ViewColumn.Three);
+          let uri = selectedVersion
+            ? vscode.Uri.parse("http://package.elm-lang.org/packages/" + selectedPackage.label + "/" + selectedVersion.label)
+            : vscode.Uri.parse("http://package.elm-lang.org/packages/" + selectedPackage.label + "/latest")
+          if (platform === 'darwin') {
+            open_darwin(uri.toString())
+          } else {
+            open(uri.toString())
+          }
+        });
+    });
+}
+
+interface ElmPackageQuickPickItem extends vscode.QuickPickItem {
+  info: any;
+}
+
+function transformToPackageQuickPickItems(packages: any[]): ElmPackageQuickPickItem[] {
+  return packages.map(item => {
+    return { label: item.name, description: item.summary, info: item };
+  });
+}
+
+function transformToPackageVersionQuickPickItems(selectedPackage: ElmPackageQuickPickItem): vscode.QuickPickItem[] {
+  return selectedPackage.info.versions.map(version => { 
+    return { label: version, description: null };
+  });
+}
 
 function runInstall(): Thenable<void> {
   
@@ -47,10 +97,11 @@ function getJSON(): Thenable<any[]> {
 }
 
 function transformToQuickPickItems(json: any[]): vscode.QuickPickItem[] { 
-  return json.map(item => ({ label: item.name, description: item.summary }));
+  return json.map(item => ({ label: item.name, description: item.summary,  }));
 }
 
 export function activatePackage(): vscode.Disposable[] {
   return [
-    vscode.commands.registerCommand('elm.install', runInstall)];
+    vscode.commands.registerCommand('elm.install', runInstall),
+    vscode.commands.registerCommand('elm.browsePackage', browsePackage)];
 }
