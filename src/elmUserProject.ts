@@ -308,9 +308,9 @@ function localFunctions(filename: string, callerFile: string, action: OracleActi
         returnInfo = lines[i];
         
         if (action === OracleAction.IsHover) {
-          console.log('Pushing the type alias, pushing as ' + lines[i].replace('type alias ', '').replace('=', '').trim())
           suggestionList.push(lines[i].replace('type alias ', '').replace('=', '').trim());
         }
+
         while (lines[i].trim() !== '' && !lines[i].match(/^module/)) {
           i++;
 
