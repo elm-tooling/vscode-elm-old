@@ -61,26 +61,6 @@
           "type": "boolean",
           "default": false,
           "description": "Runs elm-format on the file every time it is saved"
-        },
-        "elm.showSuggestionsInElmSyntax": {
-          "type": "boolean",
-          "default": true,
-          "description": "Display autocomplete/hover suggestions with Elm syntax highlighting"
-        },
-        "elm.userProjectIntellisense": {
-          "type": "boolean",
-          "default": false,
-          "description": "Include your functions and types in hover/autocomplete suggestions"
-        },
-        "elm.includeParamsInUserAutocomplete": {
-          "type": "boolean",
-          "default": false,
-          "description": "Include all parameters when accepting an autocomplete. If false, only the function name is inserted."
-        },
-        "elm.userProjectMaxCommentSize": {
-          "type": "number",
-          "default": 10,
-          "description": "Max number of lines in a user hover suggestion (no effect if elm.userProjectIntellisense is false)"
         }
       }
     },

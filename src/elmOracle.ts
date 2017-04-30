@@ -2,18 +2,24 @@ import * as cp from 'child_process';
 import * as path from 'path';
 import {pluginPath, detectProjectRoot} from './elmUtils';
 import * as vscode from 'vscode';
+import * as userProject from './elmUserProject'
 
-interface IOracleResult {
+export interface IOracleResult {
   name: string;
   fullName: string;
   href: string;
   signature: string;
   comment: string;
+  kind?: vscode.CompletionItemKind;
 }
+
+export enum OracleAction { IsHover, IsAutocomplete }
+
+const config = vscode.workspace.getConfiguration('elm');
 
 let oraclePath = pluginPath + path.sep + 'node_modules' + path.sep + 'elm-oracle' + path.sep + 'bin' + path.sep + 'elm-oracle';
 
-export function GetOracleResults(document: vscode.TextDocument, position: vscode.Position): Thenable<IOracleResult[]> {
+export function GetOracleResults(document: vscode.TextDocument, position: vscode.Position, action: OracleAction): Thenable<IOracleResult[]> {
   return new Promise((resolve: Function, reject: Function) => {
       let p: cp.ChildProcess;
       let filename: string = document.fileName;
@@ -22,13 +28,17 @@ export function GetOracleResults(document: vscode.TextDocument, position: vscode
       let wordAtPosition = document.getWordRangeAtPosition(position);
       let currentWord: string = document.getText(wordAtPosition);
       let oracleCmd = oraclePath + ' "' + fn + '" ' + currentWord;
-    
+       
       p = cp.exec('node ' + oracleCmd, { cwd: cwd }, (err: Error, stdout: Buffer, stderr: Buffer) => {
         try {
           if (err) {
             return resolve(null);
           }
-          let result: IOracleResult[] = JSON.parse(stdout.toString());
+          
+          const result: IOracleResult[] = [
+            ...JSON.parse(stdout.toString()),
+            ...(config['userProjectIntellisense'] ? userProject.userProject(document, position, currentWord, action) : [])
+          ];
           resolve(result);
         } catch (e) {
           reject(e);
