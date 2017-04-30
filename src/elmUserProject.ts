@@ -306,13 +306,15 @@ function localFunctions(filename: string, callerFile: string, action: OracleActi
       if (lines[i].toLowerCase().includes('type alias ' + (currentWord !== '[a-zA-Z]' ? currentWord.toLowerCase() + ' ' : ''))) {
         let j = 0;
         returnInfo = lines[i];
-        if (currentWord === '[a-zA-Z]') {
+        
+        if (action === OracleAction.IsHover) {
+          console.log('Pushing the type alias, pushing as ' + lines[i].replace('type alias ', '').replace('=', '').trim())
           suggestionList.push(lines[i].replace('type alias ', '').replace('=', '').trim());
         }
         while (lines[i].trim() !== '' && !lines[i].match(/^module/)) {
           i++;
 
-          if (currentWord !== '[a-zA-Z]') {
+          if (action === OracleAction.IsAutocomplete) {
             if (lines[i].trim() !== '' && lines[i].trim() !== '}') {
               suggestionList.push(lines[i]);
             }
