@@ -69,7 +69,7 @@
         },
         "elm.userProjectIntellisense": {
           "type": "boolean",
-          "default": false,
+          "default": true,
           "description": "Include your functions and types in hover/autocomplete suggestions"
         },
         "elm.includeParamsInUserAutocomplete": {
