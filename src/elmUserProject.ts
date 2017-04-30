@@ -13,6 +13,7 @@ const config = vscode.workspace.getConfiguration('elm');
 let gSrcDirs = [];
 let gCwd = '';
 let gImports = [];
+let gOriginalWord = ''
 
 function exposingList(exposing): string[] {
   const separated = exposing.split(',');
@@ -23,6 +24,10 @@ function exposingList(exposing): string[] {
   } else {
     return separated;
   }
+}
+
+function toLowerOrHover(action: OracleAction, text:string): string {
+  return (action === OracleAction.IsAutocomplete ? text.toLowerCase() : text)
 }
 
 export function userProject(document: vscode.TextDocument, position: vscode.Position, currentWord: string, action: OracleAction) {
@@ -88,6 +93,7 @@ export function userProject(document: vscode.TextDocument, position: vscode.Posi
       imports = imports.filter(item => item.module === currentWord.split('.')[0]);
       //Set up the current word so that regex matching in localFunctions will find everything;
       //We are looking for all properties of the module name the user has fully qualified
+      gOriginalWord = currentWord;
       currentWord = '[a-zA-Z]';
     }
 
@@ -127,8 +133,7 @@ const splitOnSpace = (config["includeParamsInUserAutocomplete"] === true ? null 
  */
 function localFunctions(filename: string, callerFile: string, action: OracleAction, lines: string[], position: vscode.Position, currentWord: string, imports?: Imports[], srcDirs?: string[], isTypeAlias?:boolean): IOracleResult[] {
   let results: IOracleResult[] = [];
-  let test = new RegExp("^" + (action === OracleAction.IsAutocomplete ? currentWord.toLowerCase() : currentWord));
-  let originalWord = currentWord;
+  let test = new RegExp("^" + (action === OracleAction.IsAutocomplete ? currentWord.toLowerCase() : currentWord + ' '));
   let foundTypeAlias = false;
   let lookForTypeAlias = currentWord.substr(-1) === '.';
   for (let i = 0; i < lines.length; i++) {
@@ -136,8 +141,8 @@ function localFunctions(filename: string, callerFile: string, action: OracleActi
     //Step 1: Get intellisense for type aliases
     //Caller file is only null if this is the first call to localFunctions
     if (callerFile === null && lookForTypeAlias) {
-      if (originalWord.substr(-1) === '.') {
-        if (/^[a-z]/.test(originalWord)) { //Only do this if it begins in lowercase (otherwise it would be a module)
+      if (currentWord.substr(-1) === '.') {
+        if (/^[a-z]/.test(currentWord)) { //Only do this if it begins in lowercase (otherwise it would be a module)
           let foundParams = false;
           let foundSignature = false;
           let paramIndex = 0;
@@ -155,7 +160,7 @@ function localFunctions(filename: string, callerFile: string, action: OracleActi
             
             let params = currentLine.split(' ');
             if (currentLine.includes('=') && params.filter((item, i) => {
-              if (item === originalWord.slice(0, -1) && item.trim() !== '') {
+              if (item === currentWord.slice(0, -1) && item.trim() !== '') {
                 paramIndex = i;
                 return true;
               } else {
@@ -227,7 +232,7 @@ function localFunctions(filename: string, callerFile: string, action: OracleActi
 
     //Step 3: Look for this item as a function. If this is an autocomplete, ignore case
     //If it is a hover, assume that the compiler would have caught a case mismatch by now and respect case.
-    if (!isTypeAlias && test.test((action === OracleAction.IsAutocomplete ? lines[i].toLowerCase() : lines[i]))) {
+    if (!isTypeAlias && test.test(toLowerOrHover(action, lines[i]))) {
       let typeSignature = '';
       let functionDefinition = '';
       if (lines[i].includes(' : ')) {
@@ -272,7 +277,7 @@ function localFunctions(filename: string, callerFile: string, action: OracleActi
             if (typeSignature !== '') { suggestionList.push(typeSignature); }
           }
         } else {
-          if (lines[i].includes((currentWord !== '[a-zA-Z]' ? currentWord : ''))) {
+          if (lines[i].includes(currentWord)) {
             foundCurrentWord = true;
             typeSignature = lines[i];
             if (typeSignature !== '') { suggestionList.push(typeSignature); }
@@ -303,18 +308,17 @@ function localFunctions(filename: string, callerFile: string, action: OracleActi
     if (/^(type alias)/.test(lines[i].toLowerCase())) {
       let returnInfo = '';
       suggestionList = [];
-      if (lines[i].toLowerCase().includes('type alias ' + (currentWord !== '[a-zA-Z]' ? currentWord.toLowerCase() + ' ' : ''))) {
+      if (toLowerOrHover(action, lines[i]).includes('type alias ' + (currentWord !== '[a-zA-Z]' ? currentWord.toLowerCase() + ' ' : gOriginalWord.split('.')[1].trim()))) {
         let j = 0;
         returnInfo = lines[i];
-        
-        if (action === OracleAction.IsHover) {
+        if (action === OracleAction.IsHover || currentWord === '[a-zA-Z]') {
           suggestionList.push(lines[i].replace('type alias ', '').replace('=', '').trim());
         }
 
         while (lines[i].trim() !== '' && !lines[i].match(/^module/)) {
           i++;
 
-          if (action === OracleAction.IsAutocomplete) {
+          if (action === OracleAction.IsAutocomplete && currentWord !== '[a-zA-Z]') {
             if (lines[i].trim() !== '' && lines[i].trim() !== '}') {
               suggestionList.push(lines[i]);
             }
@@ -336,7 +340,7 @@ function localFunctions(filename: string, callerFile: string, action: OracleActi
             fullName: cleanField,
             signature: item.replace('{', '').trim(),
             href: filename,
-            kind: (currentWord === '[a-zA-Z]' ? vscode.CompletionItemKind.Interface : vscode.CompletionItemKind.Property),
+            kind: (action === OracleAction.IsHover ? vscode.CompletionItemKind.Interface : vscode.CompletionItemKind.Property),
             comment: returnInfo + '\n--' + filename
           });
         });
