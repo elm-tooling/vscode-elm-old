@@ -1,11 +1,25 @@
 {
   "name": "elm",
   "description": "Elm Language Support for Visual Studio Code",
-  "version": "0.9.0",
+  "version": "0.10.0",
   "publisher": "sbrink",
   "author": {
-    "name": "Sascha Brink"
+    "name": "Krzysztof Cieslak"
   },
+  "contributors": [
+    {
+      "name": "Krzysztof Cieślak",
+      "url": "https://twitter.com/k_cieslak"
+    },
+    {
+      "name": "Sascha Brink",
+      "url": "https://github.com/sbrink"
+    },
+    {
+      "name": "Robert Jeppesen",
+      "url": "https://github.com/rojepp"
+    }
+  ],
   "icon": "images/elmIcon.png",
   "galleryBanner": {
     "color": "#232323",
@@ -19,13 +33,14 @@
     "Snippets",
     "Linters"
   ],
+  "license": "SEE LICENSE IN LICENSE.md",
   "private": true,
   "repository": {
     "type": "git",
-    "url": "https://github.com/sbrink/vscode-elm.git"
+    "url": "https://github.com/Krzysztof-Cieslak/vscode-elm.git"
   },
   "bugs": {
-    "url": "https://github.com/sbrink/vscode-elm/issues"
+    "url": "https://github.com/Krzysztof-Cieslak/vscode-elm/issues"
   },
   "contributes": {
     "configuration": {

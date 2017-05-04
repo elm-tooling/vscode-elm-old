@@ -1,11 +1,20 @@
-[![Build Status](https://travis-ci.org/sbrink/vscode-elm.svg?branch=master)](https://travis-ci.org/sbrink/vscode-elm)
-
 # Elm support for Visual Studio Code
-
-Elm needs a good IDE. So let's extend VS Code and make developing in [elm](http://elm-lang.org) even more enjoyable. Currently 3 people are actively maintaining/developing this plugin.
 
 ![Error highlighting](images/errorHighlighting.gif)
 
+## Feature overview
+
+* Syntax highlighting
+* Autocomplete (for external packages and experimental for local project)
+* Error highlighting
+* Code formatting
+* Hover info
+* Document Symbol provider
+* Integration with Elm Package
+* Integration with Elm Reactor
+* Integration with Elm Make
+* REPL
+* Custom Elm Snippets
 
 ## Elm Installation
 
@@ -13,29 +22,15 @@ Elm needs a good IDE. So let's extend VS Code and make developing in [elm](http:
 
 Follow [this guide](https://guide.elm-lang.org/install.html).
 
-
 ### Project (Local) Installation
 
 Run `npm install --save-dev elm`
 
-Then, in `workspace.json`, add the following:
+Then, in `.vscode/settings.json`, add the following:
 
 ```
 "elm.makeCommand": "./node_modules/.bin/elm-make"
 ```
-
-## Feature overview
-
-* [x] Syntax highlighting
-* [x] [Snippets](snippets/elm.json)
-* [x] **Experimental** support for error highlighting
-* [x] Function information
-* [x] REPL - Run any line in an interactive shell
-* [x] Reactor support (Webserver/Debugger) - Starting/Stopping
-* [x] Autocompletion
-* [ ] TODO: Add more useful code snippets
-* [ ] TODO: Refactoring support
-
 
 ## Feature details
 
@@ -105,7 +100,7 @@ You can also configure `elm-format` to run on save by enabling the `elm.formatOn
 ```
 
 ### Clean Build Artifacts
-You can delete your `elm-stuff/build-artifacts` directly from vscode by using `Elm: Clean build artifacts` command. 
+You can delete your `elm-stuff/build-artifacts` directly from vscode by using `Elm: Clean build artifacts` command.
 
 ## Help wanted
 
@@ -117,6 +112,16 @@ Building all these things will take some time. So pull requests are much appreci
 * Grammar file is taken and converted from [atom-elm](https://github.com/edubkendo/atom-elm).
 * Initial snippets from [Elm.tmLanguage](https://github.com/deadfoxygrandpa/Elm.tmLanguage)
 
-## License
 
-[MIT](LICENSE.txt)
+## Contributing and copyright
+
+The project is hosted on [GitHub]https://github.com/Krzysztof-Cieslak/vscode-elm/) where you can [report issues](https://github.com/Krzysztof-Cieslak/vscode-elm/issues), fork
+the project and submit pull requests.
+
+The library is available under [MIT license](https://github.com/Krzysztof-Cieslak/vscode-elm/blob/master/LICENSE.md), which allows modification and redistribution for both commercial and non-commercial purposes.
+
+## Maintainer(s)
+
+* Krzysztof Cieslak [@Krzysztof-Cieslak](https://github.com/Krzysztof-Cieslak)
+* Sascha Brink [@sbrink](https://github.com/sbrink)
+* Robert Jeppesen [@rojepp](https://github.com/rojepp)
