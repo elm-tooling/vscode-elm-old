@@ -115,7 +115,7 @@ Building all these things will take some time. So pull requests are much appreci
 
 ## Contributing and copyright
 
-The project is hosted on [GitHub]https://github.com/Krzysztof-Cieslak/vscode-elm/) where you can [report issues](https://github.com/Krzysztof-Cieslak/vscode-elm/issues), fork
+The project is hosted on [GitHub](https://github.com/Krzysztof-Cieslak/vscode-elm/) where you can [report issues](https://github.com/Krzysztof-Cieslak/vscode-elm/issues), fork
 the project and submit pull requests.
 
 The library is available under [MIT license](https://github.com/Krzysztof-Cieslak/vscode-elm/blob/master/LICENSE.md), which allows modification and redistribution for both commercial and non-commercial purposes.
