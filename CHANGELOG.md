@@ -1,16 +1,16 @@
 ### 0.10.0 - 05.05.2017
 
-* It's initial entry in change log, so all working features are listed
+* Initial changelog entry, so all working features are listed:
 
 * Syntax highlighting
-* Autocomplete (for external packages and experimental for local project)
+* Autocomplete (for external packages and experimentally for local projects)
 * Error highlighting
 * Code formatting
-* Hover info (for external packages and experimental for local project)
+* Hover info (for external packages and experimentally for local projects)
 * Document Symbol provider
 * Integration with Elm Reactor
 * Integration with Elm Make
 * Integration with Elm Package
-* REPL
+* REPL support
 * Custom Elm Snippets
 
