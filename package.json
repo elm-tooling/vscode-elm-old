@@ -214,11 +214,9 @@
     "vscode": "^0.10.7"
   },
   "dependencies": {
-    "elm-oracle": "^0.2.0",
-    "mac-open": "^0.1.3",
-    "open": "0.0.5",
-    "request": "^2.69.0",
     "rimraf": "^2.5.2",
+    "elm-oracle": "^0.2.0",
+    "request": "^2.69.0",
     "vscode-uri": "^1.0.0"
   }
 }

@@ -1,10 +1,6 @@
 import * as vscode from 'vscode';
-import * as path from 'path';
 import { execCmd } from './elmUtils';
 const request = require('request');
-const open = require('open');
-const open_darwin = require('mac-open');
-const platform = process.platform;
 
 let oc: vscode.OutputChannel = vscode.window.createOutputChannel('Elm Package');
 
@@ -29,11 +25,7 @@ function browsePackage(): Thenable<void> {
           let uri = selectedVersion
             ? vscode.Uri.parse("http://package.elm-lang.org/packages/" + selectedPackage.label + "/" + selectedVersion.label)
             : vscode.Uri.parse("http://package.elm-lang.org/packages/" + selectedPackage.label + "/latest")
-          if (platform === 'darwin') {
-            open_darwin(uri.toString())
-          } else {
-            open(uri.toString())
-          }
+          vscode.commands.executeCommand("vscode.open", uri, 3);
         });
     });
 }
@@ -97,7 +89,7 @@ function getJSON(): Thenable<any[]> {
 }
 
 function transformToQuickPickItems(json: any[]): vscode.QuickPickItem[] { 
-  return json.map(item => ({ label: item.name, description: item.summary,  }));
+  return json.map(item => ({ label: item.name, description: item.summary }));
 }
 
 export function activatePackage(): vscode.Disposable[] {
