@@ -1,3 +1,7 @@
+### 0.11.0 - 08.05.2017
+* Add `Elm: Browse package` command
+* Fix paths concatenation issue for non-Windows machines
+
 ### 0.10.0 - 05.05.2017
 
 * Initial changelog entry, so all working features are listed:
