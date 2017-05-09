@@ -168,17 +168,20 @@
       {
         "command": "elm.replSendLine",
         "key": "alt+/",
-        "mac": "alt+/"
+        "mac": "alt+/",
+        "when": "editorFocus && !findWidgetVisible && editorLangId == 'elm'"
       },
       {
         "command": "elm.replSendSelection",
         "key": "alt+Enter",
-        "mac": "alt+Enter"
+        "mac": "alt+Enter",
+        "when": "editorFocus && !findWidgetVisible && editorLangId == 'elm'"
       },
       {
         "command": "elm.make",
         "key": "ctrl+f5",
-        "mac": "cmd+f5"
+        "mac": "cmd+f5",
+        "when": "editorFocus && !findWidgetVisible && editorLangId == 'elm'"
       }
     ],
     "grammars": [
