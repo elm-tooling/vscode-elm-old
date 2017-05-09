@@ -1,3 +1,6 @@
+### 0.11.1 - 10.05.2017
+* Fix keyboard shortcuts
+
 ### 0.11.0 - 08.05.2017
 * Add `Elm: Browse package` command
 * Fix paths concatenation issue for non-Windows machines
