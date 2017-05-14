@@ -88,7 +88,7 @@ function checkForErrors(filename): Promise<IElmIssue[]> {
           tag: 'error',
           overview: '',
           subregion: '',
-          details: Buffer.concat(stderr).toString(),
+          details: stderr.join(""),
           region: {
             start: {
               line: 1,
@@ -120,8 +120,23 @@ export function runLinter(document: vscode.TextDocument): void {
 
   checkForErrors(uri.fsPath)
     .then((compilerErrors: IElmIssue[]) => {
-      diagnostics = compilerErrors.map((error) => elmMakeIssueToDiagnostic(error));
-      compileErrors.set(document.uri, diagnostics);
+      const cwd: string = utils.detectProjectRoot(uri.fsPath) || vscode.workspace.rootPath;
+      let splitCompilerErrors: Map<string, IElmIssue[]> = new Map()
+      
+      compilerErrors.forEach((issue: IElmIssue) => {
+        //If provided path is relative, make it absolute
+        if(issue.file.startsWith('.'))
+          issue.file = cwd + issue.file.slice(1)
+        if (splitCompilerErrors.has(issue.file)) {
+          splitCompilerErrors.get(issue.file).push(issue)
+        } else {
+          splitCompilerErrors.set(issue.file, [issue])
+        }  
+      })
+      //Turn split arrays into diagnostics and associate them with correct files in VS
+      splitCompilerErrors.forEach((issue: IElmIssue[], path: string) => {
+        compileErrors.set(vscode.Uri.file(path), issue.map((error) => elmMakeIssueToDiagnostic(error)));
+      })
     })
     .catch((error) => {
       compileErrors.set(document.uri, []);
