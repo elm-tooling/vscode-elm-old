@@ -118,6 +118,8 @@ export function runLinter(document: vscode.TextDocument): void {
   let compileErrors: vscode.DiagnosticCollection = vscode.languages.createDiagnosticCollection('elm');
   let uri: vscode.Uri = document.uri;
 
+  compileErrors.clear()
+  
   checkForErrors(uri.fsPath)
     .then((compilerErrors: IElmIssue[]) => {
       const cwd: string = utils.detectProjectRoot(uri.fsPath) || vscode.workspace.rootPath;
