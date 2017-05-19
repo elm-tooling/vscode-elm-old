@@ -30,9 +30,8 @@ export function GetOracleResults(document: vscode.TextDocument, position: vscode
         return resolve (null);
       }
       let currentWord: string = document.getText(wordAtPosition);
-      let oracleCmd = oraclePath + ' "' + fn + '" ' + currentWord;
        
-      p = cp.exec('node ' + oracleCmd, { cwd: cwd }, (err: Error, stdout: Buffer, stderr: Buffer) => {
+      p = cp.execFile('node', [oraclePath, fn, currentWord] , { cwd: cwd }, (err: Error, stdout: Buffer, stderr: Buffer) => {
         try {
           if (err) {
             return resolve(null);
