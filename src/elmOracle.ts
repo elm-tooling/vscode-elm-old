@@ -26,6 +26,9 @@ export function GetOracleResults(document: vscode.TextDocument, position: vscode
       let cwd = detectProjectRoot(document.fileName) || vscode.workspace.rootPath;
       let fn = path.relative(cwd, filename)
       let wordAtPosition = document.getWordRangeAtPosition(position);
+      if (!wordAtPosition) {
+        return resolve (null);
+      }
       let currentWord: string = document.getText(wordAtPosition);
       let oracleCmd = oraclePath + ' "' + fn + '" ' + currentWord;
        
