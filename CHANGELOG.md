@@ -1,3 +1,7 @@
+### 0.11.2 - 10.05.2017
+* Improved Linter so that issues are associated with the correct files
+* Fix for elm-oracle being fed entire elm file
+
 ### 0.11.1 - 10.05.2017
 * Fix keyboard shortcuts
 
