@@ -45,15 +45,33 @@ export function userProject(document: vscode.TextDocument, position: vscode.Posi
     if (match = lines[i].match(/^import/)) {
       let exposingMatch;
       if (exposingMatch = lines[i].match(/exposing \(/)) {
-        imports.push({
-          module: lines[i].split(' ')[1],
-          exposing: exposingList(lines[i].split('(')[1].replace(')', ''))
-        });
+        let asMatch;
+        if (asMatch = lines[i].match(/as/)) {
+          imports.push({
+            module: lines[i].split(' ')[3],
+            exposing: exposingList(lines[i].split('(')[1].replace(')', ''))
+          });
+        }
+        else {
+          imports.push({
+            module: lines[i].split(' ')[1],
+            exposing: exposingList(lines[i].split('(')[1].replace(')', ''))
+          });
+        }
       } else {
-        imports.push({
-          module: lines[i].split(' ')[1],
-          exposing: []
-        });
+        let asMatch;
+        if (asMatch = lines[i].match(/as/)) {
+          imports.push({
+            module: lines[i].split(' ')[3],
+            exposing: []
+          });
+        }
+        else {
+          imports.push({
+            module: lines[i].split(' ')[1],
+            exposing: []
+          });
+        }
       }
     } else if (lines[i].trim() !== '' && !lines[i].match(/^module/)) {
       break;
