@@ -111,10 +111,10 @@
       "prefix": "caseof",
       "body": [
         "case ${expression} of",
-        "  ${option1} ->",
-        "    $1",
-        "  ${option2} ->",
-        "    $2"
+        "    ${option1} ->",
+        "        $1",
+        "    ${option2} ->",
+        "        $2"
       ],
       "description": "Case of expression with 2 alternatives"
     },
@@ -131,10 +131,21 @@
       "prefix": "record",
       "body": [
         "${recordName} =",
-        "  ${key1} = $1,",
-        "  ${key2} = $2,"
+        "    { ${key1} = ${value1}",
+        "    , ${key2} = ${value2}",
+        "    }"
       ],
-      "description": "Record definition"
+      "description": "Record"
+    },
+    "RecordType": {
+      "prefix": "recordtype",
+      "body": [
+        "type alias ${recordName} =",
+        "    { ${key1} : ${ValueType1}",
+        "    , ${key2} : ${ValueType2}",
+        "    }"
+      ],
+      "description": "Record type"
     },
     "Update record": {
       "prefix": "recordupdate",
@@ -154,9 +165,9 @@
       "prefix": "union",
       "body": [
         "type ${Typename}",
-        "  = ${Value1}",
-        "  | ${Value2}",
-        "  | ${Value2}"
+        "    = ${Value1}",
+        "    | ${Value2}",
+        "    | ${Value2}"
       ],
       "description": "Union type"
     },
@@ -164,9 +175,9 @@
       "prefix": "msg",
       "body": [
         "type Msg",
-        "  = NoOp",
-        "  | ${Message2}",
-        "  | ${Message3}",
+        "    = NoOp",
+        "    | ${Message2}",
+        "    | ${Message3}",
         "$1"
       ],
       "description": "Default message union type"
@@ -176,7 +187,7 @@
       "body": [
         "${functionName} : ${ArgumentType} -> ${ReturnType}",
         "${functionName} ${argumentName} =",
-        "  ${--function body here}"
+        "    ${--function body here}"
       ],
       "description": "Function with type annotation"
     },
@@ -184,9 +195,9 @@
       "prefix": "letin",
       "body": [
         "let",
-        "  $1",
+        "    $1",
         "in",
-        "  $2"
+        "    $2"
       ],
       "description": "Let expression"
     },
@@ -195,12 +206,12 @@
       "body": [
         "${update} : Msg -> Model -> ( Model, Cmd Msg )",
         "${update} msg model =",
-        "  case msg of",
-        "    NoOp ->",
-        "      ( model, Cmd.none )",
-        "  case msg of",
-        "    ${option1} ->",
-        "      $1"
+        "    case msg of",
+        "        NoOp ->",
+        "            ( model, Cmd.none )",
+        "    case msg of",
+        "        ${option1} ->",
+        "            $1"
       ],
       "description": "Default update function"
     },
@@ -209,7 +220,7 @@
       "body": [
         "${view} : Model -> Html Msg",
         "${view} model =",
-        "  $1"
+        "    $1"
       ],
       "description": "Default view function"
     },
@@ -234,11 +245,11 @@
         "",
         "main : Program Never",
         "main =",
-        "  App.program",
-        "    { init = (model, Cmd Msg)",
-        "    , view = view",
-        "    , update = update",
-        "    , subscriptions = subscriptions",
+        "    App.program",
+        "        { init = (model, Cmd Msg)",
+        "        , view = view",
+        "        , update = update",
+        "        , subscriptions = subscriptions",
         "    }",
         "$1"
       ],
@@ -249,7 +260,7 @@
       "body": [
         "${subscriptions} : Model -> Sub Msg",
         "${subscriptions} model =",
-        "  ${Sub.none}"
+        "    ${Sub.none}"
       ],
       "description": "Subscriptions"
     },
@@ -257,13 +268,13 @@
 		"prefix": "elmdmodel",
 		"body": [
 			"type alias Model",
-			"  { statusText : String",
-			"  }",
+			"    { statusText : String",
+			"    }",
 			"",
 			"model : Model",
 			"model =",
-			"  { statusText = \"Ready\"",
-			"  }"
+			"    { statusText = \"Ready\"",
+			"    }"
 		],
 		"description": "A default model with type declaration"
 	}
