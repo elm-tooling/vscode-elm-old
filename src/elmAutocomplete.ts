@@ -21,7 +21,7 @@ export class ElmCompletionProvider implements vscode.CompletionItemProvider {
           if (currentWord.substr(-1) === '.') {
             ci.textEdit = {
               range: new vscode.Range(position, position),
-              newText: v.fullName.trim()
+              newText: v.fullName.trim().substr(currentWord.length)
             };
           }
 
