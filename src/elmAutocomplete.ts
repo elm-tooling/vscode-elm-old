@@ -19,9 +19,11 @@ export class ElmCompletionProvider implements vscode.CompletionItemProvider {
           ci.detail = v.signature;
           ci.documentation = v.comment;
           if (currentWord.substr(-1) === '.') {
+            let fullNameSplit = v.fullName.trim().split('.');
+            let lastWordFullName = fullNameSplit[fullNameSplit.length - 1];
             ci.textEdit = {
               range: new vscode.Range(position, position),
-              newText: v.fullName.trim().substr(currentWord.length)
+              newText: lastWordFullName
             };
           }
 
