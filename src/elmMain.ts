@@ -10,6 +10,7 @@ import {ElmDefinitionProvider} from './elmDefinition';
 import {ElmHoverProvider} from './elmInfo';
 import {ElmCompletionProvider} from './elmAutocomplete';
 import {ElmSymbolProvider} from './elmSymbol';
+import {ElmCodeActionProvider, activateCodeActions} from './elmCodeAction';
 import {configuration} from './elmConfiguration';
 import {ElmFormatProvider, runFormatOnSave} from './elmFormat';
 
@@ -17,24 +18,28 @@ const ELM_MODE: vscode.DocumentFilter = { language: 'elm', scheme: 'file' };
 
 // this method is called when your extension is activated
 export function activate(ctx: vscode.ExtensionContext) {
+  const elmFormatStatusBar = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left);
   ctx.subscriptions.push(vscode.workspace.onDidSaveTextDocument((document: vscode.TextDocument) => {
     runLinter(document);
   }));
   ctx.subscriptions.push(vscode.workspace.onDidSaveTextDocument((document: vscode.TextDocument) => {
-    runFormatOnSave(document);
+    runFormatOnSave(document, elmFormatStatusBar);
   }));
   activateRepl().forEach((d: vscode.Disposable) => ctx.subscriptions.push(d));
   activateReactor().forEach((d: vscode.Disposable) => ctx.subscriptions.push(d));
   activateMake().forEach((d: vscode.Disposable) => ctx.subscriptions.push(d));
   activatePackage().forEach((d: vscode.Disposable) => ctx.subscriptions.push(d));
   activateClean().forEach((d: vscode.Disposable) => ctx.subscriptions.push(d));
+  activateCodeActions().forEach((d: vscode.Disposable) => ctx.subscriptions.push(d));
 
   ctx.subscriptions.push(vscode.languages.setLanguageConfiguration('elm', configuration))
   ctx.subscriptions.push(vscode.languages.registerHoverProvider(ELM_MODE, new ElmHoverProvider()));
   ctx.subscriptions.push(vscode.languages.registerCompletionItemProvider(ELM_MODE, new ElmCompletionProvider(), '.'));
   ctx.subscriptions.push(vscode.languages.registerDocumentSymbolProvider(ELM_MODE, new ElmSymbolProvider()));
-  ctx.subscriptions.push(vscode.languages.registerDocumentFormattingEditProvider(ELM_MODE, new ElmFormatProvider()));
   ctx.subscriptions.push(vscode.languages.registerDefinitionProvider(ELM_MODE, new ElmDefinitionProvider()));
+  ctx.subscriptions.push(vscode.languages.registerCodeActionsProvider(ELM_MODE, new ElmCodeActionProvider()));
+  ctx.subscriptions.push(vscode.languages.registerDocumentFormattingEditProvider(ELM_MODE, new ElmFormatProvider(elmFormatStatusBar)));
+
 
   // ctx.subscriptions.push(vscode.languages.registerDefinitionProvider(ELM_MODE, new ElmDefinitionProvider()));
 }
