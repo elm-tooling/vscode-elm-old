@@ -10,6 +10,7 @@ import {ElmDefinitionProvider} from './elmDefinition';
 import {ElmHoverProvider} from './elmInfo';
 import {ElmCompletionProvider} from './elmAutocomplete';
 import {ElmSymbolProvider} from './elmSymbol';
+import {ElmCodeActionProvider, activateCodeActions} from './elmCodeAction';
 import {configuration} from './elmConfiguration';
 import {ElmFormatProvider, runFormatOnSave} from './elmFormat';
 
@@ -29,12 +30,14 @@ export function activate(ctx: vscode.ExtensionContext) {
   activateMake().forEach((d: vscode.Disposable) => ctx.subscriptions.push(d));
   activatePackage().forEach((d: vscode.Disposable) => ctx.subscriptions.push(d));
   activateClean().forEach((d: vscode.Disposable) => ctx.subscriptions.push(d));
+  activateCodeActions().forEach((d: vscode.Disposable) => ctx.subscriptions.push(d));
 
   ctx.subscriptions.push(vscode.languages.setLanguageConfiguration('elm', configuration))
   ctx.subscriptions.push(vscode.languages.registerHoverProvider(ELM_MODE, new ElmHoverProvider()));
   ctx.subscriptions.push(vscode.languages.registerCompletionItemProvider(ELM_MODE, new ElmCompletionProvider(), '.'));
   ctx.subscriptions.push(vscode.languages.registerDocumentSymbolProvider(ELM_MODE, new ElmSymbolProvider()));
-  ctx.subscriptions.push(vscode.languages.registerDocumentFormattingEditProvider(ELM_MODE, new ElmFormatProvider(elmFormatStatusBar)))
+  ctx.subscriptions.push(vscode.languages.registerCodeActionsProvider(ELM_MODE, new ElmCodeActionProvider()));
+  ctx.subscriptions.push(vscode.languages.registerDocumentFormattingEditProvider(ELM_MODE, new ElmFormatProvider(elmFormatStatusBar)));
 
   // ctx.subscriptions.push(vscode.languages.registerDefinitionProvider(ELM_MODE, new ElmDefinitionProvider()));
 }
