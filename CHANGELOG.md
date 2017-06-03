@@ -1,3 +1,12 @@
+### 0.12.0 - 03.06.2017
+* add auto-closing quotes to config
+* Changes snippets to 4 space indentation
+* Fixes double module name in autocomplete
+* Autocomplete handles aliased module names
+* Elm-format error as StatusBar instead of ErrorMessage
+* Initial implementation of CodeActions (function type annotations, misspelled variable names, types and patterns)
+* Implements go to definition for document
+
 ### 0.11.2 - 10.05.2017
 * Improved Linter so that issues are associated with the correct files
 * Fix for elm-oracle being fed entire elm file
