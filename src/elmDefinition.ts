@@ -1,11 +1,11 @@
 'use strict';
 
 import * as vscode from 'vscode';
-import {ElmSymbolProvider} from './elmSymbol';
+import {ElmWorkspaceSymbolProvider} from './elmWorkspaceSymbols';
 import { Position, Range, SymbolInformation, SymbolKind, TextDocument, TextLine } from 'vscode';
 
 
-export function definitionLocation(document: vscode.TextDocument, position: vscode.Position): Promise<SymbolInformation> {
+export function definitionLocation(document: vscode.TextDocument, position: vscode.Position, workspaceSymbolProvider : ElmWorkspaceSymbolProvider ): Thenable<SymbolInformation> {
   let wordRange = document.getWordRangeAtPosition(position);
   let lineText = document.lineAt(position.line).text;
   let word = wordRange ? document.getText(wordRange) : '';
@@ -14,9 +14,7 @@ export function definitionLocation(document: vscode.TextDocument, position: vsco
   if (!wordRange || lineText.startsWith('--') || word.match(/^\d+.?\d+$/) ) {
   	return Promise.resolve(null);
   }
-  var symbolProvider = new ElmSymbolProvider();
-
-  return symbolProvider.provideDocumentSymbols(document, "")
+  return workspaceSymbolProvider.provideWorkspaceSymbols(word, null)
     .then(definitions => {
       if (definitions == null) return Promise.resolve(null);
       let filteredDefinitions = definitions
@@ -34,10 +32,12 @@ export function definitionLocation(document: vscode.TextDocument, position: vsco
 }
 
 export class ElmDefinitionProvider implements vscode.DefinitionProvider {
+	public constructor( private languagemode: vscode.DocumentFilter, private workspaceSymbolProvider : ElmWorkspaceSymbolProvider) { }
+
   public provideDefinition(document: vscode.TextDocument, position: vscode.Position, token: vscode.CancellationToken): Thenable<vscode.Location> {
-		return definitionLocation(document, position).then(definitionInfo => {
+		return definitionLocation(document, position, this.workspaceSymbolProvider).then(definitionInfo => {
 			if (definitionInfo == null || definitionInfo.location == null) return null;
-      let definitionResource = document.uri;
+      let definitionResource = definitionInfo.location.uri;
 			let pos = new vscode.Position(definitionInfo.location.range.start.line, 0);
 			return new vscode.Location(definitionResource, pos);
 		}, err => {
