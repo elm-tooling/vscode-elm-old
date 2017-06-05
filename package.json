@@ -72,6 +72,11 @@
           "default": "elm-make",
           "description": "Command to run when executing elm-make"
         },
+        "elm.makeSpecialFile": {
+          "type": "string",
+          "default": "",
+          "description": "When empty, the elm-make uses the current editor file. If set, elm-make always use this file. Example 'src/Main.elm' will run elm-make on workspacepath/src/Main.elm"
+        },
         "elm.formatOnSave": {
           "type": "boolean",
           "default": false,
