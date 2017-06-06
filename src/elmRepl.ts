@@ -19,19 +19,30 @@ function startRepl(fileName: string, forceRestart = false)
           fileName: fileName,
           showMessageOnError: true,
           onStart: () => resolve(repl.stdin.write.bind(repl.stdin)),
-          
+
           // strip output text of leading '>'s and '|'s
           onStdout: (data) => oc.append(data.replace(/^((>|\|)\s*)+/mg, "")),
-          
+
           onStderr: (data) => oc.append(data)
         }
       );
 
       oc.show(vscode.ViewColumn.Three);
     })
-  }  
+  }
 }
 
+function stopRepl() {
+  if (repl.isRunning) {
+    repl.kill();
+    oc.clear();
+    oc.dispose();
+    vscode.window.showInformationMessage("Elm REPL stopped.")
+  }
+  else {
+    vscode.window.showErrorMessage("Cannot stop Elm REPL. The REPL is not running.")
+  }
+}
 function send(editor: TextEditor, msg: string) {
 
   if (editor.document.languageId !== 'elm') {
@@ -47,7 +58,7 @@ function send(editor: TextEditor, msg: string) {
 
     writeToRepl(inputMsg);
     oc.append(displayMsg);
-    
+
     // when the output window is first shown it steals focus
     // switch it back to the text document
     window.showTextDocument(editor.document);
@@ -69,6 +80,7 @@ function sendFile(editor: vscode.TextEditor): void {
 export function activateRepl(): vscode.Disposable[] {
   return [
     vscode.commands.registerCommand('elm.replStart', () => startRepl(workspace.rootPath + "/x")),
+    vscode.commands.registerCommand('elm.replStop', () => stopRepl()),
     vscode.commands.registerTextEditorCommand('elm.replSendLine', sendLine),
     vscode.commands.registerTextEditorCommand('elm.replSendSelection', sendSelection),
     vscode.commands.registerTextEditorCommand('elm.replSendFile', sendFile)

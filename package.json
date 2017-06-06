@@ -118,6 +118,10 @@
         "title": "Elm: REPL - Start"
       },
       {
+        "command": "elm.replStop",
+        "title": "Elm: REPL - Stop"
+      },
+      {
         "command": "elm.replSendLine",
         "title": "Elm: REPL - Send Line"
       },
