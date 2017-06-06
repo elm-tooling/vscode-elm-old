@@ -57,6 +57,11 @@
           "default": 8000,
           "description": "Set the port of the Elm Reactor server."
         },
+        "elm.reactorSubdir": {
+          "type": "string",
+          "default": "",
+          "description": "Set the subdir path traversal used to run Elm reactor server. Example: '../' to use parent directory."
+        },
         "elm.formatCommand": {
           "type": "string",
           "default": "elm-format",

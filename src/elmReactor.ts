@@ -1,6 +1,8 @@
 import * as vscode from 'vscode';
 import * as cp from 'child_process';
 import {isWindows} from './elmUtils';
+import * as path from 'path';
+
 
 let reactor: cp.ChildProcess;
 let oc: vscode.OutputChannel = vscode.window.createOutputChannel('Elm Reactor');
@@ -9,19 +11,20 @@ let statusBarStopButton: vscode.StatusBarItem;
 function startReactor(): void {
   try {
     stopReactor(/*notify*/ false);
-    
+
     const config: vscode.WorkspaceConfiguration = vscode.workspace.getConfiguration('elm');
     const host: string = <string>config.get('reactorHost');
     const port: string = <string>config.get('reactorPort');
-    const args = ['-a=' + host, '-p=' + port], cwd = vscode.workspace.rootPath;
-    
+    const subdir: string = <string>config.get('reactorSubdir');
+    const args = ['-a=' + host, '-p=' + port], cwd = path.join(vscode.workspace.rootPath, subdir);
+
     if (isWindows) {
       reactor = cp.exec('elm-reactor ' + args.join(' '), { cwd: cwd });
     }
     else {
       reactor = cp.spawn('elm-reactor', args, { cwd: cwd, detached: true });
     }
-    
+
     reactor.stdout.on('data', (data: Buffer) => {
       if (data && data.toString().startsWith('| ') === false) {
         oc.append(data.toString());
@@ -54,7 +57,7 @@ function stopReactor(notify: boolean): void {
   } else {
     if (notify) {
       vscode.window.showInformationMessage('Elm Reactor not running');
-    }  
+    }
   }
 }
 
