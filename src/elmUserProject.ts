@@ -136,8 +136,9 @@ export function userProject(document: vscode.TextDocument, position: vscode.Posi
       let exposingMatch;
       let moduleWords = lines[i].split(' ');
       if (exposingMatch = lines[i].match(/exposing \(/)) {
+        
         let asMatch;
-        if (asMatch = lines[i].match(/as/)) {
+        if (asMatch = lines[i].match(/ as /)) {
           imports.push({
             module: moduleWords[3],
             exposing: exposingList(lines[i].split('(')[1].replace(')', '')),
@@ -153,7 +154,7 @@ export function userProject(document: vscode.TextDocument, position: vscode.Posi
         }
       } else {
         let asMatch;
-        if (asMatch = lines[i].match(/as/)) {
+        if (asMatch = lines[i].match(/ as /)) {
           imports.push({
             module: moduleWords[3],
             exposing: [],
