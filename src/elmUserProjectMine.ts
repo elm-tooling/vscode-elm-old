@@ -33,27 +33,18 @@ function toLowerOrHover(action: OracleAction, text:string): string {
   return (action === OracleAction.IsAutocomplete ? text.toLowerCase() : text)
 }
 
-/**
- * buildModulePaths
- * List the contents of the given directory and reads the beginning of each elm file
- * to find the module name. Uses recursion to find subdirectories
- * @param fullDirPath string The path to the directory to read
- */
-function buildModulePaths(fullDirPath: string): Imports[] {
+function readDirectory(fullDirPath: string): Imports[] {
   let modulePaths: Imports[] = []
-
   fs.readdirSync(fullDirPath).forEach(file => {
-    let stats = fs.statSync(path.join(fullDirPath, file));
-
+    let stats = fs.statSync(fullDirPath + file);
     if (stats.isDirectory()) {
-      modulePaths = [...modulePaths, ...buildModulePaths(path.join(fullDirPath, file))]
-    } else if (file.substr(-4) === '.elm') {
-      let fullText = fs.readFileSync(path.join(fullDirPath, file), 'utf-8');
+      modulePaths = [...modulePaths, ...readDirectory(fullDirPath + file + path.sep)]
+    } else {
+      let fullText = fs.readFileSync(fullDirPath + file, 'utf-8');
       const lines: string[] = fullText.split(/\r?\n/g);
-
       for (let i = 0; i < lines.length; i++) {
         if (lines[i].match(/^module/)) {
-          modulePaths.push({ module: lines[i].split(' ')[1], filePath:( path.join(fullDirPath, file)), exposing: [] });
+          modulePaths.push({ module: lines[i].split(' ')[1], filePath:( fullDirPath + file), exposing: [] });
           break;
         }
       }
@@ -63,18 +54,13 @@ function buildModulePaths(fullDirPath: string): Imports[] {
   return modulePaths;  
 }
 
-/**
- * getModuleNames
- * Calls the buildModulePaths function for each elm source directory
- * @param cwd current working directory
- * @param srcDirs all elm src directorys (from elm-package.json)
- */
 function getModuleNames(cwd: string, srcDirs: string[]): Imports[] {
   let modulePaths: Imports[] = [];
   
   try {
     srcDirs.forEach(dir => {
-      modulePaths = [...modulePaths, ...buildModulePaths( path.join(cwd, dir))];
+      modulePaths = [...modulePaths, ...readDirectory(cwd + path.sep + dir + path.sep)];
+      
     })
   } catch (e) {
     //Do not fail intellisense if this does not work
@@ -82,25 +68,6 @@ function getModuleNames(cwd: string, srcDirs: string[]): Imports[] {
   }  
 
   return modulePaths;
-}
-
-/**
- * getModuleFilePath
- * Return the file path of the given module name
- * Requires that buildModulePaths has already been run.  Only processes
- * if the userProjectImportStrategy is dynamicLookup or semiDynamicLookup
- * @param allModules The list of all modules and their file paths in this project
- * @param moduleName The current module name to look up
- */
-function getModuleFilePath(allModules: Imports[], moduleName:string) {
-  if (config["userProjectImportStrategy"].includes('Lookup')) {
-    try {
-      return allModules.filter(item => item.module === moduleName)[0].filePath;
-    } catch (e) {
-      //Not found - this is a core imported module, move along
-    }
-  }  
-  return '';
 }
 
 export function userProject(document: vscode.TextDocument, position: vscode.Position, currentWord: string, action: OracleAction) {
@@ -111,7 +78,7 @@ export function userProject(document: vscode.TextDocument, position: vscode.Posi
 
   const cwd = detectProjectRoot(document.fileName) || vscode.workspace.rootPath;
   gCwd = cwd;
-  const elmPackageString: string = fs.readFileSync(path.join(cwd, 'elm-package.json'), 'utf-8');
+  const elmPackageString: string = fs.readFileSync(cwd + path.sep + 'elm-package.json', 'utf-8');
   const elmPackage = JSON.parse(elmPackageString);
   const srcDirs = elmPackage['source-directories']; //must use array notation for the key because of hyphen
   let allModules:Imports[] = [];
@@ -124,49 +91,36 @@ export function userProject(document: vscode.TextDocument, position: vscode.Posi
     if (gAllModules.length === 0) {
       allModules = getModuleNames(cwd, srcDirs);
       gAllModules = allModules;
-    } else {
-      allModules = gAllModules;
     }
   }
 
-  //Build list of this file's imported modules  
+  //Build list of this file's imported modules
   for (let i = 0; i < lines.length; i++) {
     let match;
     if (match = lines[i].match(/^import/)) {
       let exposingMatch;
-      let moduleWords = lines[i].split(' ');
+      let filePath = '';
+      let moduleName = lines[i].split(' ')[1];
+      if (config["userProjectImportStrategy"].includes('Lookup')) {
+        try {
+          filePath = allModules.filter(item => item.module === moduleName)[0].filePath;
+        } catch (e) {
+          //Not found - this is a core imported module, move along
+        }
+      }
+
       if (exposingMatch = lines[i].match(/exposing \(/)) {
-        let asMatch;
-        if (asMatch = lines[i].match(/as/)) {
-          imports.push({
-            module: moduleWords[3],
-            exposing: exposingList(lines[i].split('(')[1].replace(')', '')),
-            filePath: getModuleFilePath(allModules, moduleWords[1])
-          });
-        }
-        else {
-          imports.push({
-            module: moduleWords[1],
-            exposing: exposingList(lines[i].split('(')[1].replace(')', '')),
-            filePath: getModuleFilePath(allModules, moduleWords[1])
-          });
-        }
+        imports.push({
+          module: moduleName,
+          exposing: exposingList(lines[i].split('(')[1].replace(')', '')),
+          filePath: filePath
+        });
       } else {
-        let asMatch;
-        if (asMatch = lines[i].match(/as/)) {
-          imports.push({
-            module: moduleWords[3],
-            exposing: [],
-            filePath: getModuleFilePath(allModules, moduleWords[1])
-          });
-        }
-        else {
-          imports.push({
-            module: moduleWords[1],
-            exposing: [],
-            filePath: getModuleFilePath(allModules, moduleWords[1])
-          });
-        }
+        imports.push({
+          module: moduleName,
+          exposing: [],
+          filePath: filePath
+        });
       }
     } else if (lines[i].trim() !== '' && !lines[i].match(/^module/)) {
       break;
@@ -201,7 +155,7 @@ export function userProject(document: vscode.TextDocument, position: vscode.Posi
 
   gImports = imports;
 
-  //Look in the current file for autocomplete information
+  //Look in the current file for autocomplete information  
   results = [
     ...results,
     ...localFunctions(document.fileName, null, action, lines, position, currentWord, null, srcDirs)
@@ -218,7 +172,7 @@ export function userProject(document: vscode.TextDocument, position: vscode.Posi
 
         if (item.module === currentWord.split('.')[0]) { return true; }
         
-        const wordToMatch = (action === OracleAction.IsAutocomplete ? currentWord.slice(0, -1) :  currentWord.substr(0, currentWord.lastIndexOf('.')))
+        const wordToMatch = (action === OracleAction.IsAutocomplete ? currentWord.substr(0, -1) :  currentWord.substr(0, currentWord.lastIndexOf('.')))
         if (item.module.includes('.') && item.module.includes(wordToMatch)) {
           if (currentWord.indexOf('.') === currentWord.lastIndexOf('.')) {
             //The current word only has 1 period, not enough to know which module to look up
@@ -253,7 +207,7 @@ export function userProject(document: vscode.TextDocument, position: vscode.Posi
       imports.forEach(moduleFile => {
         let modulePath = moduleFile.module;
         let filePath = '';
-
+      
         if (config['userProjectImportStrategy'].includes('Lookup')) {
           filePath = moduleFile.filePath;
         } else if (moduleFile.module.includes('.')) {
@@ -281,7 +235,7 @@ const splitOnSpace = (config["includeParamsInUserAutocomplete"] === true ? null 
  * localFunctions - Helper function to userProject which will find all type, type alias, and functions
  *                  Calls itself to look up type alias
  * @param filename from the vscode.TextDocument
- * @param callerFile optional parameter. If not set, we are looking in the current file, otherwise we are looking in an imported module
+ * @param callerFile optional parameter. If not set, we are looking in the current file, otherwise we are looking in an imported module 
  * @param action from elmOracle. Whether the user is hovering or looking for autocomplete
  * @param lines array of lines of the current file
  * @param position the vscode.Position
@@ -296,7 +250,7 @@ function localFunctions(filename: string, callerFile: string, action: OracleActi
   let foundTypeAlias = false;
   let lookForTypeAlias = currentWord.substr(-1) === '.';
   for (let i = 0; i < lines.length; i++) {
-
+    
     //Step 1: Get intellisense for type aliases
     //Caller file is only null if this is the first call to localFunctions
     if (callerFile === null && lookForTypeAlias) {
@@ -309,14 +263,14 @@ function localFunctions(filename: string, callerFile: string, action: OracleActi
           let trimmedLine = '';
 
           if (foundTypeAlias) { continue; }
-
+          
           //Walk backwards through the file (starting at the current line) to see if this is a parameter in the current function
           for (let j = position.line-1; j > 0; j--) {
             currentLine = lines[j];
             trimmedLine = currentLine.trim();
 
             if (trimmedLine === '') { continue }
-
+            
             let params = currentLine.split(' ');
             if (currentLine.includes('=') && params.filter((item, i) => {
               if (item === currentWord.slice(0, -1) && item.trim() !== '') {
@@ -329,14 +283,14 @@ function localFunctions(filename: string, callerFile: string, action: OracleActi
               //This item is a function parameter
               foundParams = true;
             }
-
+            
             if (foundParams) {
               //Try and find the type signature of this function parameter based on the
               //function signature, if found.
               if (currentLine.includes(':')) {
                 let signaturePieces = currentLine.split(/(?:\:|->)/g);
                 let typeAlias;
-
+                
                 typeAlias = signaturePieces[paramIndex].trim();
 
                 //Check if the type alias is defined in the calling file
@@ -345,19 +299,19 @@ function localFunctions(filename: string, callerFile: string, action: OracleActi
                   //Then check the imported files for it
                   srcDirs.forEach(dir => {
                     gImports.forEach(moduleFile => {
-                      let filePath = path.join(gCwd, dir, moduleFile.module + '.elm')
+                      let filePath = gCwd + path.sep + dir + path.sep + moduleFile.module + '.elm';
                       try {
                         if (aliasResults.length === 0) {
                           let importText = fs.readFileSync(filePath, 'utf-8');
                           let importResults = localFunctions(filePath, gCwd, action, importText.split(/\r?\n/g), position, typeAlias, null, null, true);
                           aliasResults = [...aliasResults, ...importResults];
-                        }
+                        }  
                       } catch (e) {
                         //File is an imported module, you won't find it
                       }
                     });
                   })
-                }
+                }  
                 if (aliasResults.length > 0) {
                   foundTypeAlias = true;
                   results = [...results, ...aliasResults];
@@ -373,12 +327,12 @@ function localFunctions(filename: string, callerFile: string, action: OracleActi
       }
     }
 
-    //Step 2: See if the item we are looking up is qualified with a module name
+    //Step 2: See if the item we are looking up is qualified with a module name    
     if (currentWord.includes('.')) {
       let importName = currentWord.split('.')[0];
       let func = currentWord.split('.')[1];
 
-      //If this is a module and we aren't in the module file, we won't find any info for the current word
+      //If this is a module and we aren't in the module file, we won't find any info for the current word      
       if (!filename.includes(importName + '.elm')) {
         continue;
       } else {
@@ -403,7 +357,7 @@ function localFunctions(filename: string, callerFile: string, action: OracleActi
         functionDefinition = lines[i].substr(0, lines[i].indexOf('='));
       }
 
-      //We found something, add it to the autocomplete/hover results
+      //We found something, add it to the autocomplete/hover results      
       if (typeSignature.length + functionDefinition.length > 0) {
         results.push({
           name: (functionDefinition != '' ? functionDefinition : typeSignature.split(':')[0]).split(splitOnSpace)[0].trim(),
@@ -416,7 +370,7 @@ function localFunctions(filename: string, callerFile: string, action: OracleActi
       }
     }
 
-    //Step 4: Search for a type declaration (type alias is later on)
+    //Step 4: Search for a type declaration (type alias is later on)    
     let suggestionList = [];
     if (!isTypeAlias && /^type (?!alias)/.test(lines[i])) {
       let returnInfo = lines[i].substr(lines[i].indexOf('=') + 1);
@@ -439,7 +393,7 @@ function localFunctions(filename: string, callerFile: string, action: OracleActi
             typeSignature = lines[i];
             if (typeSignature !== '') { suggestionList.push(typeSignature); }
           }
-        }
+        }  
 
         returnInfo += '\n' + lines[i];
         j++;
@@ -461,7 +415,7 @@ function localFunctions(filename: string, callerFile: string, action: OracleActi
       })
     }
 
-    //Step 5: Look up type aliases
+    //Step 5: Look up type aliases    
     if (/^(type alias)/.test(lines[i].toLowerCase())) {
       let returnInfo = '';
       suggestionList = [];
@@ -488,7 +442,7 @@ function localFunctions(filename: string, callerFile: string, action: OracleActi
             break;
           }
         }
-
+        
         suggestionList.map(item => {
           let field = item.split(':')[0];
           let cleanField = field.replace('{', '').replace(',', '').trim();
@@ -504,6 +458,6 @@ function localFunctions(filename: string, callerFile: string, action: OracleActi
       }
     }
   }
-
+  
   return results;
 }
