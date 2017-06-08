@@ -106,6 +106,16 @@
           "type": "number",
           "default": 10,
           "description": "Max number of lines in a user hover suggestion (no effect if elm.userProjectIntellisense is false)"
+        },
+        "elm.maxWorkspaceFilesUsedBySymbols": {
+          "type": "number",
+          "default": 100,
+          "description": "Max number of files to search in workspace when reading workspace symbols."
+        },
+        "elm.workspaceFilesExcludePatternUsedBySymbols": {
+          "type": "string",
+          "default": "**/{node_modules,elm-stuff}/**",
+          "description": "The exclude pattern used to search in workspace when reading workspace symbols."
         }
       }
     },
