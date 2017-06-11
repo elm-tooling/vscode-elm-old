@@ -2,8 +2,10 @@ module Main exposing (..)
 
 import Html exposing (Html, div, button, text)
 import Html.Events exposing (onClick)
+import ModuleExample exposing (..)
 
 
+main : Program Never Model Msg
 main =
     Html.program
         { init = ( initialModel, Cmd.none )
@@ -45,6 +47,6 @@ view : Model -> Html Msg
 view model =
     div []
         [ button [ onClick Decrement ] [ text "-" ]
-        , div [] [ text (toString model) ]
+        , div [] [ viewCounter model ]
         , button [ onClick Increment ] [ text "+" ]
         ]
