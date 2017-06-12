@@ -7,7 +7,7 @@ export class ElmSymbolProvider implements vscode.DocumentSymbolProvider {
     Promise.resolve(processDocument(doc));
 }
 
-function processDocument(doc: TextDocument) {
+export function processDocument(doc: TextDocument) {
 
   const docRange = doc.validateRange(
     new Range(0, 0, Number.MAX_SAFE_INTEGER, Number.MAX_SAFE_INTEGER))
@@ -68,7 +68,7 @@ function processDocument(doc: TextDocument) {
         name = nameMatch && nameMatch[0];
       // Filter out type annotations too
       if (name && text.substr(name.length).charAt(0) !== ':') {
-        return [new SymbolInformation(name.trim(), kind, range)]
+        return [new SymbolInformation(name.trim(), kind, range, doc.uri)]
       }
       else {
         return []

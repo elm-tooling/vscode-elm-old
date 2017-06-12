@@ -1,7 +1,7 @@
 {
   "name": "elm",
   "description": "Elm Language Support for Visual Studio Code",
-  "version": "0.12.0",
+  "version": "0.13.0",
   "publisher": "sbrink",
   "author": {
     "name": "Krzysztof Cieslak"
@@ -118,6 +118,16 @@
           ],
           "default": "dotIsFolder",
           "description": "How to parse imported files when the module has a dot in it.  Values: \n\tdotIsFolder: Assume everything in front of each dot is a folder name. \n\t dotIsFilenameCharacter: Assume that the dot is part of the file name \n\t dynamicLookup: Don't make any assumptions and parse the first line of all files, building up a list of module names. \n\t semiDynamicLookup: Same as dynamic but it will keep the last looked up modules in memory; reloading the window is required to refresh it \n\t ignore: Do not attempt to generate intellisense for user modules with a dot in them \n\nThe window must be reloaded for changes to take effect"
+        },
+        "elm.maxWorkspaceFilesUsedBySymbols": {
+          "type": "number",
+          "default": 100,
+          "description": "Max number of files to search in workspace when reading workspace symbols."
+        },
+        "elm.workspaceFilesExcludePatternUsedBySymbols": {
+          "type": "string",
+          "default": "**/{node_modules,elm-stuff}/**",
+          "description": "The exclude pattern used to search in workspace when reading workspace symbols."
         }
       }
     },
