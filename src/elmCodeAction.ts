@@ -95,7 +95,7 @@ function annotateFunction(msg : string) {
 	let wordRange = editor.document.getWordRangeAtPosition(position);
 	let currentWord: string = editor.document.getText(wordRange);
 	let msgList = msg.split('\n');
-	if (msgList.length > 1) {
+	if (msgList.length >= 1) {
 		let annotation = msgList
 			.map((val: string) => val.trim())
 		  .join(' ');
