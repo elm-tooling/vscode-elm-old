@@ -129,7 +129,8 @@ export function userProject(document: vscode.TextDocument, position: vscode.Posi
     }
   }
 
-  //Build list of this file's imported modules  
+  //Build list of this file's imported modules
+  let commentBlock: boolean = false;
   for (let i = 0; i < lines.length; i++) {
     let match;
     if (match = lines[i].match(/^import/)) {
@@ -169,8 +170,10 @@ export function userProject(document: vscode.TextDocument, position: vscode.Posi
           });
         }
       }
-    } else if (lines[i].trim() !== '' && !lines[i].match(/^module/)) {
-      break;
+    } else if (lines[i].trim() !== '' && !lines[i].match(/^module/) && commentBlock === false) {
+      if (lines[i].trim().includes('{-')) { commentBlock = true; }
+      else if (lines[i].trim().includes('-}')) { commentBlock = false; }
+      else { break; }
     }
   }
 
@@ -298,7 +301,7 @@ function localFunctions(filename: string, callerFile: string, action: OracleActi
   let lookForTypeAlias = currentWord.substr(-1) === '.';
   for (let i = 0; i < lines.length; i++) {
 
-    //Step 1: Get intellisense for type aliases
+    //Step 1: Get intellisense for type alias properties
     //Caller file is only null if this is the first call to localFunctions
     if (callerFile === null && lookForTypeAlias) {
       if (currentWord.substr(-1) === '.') {
@@ -420,10 +423,14 @@ function localFunctions(filename: string, callerFile: string, action: OracleActi
     //Step 4: Search for a type declaration (type alias is later on)
     let suggestionList = [];
     if (!isTypeAlias && /^type (?!alias)/.test(lines[i])) {
-      let returnInfo = lines[i].substr(lines[i].indexOf('=') + 1);
+      let returnInfo:string = lines[i];
       let foundCurrentWord: boolean = false;
       let typeSignature: string = '';
       let j = 0;
+
+      if (action === OracleAction.IsAutocomplete) {
+        suggestionList.push(lines[i]);
+      }
 
       while (lines[i].trim() !== '' && !lines[i].match(/^module/)) {
         i++;
@@ -444,63 +451,63 @@ function localFunctions(filename: string, callerFile: string, action: OracleActi
 
         returnInfo += '\n' + lines[i];
         j++;
-        if (j > config['userProjectMaxCommentSize']) {
-          returnInfo += '\n...';
+        if (j > config['userProjectMaxCommentSize'] && config['userProjectMaxCommentSize'] != 0) {
+          returnInfo += '\n...(more than ' + (config['userProjectMaxCommentSize']+1) + ' lines, see vscode-elm settings)\n';
           break;
         }
       }
 
-      suggestionList.map(item => {
+      if (action === OracleAction.IsAutocomplete) {
+        suggestionList.map(item => {
+          results.push({
+            name: (item != '' ? item : currentWord).replace('|', '').replace('=', '').trim().split(splitOnSpace)[0].trim(),
+            fullName: (item != '' ? item : currentWord).replace('|', '').replace('type ', '').replace('=', '').trim().split(splitOnSpace)[0].trim(),
+            signature: item.replace('|', '').replace('=', '').trim(),
+            href: filename,
+            kind: vscode.CompletionItemKind.Enum,
+            comment: returnInfo + '\n--' + filename
+          });
+        })
+      } else {
         results.push({
-          name: (item != '' ? item : currentWord).replace('|', '').replace('=', '').trim().split(splitOnSpace)[0].trim(),
-          fullName: (item != '' ? item : currentWord).replace('|', '').replace('=', '').trim().split(splitOnSpace)[0].trim(),
-          signature: item.replace('|', '').replace('=', '').trim(),
+          name: currentWord.replace('|', '').replace('=', '').trim().split(splitOnSpace)[0].trim(),
+          fullName: currentWord.replace('|', '').replace('=', '').trim().split(splitOnSpace)[0].trim(),
+          signature: currentWord.replace('|', '').replace('=', ''),
           href: filename,
           kind: vscode.CompletionItemKind.Enum,
           comment: returnInfo + '\n--' + filename
-        });
-      })
+        })
+      }  
     }
 
     //Step 5: Look up type aliases
     if (/^(type alias)/.test(lines[i].toLowerCase())) {
       let returnInfo = '';
       suggestionList = [];
-      if (toLowerOrHover(action, lines[i]).includes('type alias ' + (currentWord !== '[a-zA-Z]' ? currentWord.toLowerCase() + ' ' : gOriginalWord.split('.')[1].trim()))) {
+      if (toLowerOrHover(action, lines[i]).includes('type alias ' + (currentWord !== '[a-zA-Z]' ? toLowerOrHover(action, currentWord) : gOriginalWord.split('.')[1].trim()))) {
         let j = 0;
         returnInfo = lines[i];
-        if (action === OracleAction.IsHover || currentWord === '[a-zA-Z]') {
-          suggestionList.push(lines[i].replace('type alias ', '').replace('=', '').trim());
-        }
+
+        let typeAliasName = lines[i].replace('type alias ', '').replace('=', '').trim();
 
         while (lines[i].trim() !== '' && !lines[i].match(/^module/)) {
           i++;
-
-          if (action === OracleAction.IsAutocomplete && currentWord !== '[a-zA-Z]') {
-            if (lines[i].trim() !== '' && lines[i].trim() !== '}') {
-              suggestionList.push(lines[i]);
-            }
-          }
           returnInfo += '\n' + lines[i];
 
           j++;
-          if (j > config['userProjectMaxCommentSize']) {
-            returnInfo += '\n...';
+          if (j > config['userProjectMaxCommentSize'] && config['userProjectMaxCommentSize'] != 0) {
+            returnInfo += '\n...(more than ' + (config['userProjectMaxCommentSize']+1) + ' lines, see vscode-elm settings)\n';
             break;
           }
         }
-
-        suggestionList.map(item => {
-          let field = item.split(':')[0];
-          let cleanField = field.replace('{', '').replace(',', '').trim();
-          results.push({
-            name: cleanField,
-            fullName: cleanField,
-            signature: item.replace('{', '').trim(),
-            href: filename,
-            kind: (action === OracleAction.IsHover ? vscode.CompletionItemKind.Interface : vscode.CompletionItemKind.Property),
-            comment: returnInfo + '\n--' + filename
-          });
+        
+        results.push({
+          name: typeAliasName,
+          fullName: typeAliasName,
+          signature: 'type alias ' + typeAliasName,
+          href: filename,
+          kind: vscode.CompletionItemKind.Interface,
+          comment: returnInfo + '\n--' +filename
         });
       }
     }
