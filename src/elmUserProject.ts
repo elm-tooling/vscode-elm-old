@@ -468,7 +468,7 @@ function localFunctions(filename: string, callerFile: string, action: OracleActi
             comment: returnInfo + '\n--' + filename
           });
         })
-      } else {
+      } else if (foundCurrentWord) {
         results.push({
           name: currentWord.replace('|', '').replace('=', '').trim().split(splitOnSpace)[0].trim(),
           fullName: currentWord.replace('|', '').replace('=', '').trim().split(splitOnSpace)[0].trim(),
