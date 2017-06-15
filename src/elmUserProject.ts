@@ -7,6 +7,7 @@ import * as path from 'path';
 interface Imports {
   module: string;
   exposing: string[];
+  filePath?: string;
 }
 
 const config = vscode.workspace.getConfiguration('elm');
@@ -14,7 +15,8 @@ const config = vscode.workspace.getConfiguration('elm');
 let gSrcDirs = [];
 let gCwd = '';
 let gImports = [];
-let gOriginalWord = ''
+let gOriginalWord = '';
+let gAllModules: Imports[] = [];
 
 function exposingList(exposing): string[] {
   const separated = exposing.split(',');
@@ -31,51 +33,160 @@ function toLowerOrHover(action: OracleAction, text:string): string {
   return (action === OracleAction.IsAutocomplete ? text.toLowerCase() : text)
 }
 
+/**
+ * buildModulePaths
+ * List the contents of the given directory and reads the beginning of each elm file
+ * to find the module name. Uses recursion to find subdirectories
+ * @param fullDirPath string The path to the directory to read
+ */
+function buildModulePaths(fullDirPath: string): Imports[] {
+  let modulePaths: Imports[] = []
+
+  fs.readdirSync(fullDirPath).forEach(file => {
+    let stats = fs.statSync(path.join(fullDirPath, file));
+
+    if (stats.isDirectory()) {
+      modulePaths = [...modulePaths, ...buildModulePaths(path.join(fullDirPath, file))]
+    } else if (file.substr(-4) === '.elm') {
+      let fullText = fs.readFileSync(path.join(fullDirPath, file), 'utf-8');
+      const lines: string[] = fullText.split(/\r?\n/g);
+
+      for (let i = 0; i < lines.length; i++) {
+        if (lines[i].match(/^module/)) {
+          modulePaths.push({ module: lines[i].split(' ')[1], filePath:( path.join(fullDirPath, file)), exposing: [] });
+          break;
+        }
+      }
+    }  
+  })
+  
+  return modulePaths;  
+}
+
+/**
+ * getModuleNames
+ * Calls the buildModulePaths function for each elm source directory
+ * @param cwd current working directory
+ * @param srcDirs all elm src directorys (from elm-package.json)
+ */
+function getModuleNames(cwd: string, srcDirs: string[]): Imports[] {
+  let modulePaths: Imports[] = [];
+  
+  try {
+    srcDirs.forEach(dir => {
+      modulePaths = [...modulePaths, ...buildModulePaths( path.join(cwd, dir))];
+    })
+  } catch (e) {
+    //Do not fail intellisense if this does not work
+    console.error(e)
+  }  
+
+  return modulePaths;
+}
+
+/**
+ * getModuleFilePath
+ * Return the file path of the given module name
+ * Requires that buildModulePaths has already been run.  Only processes
+ * if the userProjectImportStrategy is dynamicLookup or semiDynamicLookup
+ * @param allModules The list of all modules and their file paths in this project
+ * @param moduleName The current module name to look up
+ */
+function getModuleFilePath(allModules: Imports[], moduleName:string) {
+  if (config["userProjectImportStrategy"].includes('Lookup')) {
+    try {
+      return allModules.filter(item => item.module === moduleName)[0].filePath;
+    } catch (e) {
+      //Not found - this is a core imported module, move along
+    }
+  }  
+  return '';
+}
+
 export function userProject(document: vscode.TextDocument, position: vscode.Position, currentWord: string, action: OracleAction) {
   const fullText = document.getText();
   const lines: string[] = fullText.split(/\r?\n/g);
   let imports: Imports[] = [];
   let results: IOracleResult[] = [];
 
-  let cwd = detectProjectRoot(document.fileName) || vscode.workspace.rootPath;
+  const cwd = detectProjectRoot(document.fileName) || vscode.workspace.rootPath;
   gCwd = cwd;
+  const elmPackageString: string = fs.readFileSync(path.join(cwd, 'elm-package.json'), 'utf-8');
+  const elmPackage = JSON.parse(elmPackageString);
+  const srcDirs = elmPackage['source-directories']; //must use array notation for the key because of hyphen
+  let allModules:Imports[] = [];
+  
+  if (config["userProjectImportStrategy"] === "dynamicLookup") {
+    allModules = getModuleNames(cwd, srcDirs);
+  } else if (config["userProjectImportStrategy"] === "semiDynamicLookup") {
+    //For semi-dynamic, only populate once.  Window needs to be reloaded to pick up new files.
+    //Faster performance for large numbers of modules.
+    if (gAllModules.length === 0) {
+      allModules = getModuleNames(cwd, srcDirs);
+      gAllModules = allModules;
+    } else {
+      allModules = gAllModules;
+    }
+  }
 
+  //Build list of this file's imported modules
+  let commentBlock: boolean = false;
   for (let i = 0; i < lines.length; i++) {
     let match;
     if (match = lines[i].match(/^import/)) {
       let exposingMatch;
+      let moduleWords = lines[i].split(' ');
       if (exposingMatch = lines[i].match(/exposing \(/)) {
+        
         let asMatch;
-        if (asMatch = lines[i].match(/as/)) {
+        if (asMatch = lines[i].match(/ as /)) {
           imports.push({
-            module: lines[i].split(' ')[3],
-            exposing: exposingList(lines[i].split('(')[1].replace(')', ''))
+            module: moduleWords[3],
+            exposing: exposingList(lines[i].split('(')[1].replace(')', '')),
+            filePath: getModuleFilePath(allModules, moduleWords[1])
           });
         }
         else {
           imports.push({
-            module: lines[i].split(' ')[1],
-            exposing: exposingList(lines[i].split('(')[1].replace(')', ''))
+            module: moduleWords[1],
+            exposing: exposingList(lines[i].split('(')[1].replace(')', '')),
+            filePath: getModuleFilePath(allModules, moduleWords[1])
           });
         }
       } else {
         let asMatch;
-        if (asMatch = lines[i].match(/as/)) {
+        if (asMatch = lines[i].match(/ as /)) {
           imports.push({
-            module: lines[i].split(' ')[3],
-            exposing: []
+            module: moduleWords[3],
+            exposing: [],
+            filePath: getModuleFilePath(allModules, moduleWords[1])
           });
         }
         else {
           imports.push({
-            module: lines[i].split(' ')[1],
-            exposing: []
+            module: moduleWords[1],
+            exposing: [],
+            filePath: getModuleFilePath(allModules, moduleWords[1])
           });
         }
       }
-    } else if (lines[i].trim() !== '' && !lines[i].match(/^module/)) {
-      break;
+    } else if (lines[i].trim() !== '' && !lines[i].match(/^module/) && commentBlock === false) {
+      if (lines[i].trim().includes('{-')) { commentBlock = true; }
+      else if (lines[i].trim().includes('-}')) { commentBlock = false; }
+      else { break; }
     }
+  }
+
+  //Always suggest primitive types for autocomplete when making a function or type definition
+  if (!currentWord.includes('.') && action === OracleAction.IsAutocomplete
+    && (lines[position.line].includes(':') || lines[position.line].includes(' | '))) {
+    let elmAddress = 'http://package.elm-lang.org/packages/elm-lang/core/latest';
+    results = [
+      { name: 'Int', fullName: 'Int', href: elmAddress, signature: 'Int', comment: '--Core type' },
+      { name: 'String', fullName: 'String', href: elmAddress, signature: 'String', comment: '--Core type' },
+      { name: 'Bool', fullName: 'Bool', href: elmAddress, signature: 'Bool', comment: '--Core type' },
+      { name: 'Float', fullName: 'Float', href: elmAddress, signature: 'Float', comment: '--Core type' },
+    ]
   }
 
   //Add the list of imports to the list of autocomplete suggestions
@@ -93,9 +204,6 @@ export function userProject(document: vscode.TextDocument, position: vscode.Posi
   }
 
   gImports = imports;
-  let elmPackageString: string = fs.readFileSync(path.join(cwd, 'elm-package.json'), 'utf-8');
-  let elmPackage = JSON.parse(elmPackageString);
-  let srcDirs = elmPackage['source-directories']; //must use array notation for the key because of hyphen
 
   //Look in the current file for autocomplete information
   results = [
@@ -107,25 +215,61 @@ export function userProject(document: vscode.TextDocument, position: vscode.Posi
   let parseImports = true;
   if (parseImports) {
     let uri = document.uri;
+    
+    if (currentWord.substr(-1) === '.' || (action === OracleAction.IsHover && currentWord.includes('.'))) {
+      let isMultiWordInclude = false;
+      imports = imports.filter(item => {
 
-    if (currentWord.substr(-1) === '.') {
-      imports = imports.filter(item => item.module === currentWord.split('.')[0]);
+        if (item.module === currentWord.split('.')[0]) { return true; }
+        
+        const wordToMatch = (action === OracleAction.IsAutocomplete ? currentWord.slice(0, -1) :  currentWord.substr(0, currentWord.lastIndexOf('.')))
+        if (item.module.includes('.') && item.module.includes(wordToMatch)) {
+          if (currentWord.indexOf('.') === currentWord.lastIndexOf('.')) {
+            //The current word only has 1 period, not enough to know which module to look up
+            isMultiWordInclude = true;
+          } 
+          return true;
+        }
+      });
+
+      if (isMultiWordInclude) {
+        imports.map(item => {
+          results.push({
+            name: item.module.replace(currentWord, ''),
+            fullName: item.module,
+            signature: 'import ' + item.module + (item.exposing.length > 0 ? ' exposing(' + item.exposing.join(', ') + ')' : ''),
+            href: document.fileName.toString(),
+            kind: vscode.CompletionItemKind.Module,
+            comment: 'Module imported at the top of this file'
+          });
+        })
+        return results;
+      }
       //Set up the current word so that regex matching in localFunctions will find everything;
       //We are looking for all properties of the module name the user has fully qualified
       gOriginalWord = currentWord;
-      currentWord = '[a-zA-Z]';
+      currentWord = (action === OracleAction.IsAutocomplete ? '[a-zA-Z]' : currentWord.substr(currentWord.lastIndexOf('.')));
     }
 
     gSrcDirs = srcDirs;
 
     srcDirs.forEach(dir => {
       imports.forEach(moduleFile => {
-        let filePath = path.join(cwd, dir, moduleFile.module + '.elm');
+        let modulePath = moduleFile.module;
+        let filePath = '';
+
+        if (config['userProjectImportStrategy'].includes('Lookup')) {
+          filePath = moduleFile.filePath;
+        } else if (moduleFile.module.includes('.')) {
+          if (config['userProjectImportStrategy'] === 'ignore') { modulePath = ''; }
+          if (config['userProjectImportStrategy'] === 'dotIsFolder') { modulePath = modulePath.replace('.', path.sep); }
+          filePath = cwd + path.sep + dir + path.sep + modulePath + '.elm';
+        }
+        
         try {
           let importText = fs.readFileSync(filePath, 'utf-8');
           let importResults = localFunctions(filePath, document.fileName, action, importText.split(/\r?\n/g), position, currentWord, imports, srcDirs);
           results = [ ...results, ...importResults ];
-
         } catch (e) {
           //File is an imported module, you won't find it
         }
@@ -157,7 +301,7 @@ function localFunctions(filename: string, callerFile: string, action: OracleActi
   let lookForTypeAlias = currentWord.substr(-1) === '.';
   for (let i = 0; i < lines.length; i++) {
 
-    //Step 1: Get intellisense for type aliases
+    //Step 1: Get intellisense for type alias properties
     //Caller file is only null if this is the first call to localFunctions
     if (callerFile === null && lookForTypeAlias) {
       if (currentWord.substr(-1) === '.') {
@@ -242,8 +386,6 @@ function localFunctions(filename: string, callerFile: string, action: OracleActi
       if (!filename.includes(importName + '.elm')) {
         continue;
       } else {
-        //TODO: I must have added this for a reason but it is not used.  let namespaceName = filename.substr(filename.lastIndexOf('\\') + 1);
-        //namespaceName = namespaceName.replace('.elm', '');
         currentWord = func;
         test = new RegExp("^" + currentWord);
       }
@@ -268,8 +410,8 @@ function localFunctions(filename: string, callerFile: string, action: OracleActi
       //We found something, add it to the autocomplete/hover results
       if (typeSignature.length + functionDefinition.length > 0) {
         results.push({
-          name: (functionDefinition != '' ? functionDefinition : 'function definition blank: ' + lines[i]).split(splitOnSpace)[0].trim(),//currentWord,
-          fullName: (functionDefinition != '' ? functionDefinition : 'function definition blank: ' + lines[i].split(splitOnSpace)[0].trim()),
+          name: (functionDefinition != '' ? functionDefinition : typeSignature.split(':')[0]).split(splitOnSpace)[0].trim(),
+          fullName: (functionDefinition != '' ? functionDefinition : typeSignature.split(':')[0].split(splitOnSpace)[0].trim()),
           signature: (typeSignature !== '' ? typeSignature : functionDefinition),
           href: filename,
           kind: vscode.CompletionItemKind.Function,
@@ -281,10 +423,14 @@ function localFunctions(filename: string, callerFile: string, action: OracleActi
     //Step 4: Search for a type declaration (type alias is later on)
     let suggestionList = [];
     if (!isTypeAlias && /^type (?!alias)/.test(lines[i])) {
-      let returnInfo = lines[i].substr(lines[i].indexOf('=') + 1);
+      let returnInfo:string = lines[i];
       let foundCurrentWord: boolean = false;
       let typeSignature: string = '';
       let j = 0;
+
+      if (action === OracleAction.IsAutocomplete) {
+        suggestionList.push(lines[i]);
+      }
 
       while (lines[i].trim() !== '' && !lines[i].match(/^module/)) {
         i++;
@@ -305,63 +451,63 @@ function localFunctions(filename: string, callerFile: string, action: OracleActi
 
         returnInfo += '\n' + lines[i];
         j++;
-        if (j > config['userProjectMaxCommentSize']) {
-          returnInfo += '\n...';
+        if (j > config['userProjectMaxCommentSize'] && config['userProjectMaxCommentSize'] != 0) {
+          returnInfo += '\n...(more than ' + (config['userProjectMaxCommentSize']+1) + ' lines, see vscode-elm settings)\n';
           break;
         }
       }
 
-      suggestionList.map(item => {
+      if (action === OracleAction.IsAutocomplete) {
+        suggestionList.map(item => {
+          results.push({
+            name: (item != '' ? item : currentWord).replace('|', '').replace('=', '').trim().split(splitOnSpace)[0].trim(),
+            fullName: (item != '' ? item : currentWord).replace('|', '').replace('type ', '').replace('=', '').trim().split(splitOnSpace)[0].trim(),
+            signature: item.replace('|', '').replace('=', '').trim(),
+            href: filename,
+            kind: vscode.CompletionItemKind.Enum,
+            comment: returnInfo + '\n--' + filename
+          });
+        })
+      } else if (foundCurrentWord) {
         results.push({
-          name: (item != '' ? item : currentWord).replace('|', '').replace('=', '').trim().split(splitOnSpace)[0].trim(),
-          fullName: (item != '' ? item : currentWord).replace('|', '').replace('=', '').trim().split(splitOnSpace)[0].trim(),
-          signature: item.replace('|', '').replace('=', '').trim(),
+          name: currentWord.replace('|', '').replace('=', '').trim().split(splitOnSpace)[0].trim(),
+          fullName: currentWord.replace('|', '').replace('=', '').trim().split(splitOnSpace)[0].trim(),
+          signature: currentWord.replace('|', '').replace('=', ''),
           href: filename,
           kind: vscode.CompletionItemKind.Enum,
           comment: returnInfo + '\n--' + filename
-        });
-      })
+        })
+      }  
     }
 
     //Step 5: Look up type aliases
     if (/^(type alias)/.test(lines[i].toLowerCase())) {
       let returnInfo = '';
       suggestionList = [];
-      if (toLowerOrHover(action, lines[i]).includes('type alias ' + (currentWord !== '[a-zA-Z]' ? currentWord.toLowerCase() + ' ' : gOriginalWord.split('.')[1].trim()))) {
+      if (toLowerOrHover(action, lines[i]).includes('type alias ' + (currentWord !== '[a-zA-Z]' ? toLowerOrHover(action, currentWord) : gOriginalWord.split('.')[1].trim()))) {
         let j = 0;
         returnInfo = lines[i];
-        if (action === OracleAction.IsHover || currentWord === '[a-zA-Z]') {
-          suggestionList.push(lines[i].replace('type alias ', '').replace('=', '').trim());
-        }
+
+        let typeAliasName = lines[i].replace('type alias ', '').replace('=', '').trim();
 
         while (lines[i].trim() !== '' && !lines[i].match(/^module/)) {
           i++;
-
-          if (action === OracleAction.IsAutocomplete && currentWord !== '[a-zA-Z]') {
-            if (lines[i].trim() !== '' && lines[i].trim() !== '}') {
-              suggestionList.push(lines[i]);
-            }
-          }
           returnInfo += '\n' + lines[i];
 
           j++;
-          if (j > config['userProjectMaxCommentSize']) {
-            returnInfo += '\n...';
+          if (j > config['userProjectMaxCommentSize'] && config['userProjectMaxCommentSize'] != 0) {
+            returnInfo += '\n...(more than ' + (config['userProjectMaxCommentSize']+1) + ' lines, see vscode-elm settings)\n';
             break;
           }
         }
-
-        suggestionList.map(item => {
-          let field = item.split(':')[0];
-          let cleanField = field.replace('{', '').replace(',', '').trim();
-          results.push({
-            name: cleanField,
-            fullName: cleanField,
-            signature: item.replace('{', '').trim(),
-            href: filename,
-            kind: (action === OracleAction.IsHover ? vscode.CompletionItemKind.Interface : vscode.CompletionItemKind.Property),
-            comment: returnInfo + '\n--' + filename
-          });
+        
+        results.push({
+          name: typeAliasName,
+          fullName: typeAliasName,
+          signature: 'type alias ' + typeAliasName,
+          href: filename,
+          kind: vscode.CompletionItemKind.Interface,
+          comment: returnInfo + '\n--' +filename
         });
       }
     }
