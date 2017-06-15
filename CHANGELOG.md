@@ -1,3 +1,16 @@
+### 0.14.0 - 15.06.2017
+* Fix defaultModel snippet, Add Html.program snippet (by @iocube)
+* Bugfix: Error with one-line suggested annotation (by @hakonrossebo)
+* Handle block comments (by @hakonrossebo)
+* Improvements/bug fixes for user project intellisense (by @andrewsdev):
+  - Bug fix: writting type signature before writing the function definition behaviour
+  - Bug fix: `/as/` regex for the list of imports behaviour
+  - Bug fix: name of a user's type or type alias were not included in intellisense results
+  - Feature: Primitive types are now included in autocomplete when writing a function definition
+  - Feature: limit on user intellisense 'comment' size now better indicates it has hit a settings limit
+  - Feature: Can now set `elm.userProjectMaxCommentSize` to 0 to bypass the limit on user intellisense 'comment' size
+  - Feature: Working Intellisense (hover and autocomplete) for user modules with a '.'. Custom configuration to controll this feature.
+
 ### 0.13.0 - 08.06.2017
 * Workspace symbols implementation (by @hakonrossebo)
 * Elm-reactor subdir traversal (by @hakonrossebo)
