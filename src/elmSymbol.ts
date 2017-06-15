@@ -31,11 +31,13 @@ export function processDocument(doc: TextDocument) {
       text = doc.getText(range),
       texts = text.split(splitter);
 
-    // convert split strings into RangeAndText tuples
+    // convert split strings into RangeAndText tuples. Handles block comments
     const range_texts: RangeAndText[] = [];
+    let insideCommentBlock = false;
     for (let p = doc.offsetAt(range.start), i = 0; i < texts.length; i++) {
+      let [text, isInsideCommentBlock] = cleanupBlockComments(texts[i], insideCommentBlock);
+      insideCommentBlock = isInsideCommentBlock;
       const
-        text = texts[i],
         startPos = doc.positionAt(p),
         endPos = doc.positionAt(p + text.length);
       range_texts.push([new Range(startPos, endPos), text]);
@@ -56,6 +58,22 @@ export function processDocument(doc: TextDocument) {
 
   /** A function that processes a range into a array or zero or more symbols */
   type RangeProcessor = (rt: RangeAndText) => SymbolInformation[];
+
+  /** A function with a hack to handle block comments */
+  function cleanupBlockComments(text: string, insideCommentBlock: boolean): [string, boolean] {
+      if (text.trim().includes('{-')) {
+        text = text.replace(/.{2}/,"--")
+        insideCommentBlock = true;
+      }
+      else if (text.trim().includes('-}')) {
+        text = text.replace(/.{2}/,"--")
+        insideCommentBlock = false;
+      }
+      else if (insideCommentBlock == true) {
+        text = text.replace(/.{2}/,"--")
+      }
+    return [text, insideCommentBlock];
+  }
 
   /** Takes the first word of the given text as the name and creates a symbol
    *  with the given kind
