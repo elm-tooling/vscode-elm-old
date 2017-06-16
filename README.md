@@ -74,6 +74,30 @@ Ctrl+Shift+P - Elm browse packages
 
 Ctrl+Shift+P - Elm install package
 ![Install package](images/installPackage.gif)
+### Local Project Intellisense (experimental)
+
+vscode-elm will scan your projects to build intellisense results.
+**Assumption** your files match the layout of elm-format
+ 
+Example behaviors are:
+
+* suggesting function names available in the current file or imported from your own modules
+* suggesting module names you have imported in the current file
+* suggesting union type or type alias names in function signatures
+* suggesting possible values of a union type
+* suggesting properties of a record. This requires that record is a parameter in the current function and the function has a type signature.
+
+**important note regarding performance**
+
+With `elm.userProjectImportStrategy` set to `"dynamicLookup"` (default), every hover or autocomplete action will trigger a scan of the first few lines of every file in your src directory (not the elm-stuff directory). This is done to establish an accurate list of module names but could be slow for exceptionally large projects. 
+
+In testing with the Elm SPA example project no slowdown was noticed, but if your project slows down try one of these alternate settings:
+
+* `"semiDynamicLookup"` - the above directory scan still takes place but only once, then the results are stored in memory.  Subsequent hover or autocomplete results will be instantaneous but the list of available modules will only update if the window is reloaded.
+* `"dotIsFolder"` - this assumes that any module name with a `.` in it is contained in a folder. For example Page.Home would attempt to look for Home.elm inside of the \Page\ folder.
+* `"dotIsFilenameCharacter"` - this setting does not attempt to create a directory structure for Page.Home and instead looks for a file named \Page.Home.elm
+* `"ignore"` - do not attempt to look in imported modules for intellisense
+
 
 ### REPL integration
 

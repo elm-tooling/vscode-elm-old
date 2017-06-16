@@ -262,7 +262,11 @@ export function userProject(document: vscode.TextDocument, position: vscode.Posi
           filePath = moduleFile.filePath;
         } else if (moduleFile.module.includes('.')) {
           if (config['userProjectImportStrategy'] === 'ignore') { modulePath = ''; }
-          if (config['userProjectImportStrategy'] === 'dotIsFolder') { modulePath = modulePath.replace('.', path.sep); }
+          if (config['userProjectImportStrategy'] === 'dotIsFolder') {
+            modulePath = modulePath.replace('.', path.sep);
+          }
+          filePath = cwd + path.sep + dir + path.sep + modulePath + '.elm';
+        } else {
           filePath = cwd + path.sep + dir + path.sep + modulePath + '.elm';
         }
         
@@ -487,12 +491,15 @@ function localFunctions(filename: string, callerFile: string, action: OracleActi
       if (toLowerOrHover(action, lines[i]).includes('type alias ' + (currentWord !== '[a-zA-Z]' ? toLowerOrHover(action, currentWord) : gOriginalWord.split('.')[1].trim()))) {
         let j = 0;
         returnInfo = lines[i];
+        const suggestionList = [];
 
         let typeAliasName = lines[i].replace('type alias ', '').replace('=', '').trim();
 
         while (lines[i].trim() !== '' && !lines[i].match(/^module/)) {
           i++;
           returnInfo += '\n' + lines[i];
+
+          if (action == OracleAction.IsAutocomplete) { suggestionList.push(lines[i]); }
 
           j++;
           if (j > config['userProjectMaxCommentSize'] && config['userProjectMaxCommentSize'] != 0) {
@@ -501,13 +508,34 @@ function localFunctions(filename: string, callerFile: string, action: OracleActi
           }
         }
         
-        results.push({
-          name: typeAliasName,
-          fullName: typeAliasName,
-          signature: 'type alias ' + typeAliasName,
-          href: filename,
-          kind: vscode.CompletionItemKind.Interface,
-          comment: returnInfo + '\n--' +filename
+        //Only include the type alias name in the intellisense results if we are not
+        //already looking for the properties of a known type alias (this is reached if
+        //the user is typing in a function signature and will suggest Model for example)
+        if (isTypeAlias !== true) {
+          results.push({
+            name: typeAliasName,
+            fullName: typeAliasName,
+            signature: 'type alias ' + typeAliasName,
+            href: filename,
+            kind: vscode.CompletionItemKind.Interface,
+            comment: returnInfo + '\n--' +filename
+          });
+        }
+        
+        //Add intellisense for properties of this type alias
+        suggestionList.map(item => {
+          let field = item.split(':')[0];
+          let cleanField = field.replace(/[\{\}\,]/g, '').trim();
+          if (cleanField != "") {
+            results.push({
+              name: cleanField,
+              fullName: cleanField,
+              signature: item.replace(/[\{\,]/, '').trim(),
+              href: filename,
+              kind: (action === OracleAction.IsHover ? vscode.CompletionItemKind.Interface : vscode.CompletionItemKind.Property),
+              comment: returnInfo + '\n--' + filename
+            });
+          }  
         });
       }
     }
