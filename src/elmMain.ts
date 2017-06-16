@@ -5,24 +5,27 @@ import {ElmFormatProvider, runFormatOnSave} from './elmFormat';
 import {activateReactor, deactivateReactor} from './elmReactor';
 
 import {ElmCompletionProvider} from './elmAutocomplete';
+import {runLinter, IElmIssue} from './elmLinter';
+import {activateRepl} from './elmRepl';
+import {activateMake} from './elmMake';
+//import {activateMakeWarn} from './elmMakeWarn';
+import {activatePackage} from './elmPackage';
+import {activateClean} from './elmClean';
+import {ElmAnalyse} from './elmAnalyse';
 import {ElmDefinitionProvider} from './elmDefinition';
 import {ElmHoverProvider} from './elmInfo';
 import {ElmSymbolProvider} from './elmSymbol';
 import {ElmWorkspaceSymbolProvider} from './elmWorkspaceSymbols';
-import {activateClean} from './elmClean';
-import {activateMake} from './elmMake';
-import {activatePackage} from './elmPackage';
-import {activateRepl} from './elmRepl';
 import {configuration} from './elmConfiguration';
-import {runLinter} from './elmLinter';
 
 const ELM_MODE: vscode.DocumentFilter = { language: 'elm', scheme: 'file' };
-
+const elmAnalyseIssues : IElmIssue[] = [];
+const elmAnalyse = new ElmAnalyse(elmAnalyseIssues);
 // this method is called when your extension is activated
 export function activate(ctx: vscode.ExtensionContext) {
   const elmFormatStatusBar = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left);
   ctx.subscriptions.push(vscode.workspace.onDidSaveTextDocument((document: vscode.TextDocument) => {
-    runLinter(document);
+    runLinter(document, elmAnalyse);
   }));
   ctx.subscriptions.push(vscode.workspace.onDidSaveTextDocument((document: vscode.TextDocument) => {
     runFormatOnSave(document, elmFormatStatusBar);
@@ -33,6 +36,7 @@ export function activate(ctx: vscode.ExtensionContext) {
   activatePackage().forEach((d: vscode.Disposable) => ctx.subscriptions.push(d));
   activateClean().forEach((d: vscode.Disposable) => ctx.subscriptions.push(d));
   activateCodeActions().forEach((d: vscode.Disposable) => ctx.subscriptions.push(d));
+  elmAnalyse.activateAnalyse().forEach((d: vscode.Disposable) => ctx.subscriptions.push(d));
 
   let workspaceProvider = new ElmWorkspaceSymbolProvider(ELM_MODE);
 
@@ -54,4 +58,5 @@ export function activate(ctx: vscode.ExtensionContext) {
 
 export function deactivate() {
   deactivateReactor();
+  elmAnalyse.deactivateAnalyse();
 }

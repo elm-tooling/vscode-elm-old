@@ -133,6 +133,26 @@
           "type": "boolean",
           "default:": true,
           "description": "Include function/type/type alias comments in intellisense results."
+        },
+        "elm.analyseCommand": {
+          "type": "string",
+          "default": "elm-analyse",
+          "description": "Command to run when executing elm-analyse"
+        },
+        "elm.analysePort": {
+          "type": "string",
+          "default": "3379",
+          "description": "Port used by elm-analyse process"
+        },
+        "elm.analyseEnabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable or disable elm-analyse process on startup."
+        },
+        "elm.analyseAsExternalProcess": {
+          "type": "boolean",
+          "default": false,
+          "description": "Set to true if elm-analyse is running in separate process outside of vscode."
         }
       }
     },
@@ -197,6 +217,14 @@
       {
         "command": "elm.clean",
         "title": "Elm: Clean build artifact"
+      },
+      {
+        "command": "elm.analyseStart",
+        "title": "Elm: Run elm-analyse"
+      },
+      {
+        "command": "elm.analyseStop",
+        "title": "Elm: Stop elm-analyse."
       }
     ],
     "outputChannels": [
@@ -245,6 +273,8 @@
     "onCommand:elm.reactorStart",
     "onCommand:elm.install",
     "onCommand:elm.browsePackage",
+    "onCommand:elm.analyseStart",
+    "onCommand:elm.analyseStop",
     "onCommand:elm.clean"
   ],
   "main": "./out/src/elmMain",
@@ -267,6 +297,7 @@
     "vscode-uri": "^1.0.0",
     "mocha": "^2.3.3",
     "@types/mocha": "^2.2.32",
-    "@types/node": "^6.0.50"
+    "@types/node": "^6.0.50",
+    "ws": "^3.0.0"
   }
 }

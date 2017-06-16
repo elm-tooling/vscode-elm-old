@@ -2,8 +2,9 @@ import * as cp from 'child_process';
 import * as readline from 'readline';
 import * as utils from './elmUtils';
 import * as vscode from 'vscode';
+import {ElmAnalyse} from './elmAnalyse';
 
-interface IElmIssue {
+export interface IElmIssue {
   tag: string;
   overview: string;
   subregion: string;
@@ -108,7 +109,7 @@ function checkForErrors(filename): Promise<IElmIssue[]> {
   });
 }
 
-export function runLinter(document: vscode.TextDocument): void {
+export function runLinter(document: vscode.TextDocument, elmAnalyse : ElmAnalyse): void {
   if (document.languageId !== 'elm') {
     return;
   }
@@ -141,4 +142,19 @@ export function runLinter(document: vscode.TextDocument): void {
     .catch((error) => {
       compileErrors.set(document.uri, []);
     });
+
+  if (elmAnalyse.elmAnalyseIssues.length > 0) {
+    let splitCompilerErrors: Map<string, IElmIssue[]> = new Map()
+    elmAnalyse.elmAnalyseIssues.forEach((issue: IElmIssue) => {
+      if (splitCompilerErrors.has(issue.file)) {
+        splitCompilerErrors.get(issue.file).push(issue)
+      } else {
+        splitCompilerErrors.set(issue.file, [issue])
+      }
+      splitCompilerErrors.forEach((issue: IElmIssue[], path: string) => {
+        compileErrors.set(vscode.Uri.file(path), issue.map((error) => elmMakeIssueToDiagnostic(error)));
+      })
+    })
+
+  }
 }
