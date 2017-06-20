@@ -128,6 +128,11 @@
           "type": "string",
           "default": "**/{node_modules,elm-stuff}/**",
           "description": "The exclude pattern used to search in workspace when reading workspace symbols."
+        },
+        "elm.includeUserFunctionDocumentation": {
+          "type": "boolean",
+          "default:": true,
+          "description": "Include function/type/type alias comments in intellisense results."
         }
       }
     },

@@ -103,6 +103,35 @@ function getModuleFilePath(allModules: Imports[], moduleName:string) {
   return '';
 }
 
+/**
+ * getFunctionComments
+ * Return the function documentation if permitted in settings.
+ * @param lines Subset of the lines of the file from start to the current function definition/type signature
+ */
+function getFunctionComments(lines: string[]): string {
+  try {
+    let documentation = '';
+    if (config["includeUserFunctionDocumentation"] !== true) { return documentation; }
+    let inComment = false;
+    for (let j = lines.length-1; j >= 0; j--) {
+      if (lines[j].trim() == '') { break; }
+      if (lines[j].includes('-}')) {
+        inComment = true;
+      }
+      if (inComment) { documentation = lines[j].trim() + ' ' + documentation; }
+
+      if (lines[j].includes('{-|')) {
+        inComment = false;
+      }
+    }  
+    if (documentation !== '') { documentation = '\n' + documentation; }
+    return documentation;
+  } catch (e) {
+    //Do not reject all intellisense results just because a problem was encountered with the comments
+    return '';
+  }  
+}
+
 export function userProject(document: vscode.TextDocument, position: vscode.Position, currentWord: string, action: OracleAction) {
   const fullText = document.getText();
   const lines: string[] = fullText.split(/\r?\n/g);
@@ -420,6 +449,7 @@ function localFunctions(filename: string, callerFile: string, action: OracleActi
           href: filename,
           kind: vscode.CompletionItemKind.Function,
           comment: (callerFile === null ? '--Function in this file' : '--' + filename) + (typeSignature === '' ? ' (no type signature)' : '')
+          + getFunctionComments(lines.slice(0, i))
         });
       }
     }
@@ -427,17 +457,20 @@ function localFunctions(filename: string, callerFile: string, action: OracleActi
     //Step 4: Search for a type declaration (type alias is later on)
     let suggestionList = [];
     if (!isTypeAlias && /^type (?!alias)/.test(lines[i])) {
-      let returnInfo:string = lines[i];
+      let returnInfo: string = '';
       let foundCurrentWord: boolean = false;
       let typeSignature: string = '';
       let j = 0;
 
       if (action === OracleAction.IsAutocomplete) {
         suggestionList.push(lines[i]);
+        returnInfo = lines[i];
+        i++;
       }
 
+      let hoverNameResult:string = '';    
+      let hoverTypeSignature: string = '';
       while (lines[i].trim() !== '' && !lines[i].match(/^module/)) {
-        i++;
 
         if (action === OracleAction.IsAutocomplete) {
           if (lines[i].toLowerCase().includes((currentWord !== '[a-zA-Z]' ? currentWord.toLowerCase() : ''))) {
@@ -446,11 +479,24 @@ function localFunctions(filename: string, callerFile: string, action: OracleActi
             if (typeSignature !== '') { suggestionList.push(typeSignature); }
           }
         } else {
-          if (lines[i].includes(currentWord)) {
-            foundCurrentWord = true;
-            typeSignature = lines[i];
-            if (typeSignature !== '') { suggestionList.push(typeSignature); }
-          }
+          try {
+            let words = lines[i].split(/[\s\.\=\:\|]/);
+            let matchingWord =
+              words.filter(word =>
+                word !== 'type' &&
+                word !== 'alias' &&
+                word.trim() !== '' &&
+                word.match(/^[a-zA-Z0-9_]/) !== null)[0];
+          
+          
+            if (matchingWord === currentWord) {
+              foundCurrentWord = true;
+              hoverTypeSignature = lines[i];
+              hoverNameResult = matchingWord;
+            }
+          } catch (e) {
+            //word not found
+          }  
         }
 
         returnInfo += '\n' + lines[i];
@@ -459,6 +505,7 @@ function localFunctions(filename: string, callerFile: string, action: OracleActi
           returnInfo += '\n...(more than ' + (config['userProjectMaxCommentSize']+1) + ' lines, see vscode-elm settings)\n';
           break;
         }
+        i++;
       }
 
       if (action === OracleAction.IsAutocomplete) {
@@ -469,17 +516,17 @@ function localFunctions(filename: string, callerFile: string, action: OracleActi
             signature: item.replace('|', '').replace('=', '').trim(),
             href: filename,
             kind: vscode.CompletionItemKind.Enum,
-            comment: returnInfo + '\n--' + filename
+            comment: returnInfo + getFunctionComments(lines.slice(0, i)) + '\n--' + filename
           });
         })
       } else if (foundCurrentWord) {
         results.push({
-          name: currentWord.replace('|', '').replace('=', '').trim().split(splitOnSpace)[0].trim(),
-          fullName: currentWord.replace('|', '').replace('=', '').trim().split(splitOnSpace)[0].trim(),
-          signature: currentWord.replace('|', '').replace('=', ''),
+          name: hoverNameResult.replace('|', '').replace('=', '').trim().split(splitOnSpace)[0].trim(),
+          fullName: hoverNameResult.replace('|', '').replace('=', '').trim().split(splitOnSpace)[0].trim(),
+          signature: hoverTypeSignature.replace('|', '').replace('=', ''),
           href: filename,
           kind: vscode.CompletionItemKind.Enum,
-          comment: returnInfo + '\n--' + filename
+          comment: returnInfo + getFunctionComments(lines.slice(0, i)) + '\n--' + filename
         })
       }  
     }
@@ -518,7 +565,7 @@ function localFunctions(filename: string, callerFile: string, action: OracleActi
             signature: 'type alias ' + typeAliasName,
             href: filename,
             kind: vscode.CompletionItemKind.Interface,
-            comment: returnInfo + '\n--' +filename
+            comment: returnInfo + getFunctionComments(lines.slice(0, i)) + '\n--' +filename
           });
         }
         
@@ -533,7 +580,7 @@ function localFunctions(filename: string, callerFile: string, action: OracleActi
               signature: item.replace(/[\{\,]/, '').trim(),
               href: filename,
               kind: (action === OracleAction.IsHover ? vscode.CompletionItemKind.Interface : vscode.CompletionItemKind.Property),
-              comment: returnInfo + '\n--' + filename
+              comment: returnInfo + getFunctionComments(lines.slice(0, i)) + '\n--' + filename
             });
           }  
         });
