@@ -114,7 +114,7 @@ function getFunctionComments(lines: string[]): string {
     if (config["includeUserFunctionDocumentation"] !== true) { return documentation; }
     let inComment = false;
     for (let j = lines.length-1; j >= 0; j--) {
-      if (lines[j].trim() == '') { break; }
+      if (lines[j].trim() == '' && !inComment) { break; }
       if (lines[j].includes('-}')) {
         inComment = true;
       }
