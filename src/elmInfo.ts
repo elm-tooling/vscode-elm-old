@@ -8,6 +8,17 @@ export class ElmHoverProvider implements vscode.HoverProvider {
     return oracle.GetOracleResults(document, position, oracle.OracleAction.IsHover)
       .then((result) => {
         if (result && result.length > 0) {
+          if (result.length > 1) {
+            let wordAtPosition = document.getWordRangeAtPosition(position);
+            if (wordAtPosition) {
+              let currentWord: string = document.getText(wordAtPosition);
+              let exactMatches = result.filter(item => item.name === currentWord);
+              if (exactMatches.length > 0) {
+                result = exactMatches;
+              }
+            }
+          }
+          
           let text =  this.formatSig(result[0].signature) + '\n\n' + result[0].comment;
           let hover = new vscode.Hover((config['showSuggestionsInElmSyntax'] ? { language: 'elm', value: text } : text));
           return hover;
