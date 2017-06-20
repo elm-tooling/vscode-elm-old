@@ -6,6 +6,7 @@ import {activateMake} from './elmMake';
 //import {activateMakeWarn} from './elmMakeWarn';
 import {activatePackage} from './elmPackage';
 import {activateClean} from './elmClean';
+import {activateJson} from './elmJson';
 import {ElmDefinitionProvider} from './elmDefinition';
 import {ElmHoverProvider} from './elmInfo';
 import {ElmCompletionProvider} from './elmAutocomplete';
@@ -32,6 +33,7 @@ export function activate(ctx: vscode.ExtensionContext) {
   activatePackage().forEach((d: vscode.Disposable) => ctx.subscriptions.push(d));
   activateClean().forEach((d: vscode.Disposable) => ctx.subscriptions.push(d));
   activateCodeActions().forEach((d: vscode.Disposable) => ctx.subscriptions.push(d));
+  activateJson().forEach((d: vscode.Disposable) => ctx.subscriptions.push(d));
 
   let workspaceProvider = new ElmWorkspaceSymbolProvider(ELM_MODE);
 
