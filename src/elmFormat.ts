@@ -52,7 +52,12 @@ export function runFormatOnSave(document: vscode.TextDocument, statusBarItem: St
 function elmFormat(document: vscode.TextDocument) {
   const config: vscode.WorkspaceConfiguration = vscode.workspace.getConfiguration('elm');
   const formatCommand: string = <string>config.get('formatCommand');
-  const format = execCmd(formatCommand + ' --stdin');
+  const options =
+        {
+          cmdArguments: [],
+          notFoundText: "Install Elm-format from https://github.com/avh4/elm-format"
+        }
+  const format = execCmd(formatCommand + ' --stdin', options);
 
   format.stdin.write(document.getText());
   format.stdin.end();

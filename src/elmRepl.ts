@@ -16,6 +16,7 @@ function startRepl(fileName: string, forceRestart = false): Promise<(data: strin
         'elm-repl',
         {
           fileName: fileName,
+          cmdArguments: [],
           showMessageOnError: true,
           onStart: () => resolve(repl.stdin.write.bind(repl.stdin)),
 
@@ -23,6 +24,8 @@ function startRepl(fileName: string, forceRestart = false): Promise<(data: strin
           onStdout: (data) => oc.append(data.replace(/^((>|\|)\s*)+/mg, '')),
 
           onStderr: (data) => oc.append(data),
+
+          notFoundText: "Install Elm from http://elm-lang.org/."
         },
       );
 
