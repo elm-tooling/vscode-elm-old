@@ -4,7 +4,7 @@ import WebSocket = require("ws");
 import * as utils from './elmUtils';
 import * as path from 'path';
 import * as readline from 'readline';
-import {isWindows} from './elmUtils';
+import {isWindows, execCmd, ExecutingCmd } from './elmUtils';
 import {runLinter, IElmIssue} from './elmLinter';
 
 export class ElmAnalyse {
@@ -14,11 +14,12 @@ export class ElmAnalyse {
     this.statusBarStopButton.text = '$(primitive-square)' + ' Stop Elm-analyse process';
     this.statusBarStopButton.command = 'elm.analyseStop';
     this.statusBarStopButton.tooltip = 'Stop elm-analyse process';
+    this.analyse = {} as ExecutingCmd;
    }
   private statusBarStopButton: vscode.StatusBarItem;
   private statusBarInformation: vscode.StatusBarItem;
   private analyseSocket: WebSocket;
-  private analyse: cp.ChildProcess;
+  private analyse: ExecutingCmd;
   private oc: vscode.OutputChannel = vscode.window.createOutputChannel('Elm Analyse');
 
   private initSocketClient() {
@@ -83,8 +84,46 @@ export class ElmAnalyse {
     }
   }
 
-private execAnalyse(): void {
-  this.execStopAnalyse(/*notify*/ false);
+private startAnalyse(analyseCommand: string, analysePort: string, fileName: string, forceRestart = false) : void {
+
+  if (this.analyse.isRunning) {
+    // return Promise.resolve(this.analyse.stdin.write.bind(this.analyse.stdin));
+  }
+  else {
+      this.analyse = execCmd(
+        analyseCommand,
+        {
+          fileName: fileName,
+          cmdArguments: ['-s', '-p ' + analysePort],
+          showMessageOnError: true,
+          onStart: () => this.analyse.stdin.write.bind(this.analyse.stdin),
+
+          onStdout: (data) => {
+            if (data) {
+              let info = data.toString();
+              this.oc.append(info);
+              if (info.match(/^Found \d* message/) && (this.analyseSocket === undefined || this.analyseSocket.CLOSED == 1)) {
+                this.initSocketClient();
+                this.statusBarStopButton.show();
+              }
+            }
+          },
+
+          onStderr: (data) => {
+            if (data) {
+              this.oc.append(data.toString());
+            }
+          },
+
+          notFoundText: "Install Elm-analyse using npm i elm-analyse -g"
+        }
+      );
+
+      this.oc.show(vscode.ViewColumn.Three);
+  }
+}
+
+private activateAnalyseProcesses(): void {
 	let editor = vscode.window.activeTextEditor;
   try {
     if (editor.document.languageId !== 'elm') {
@@ -99,29 +138,7 @@ private execAnalyse(): void {
 
 
     if (!analyseAsExternalProcess) {
-      let args = ['-s', '-p '+ analysePort];
-      if (utils.isWindows) {
-        this.analyse = cp.exec(analyseCommand + ' ' + args.join(' '), { cwd: cwd });
-      }
-      else {
-        this.analyse = cp.spawn(analyseCommand, args, { cwd: cwd });
-      }
-      this.analyse.stdout.on('data', (data: Buffer) => {
-        if (data) {
-          let info = data.toString();
-          this.oc.append(info);
-          if (info.match(/^Found \d* message/) && (this.analyseSocket === undefined || this.analyseSocket.CLOSED == 1)) {
-            this.initSocketClient();
-            this.statusBarStopButton.show();
-          }
-        }
-      });
-      this.analyse.stderr.on('data', (data: Buffer) => {
-        if (data) {
-          this.oc.append(data.toString());
-        }
-      });
-      this.oc.show(vscode.ViewColumn.Three);
+      this.startAnalyse(analyseCommand, analysePort, editor.document.fileName);
     }
     else {
       this.initSocketClient();
@@ -133,15 +150,10 @@ private execAnalyse(): void {
   }
 }
 
-
 private execStopAnalyse(notify: boolean) {
   this.elmAnalyseIssues = [];
-  if (this.analyse) {
-    if (isWindows) {
-      cp.spawn('taskkill', ['/pid', this.analyse.pid.toString(), '/f', '/t' ])
-    } else {
-      process.kill(-this.analyse.pid, 'SIGKILL');
-    }
+  if (this.analyse.isRunning) {
+    this.analyse.kill();
     if (this.analyseSocket) {
       this.analyseSocket.close();
     }
@@ -176,7 +188,7 @@ private correctRange(range : number[]) {
 
 public activateAnalyse(): vscode.Disposable[] {
   return [
-    vscode.commands.registerTextEditorCommand('elm.analyseStart', () => this.execAnalyse()),
+    vscode.commands.registerTextEditorCommand('elm.analyseStart', () => this.activateAnalyseProcesses()),
     vscode.commands.registerCommand('elm.analyseStop', () => this.execStopAnalyse(/*notify*/ true)),
   ]
 }

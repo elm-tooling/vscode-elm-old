@@ -11,8 +11,10 @@ export const isWindows = process.platform === 'win32';
 export interface ExecCmdOptions {
   /** The project root folder for this file is used as the cwd of the process */
   fileName?: string;
-  /** Shows a message if an error occurs (in particular the command not being */
-  /** found), instead of rejecting. If this happens, the promise never resolves */
+  /** Any arguments */
+  cmdArguments?: string[];
+  /** Shows a message if an error occurs (in particular the command not being
+   * found), instead of rejecting. If this happens, the promise never resolves */
   showMessageOnError?: boolean;
   /** Called after the process successfully starts */
   onStart?: () => void;
@@ -22,7 +24,9 @@ export interface ExecCmdOptions {
   onStderr?: (data: string) => void;
   /** Called after the command (successfully or unsuccessfully) exits */
   onExit?: () => void;
-}
+  /** Text to add when command is not found (maybe helping how to install) */
+  notFoundText?: string;
+};
 
 /** Type returned from execCmd. Is a promise for when the command completes
  *  and also a wrapper to access ChildProcess-like methods.
@@ -44,13 +48,10 @@ export function execCmd
   let childProcess, firstResponse = true, wasKilledbyUs = false;
 
   const executingCmd: any = new Promise((resolve, reject) => {
-
-    childProcess = cp.exec(
-      cmd,
-      {
-        cwd: detectProjectRoot(fileName || workspace.rootPath + '/fakeFileName'),
-      },
-      handleExit);
+    let cmdArguments = options ? options.cmdArguments : [];
+    childProcess = cp.exec(cmd  + ' ' + cmdArguments.join(' '), {
+      cwd: detectProjectRoot(fileName || workspace.rootPath + "/fakeFileName")
+    }, handleExit);
 
     childProcess.stdout.on('data', (data: Buffer) => {
       if (firstResponse && onStart) {
@@ -87,9 +88,10 @@ export function execCmd
               || !isWindows && (<any>err).code === 127;
 
             if (cmdWasNotFound) {
+              let notFoundText = options ? options.notFoundText : "";
               window.showErrorMessage(
                 `${cmdName} is not available in your path. ` +
-                'Install Elm from http://elm-lang.org/.');
+                notFoundText);
             } else {
               window.showErrorMessage(err.message);
             }
