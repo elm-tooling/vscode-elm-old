@@ -19,6 +19,11 @@ export class ElmAnalyse {
     this.messageDescriptions.forEach(element => {
       this.messageDescriptionsMap.set(element.messageType, element.description)
     });
+    const config: vscode.WorkspaceConfiguration = vscode.workspace.getConfiguration('elm');
+    const enabledOnStartup: boolean = <boolean>config.get('analyseEnabled');
+    if (enabledOnStartup) {
+      this.activateAnalyseProcesses();
+    }
    }
   private statusBarStopButton: vscode.StatusBarItem;
   private statusBarInformation: vscode.StatusBarItem;
