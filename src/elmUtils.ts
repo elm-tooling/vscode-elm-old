@@ -114,7 +114,7 @@ export function execCmd
     if (isWindows) {
       cp.spawn('taskkill', ['/pid', childProcess.pid.toString(), '/f', '/t' ])
     } else {
-      process.kill(-childProcess.pid, 'SIGKILL');
+      childProcess.kill('SIGINT');
     }
   }
 }
