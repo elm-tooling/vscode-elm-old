@@ -1,11 +1,14 @@
 import * as vscode from 'vscode';
 import * as cp from 'child_process';
 import WebSocket = require("ws");
+const request = require('request');
 import * as utils from './elmUtils';
 import * as path from 'path';
 import * as readline from 'readline';
 import {isWindows, execCmd, ExecutingCmd } from './elmUtils';
 import {runLinter, IElmIssue} from './elmLinter';
+
+enum ElmAnalyseServerState  {NotRunning = 1, PortInUse, Running}
 
 export class ElmAnalyse {
   public constructor(public elmAnalyseIssues: IElmIssue[]) {
@@ -22,15 +25,17 @@ export class ElmAnalyse {
     const config: vscode.WorkspaceConfiguration = vscode.workspace.getConfiguration('elm');
     const enabledOnStartup: boolean = <boolean>config.get('analyseEnabled');
     if (enabledOnStartup) {
-      this.activateAnalyseProcesses();
+      this.execActivateAnalyseProcesses();
     }
    }
   private statusBarStopButton: vscode.StatusBarItem;
   private statusBarInformation: vscode.StatusBarItem;
   private analyseSocket: WebSocket;
   private analyse: ExecutingCmd;
+  private updateLinterInterval;
+  private unprocessedMessage = false;
   private oc: vscode.OutputChannel = vscode.window.createOutputChannel('Elm Analyse');
-  private messageDescriptionsMap : Map<string, string>
+  private messageDescriptionsMap: Map<string, string>;
 
   private initSocketClient() {
     try {
@@ -46,7 +51,6 @@ export class ElmAnalyse {
       this.analyseSocket.on("open", () => {
         this.analyseSocket.send("PING");
         this.statusBarInformation.text = 'elm-analyse websocket listening on port ' + port;
-        this.statusBarInformation.show();
       });
       this.analyseSocket.on("message", (stateJson) => {
         try {
@@ -57,17 +61,11 @@ export class ElmAnalyse {
             if (message.hasOwnProperty("data") && message.data.hasOwnProperty("type")) {
               let messageType = message.data.type;
               if (message.data.hasOwnProperty(messageType)) {
-                let messageTypeInfo = message.data[messageType];
-                let messageInfoFileSrc = messageTypeInfo.file;
-                let messageInfoFileRange = [0, 0, 0, 0];
-                if (messageTypeInfo.hasOwnProperty("range")) {
-                  messageInfoFileRange = messageTypeInfo.range.real;
-                }
-                let detail = "";
-                if (this.messageDescriptionsMap.has(messageType)) {
-                  detail = this.messageDescriptionsMap.get(messageType);
-                }
-                let issue: IElmIssue = {
+                const messageTypeInfo = message.data[messageType];
+                const messageInfoFileSrc = messageTypeInfo.file;
+                const messageInfoFileRange = this.parseMessageInfoFileRange(messageTypeInfo);
+                const detail = this.parseMessageInfoDetail(messageType);
+                const issue: IElmIssue = {
                   tag: 'analyser',
                   overview: messageType,
                   subregion: '',
@@ -80,111 +78,36 @@ export class ElmAnalyse {
               }
             }
           });
-          runLinter(vscode.window.activeTextEditor.document, this)
+          this.unprocessedMessage = true;
         }
         catch (e) {
           vscode.window.showErrorMessage('Running websocket against Elm-analyse failed. Check if elm-analyse has been configured correctly.');
-          console.log("Socket not open error", e);
         }
       });
       this.analyseSocket.on("error", (e) => {
         vscode.window.showErrorMessage('Running websocket against Elm-analyse failed. Check if elm-analyse has been configured correctly.');
-        console.log("ERROR", e);
       });
     }
     catch (e) {
       vscode.window.showErrorMessage('Running websocket against Elm-analyse failed. If set to external - check if elm-analyse has been started in separate console.');
-      console.log("Could not start websocket against elm-analyse", e);
     }
   }
 
-  private startAnalyse(analyseCommand: string, analysePort: string, fileName: string, forceRestart = false) : void {
 
-    if (this.analyse.isRunning) {
-      vscode.window.showErrorMessage('Elm-analyse is already running. Please run the stop command if you want to restart elm-analyse.');
+  private parseMessageInfoFileRange(messageTypeInfo) {
+    let messageInfoFileRange = [0, 0, 0, 0];
+    if (messageTypeInfo.hasOwnProperty("range")) {
+      messageInfoFileRange = messageTypeInfo.range.real;
     }
-    else {
-        this.analyse = execCmd(
-          analyseCommand,
-          {
-            fileName: fileName,
-            cmdArguments: ['-s', '-p ' + analysePort],
-            showMessageOnError: true,
-            onStart: () => this.analyse.stdin.write.bind(this.analyse.stdin),
-
-            onStdout: (data) => {
-              if (data) {
-                let info = data.toString();
-                this.oc.append(info);
-                if (info.match(/^Found \d* message/) && (this.analyseSocket === undefined || this.analyseSocket.CLOSED == 1)) {
-                  this.initSocketClient();
-                  this.statusBarStopButton.show();
-                }
-              }
-            },
-
-            onStderr: (data) => {
-              if (data) {
-                this.oc.append(data.toString());
-              }
-            },
-
-            notFoundText: "Install Elm-analyse using npm i elm-analyse -g"
-          }
-        );
-
-        this.oc.show(vscode.ViewColumn.Three);
-    }
+    return messageInfoFileRange;
   }
 
-  private activateAnalyseProcesses(): void {
-    let editor = vscode.window.activeTextEditor;
-    try {
-      if (editor.document.languageId !== 'elm') {
-        return;
-      }
-      const cwd: string = vscode.workspace.rootPath;
-
-      const config: vscode.WorkspaceConfiguration = vscode.workspace.getConfiguration('elm');
-      const analyseCommand: string = <string>config.get('analyseCommand');
-      const analysePort: string = <string>config.get('analysePort');
-      const analyseAsExternalProcess: boolean = <boolean>config.get('analyseAsExternalProcess');
-
-
-      if (!analyseAsExternalProcess) {
-        this.startAnalyse(analyseCommand, analysePort, editor.document.fileName);
-      }
-      else {
-        this.initSocketClient();
-      }
+  private parseMessageInfoDetail(messageType: string) {
+    let detail = "";
+    if (this.messageDescriptionsMap.has(messageType)) {
+      detail = this.messageDescriptionsMap.get(messageType);
     }
-    catch(e){
-      console.error('Running Elm-analyse command failed', e);
-      vscode.window.showErrorMessage('Running Elm-analyse failed');
-    }
-  }
-
-  private execStopAnalyse(notify: boolean) {
-    this.elmAnalyseIssues = [];
-    if (this.analyse.isRunning) {
-      this.analyse.kill();
-      if (this.analyseSocket) {
-        this.analyseSocket.close();
-      }
-      this.statusBarStopButton.hide();
-      this.statusBarInformation.hide();
-      this.oc.clear();
-      if (notify) {
-        this.oc.appendLine("Elm-analyse process stopped");
-      }
-      this.analyse = null;
-      this.oc.dispose();
-    }
-    else {
-      if (notify) {
-        vscode.window.showErrorMessage("Cannot stop Elm-analyse. Elm-analyse is not running.")
-      }
-    }
+    return detail;
   }
 
   private correctRange(range : number[]) {
@@ -197,6 +120,115 @@ export class ElmAnalyse {
         line: range[2] + 1,
         column: range[3] + 1
       }
+    }
+  }
+
+  private startAnalyseProcess(analyseCommand: string, analysePort: string, fileName: string, forceRestart = false) : Thenable<boolean> {
+    if (this.analyse.isRunning) {
+      vscode.window.showErrorMessage('Elm-analyse is already running in vscode. Please run the stop command if you want to restart elm-analyse.');
+      return Promise.resolve(false);
+    }
+
+    return checkElmAnalyseServerState(analysePort)
+      .then(state => {
+        if (state == ElmAnalyseServerState.Running) {
+          return true;
+        }
+        else if (state == ElmAnalyseServerState.PortInUse) {
+          vscode.window.showErrorMessage('Port already in use by another process. Please stop the running process or select another port for elm-analyse.');
+          return false;
+        }
+        else {
+            this.analyse = execCmd(
+              analyseCommand,
+              {
+                fileName: fileName,
+                cmdArguments: ['-s', '-p', analysePort],
+                showMessageOnError: true,
+                onStart: () => this.analyse.stdin.write.bind(this.analyse.stdin),
+
+                onStdout: (data) => {
+                  if (data) {
+                    let info = data.toString();
+                    this.oc.append(info);
+                  }
+                },
+
+                onStderr: (data) => {
+                  if (data) {
+                    this.oc.append(data.toString());
+                  }
+                },
+
+                notFoundText: "Install Elm-analyse using npm i elm-analyse -g"
+              }
+            );
+          this.oc.show(vscode.ViewColumn.Three);
+          return true;
+        }
+        })
+  }
+
+  private execActivateAnalyseProcesses(): void {
+    let editor = vscode.window.activeTextEditor;
+    if (editor.document.languageId !== 'elm') {
+      return;
+    }
+    try {
+      const cwd: string = vscode.workspace.rootPath;
+
+      const config: vscode.WorkspaceConfiguration = vscode.workspace.getConfiguration('elm');
+      const analyseCommand: string = <string>config.get('analyseCommand');
+      const analysePort: string = <string>config.get('analysePort');
+
+      this.startAnalyseProcess(analyseCommand, analysePort, editor.document.fileName)
+        .then(processReady => {
+          if (processReady) {
+            // Had to implement this timeout as this sometimes causes error when server has not been started yet.
+            this.statusBarInformation.text = 'elm-analyse websocket waiting 3 seconds to ensure server has started...';
+            this.statusBarInformation.show();
+            setTimeout(() => {
+              this.initSocketClient();
+              this.updateLinterInterval = setInterval(() => this.updateLinter(), 500);
+            }, 3000);  
+          }
+        })
+    }
+    catch(e){
+      console.error('Running Elm-analyse command failed', e);
+      vscode.window.showErrorMessage('Running Elm-analyse failed');
+    }
+  }
+
+
+  private execStopAnalyse(notify: boolean) {
+    this.elmAnalyseIssues = [];
+    if (this.analyse.isRunning) {
+      this.analyse.kill();
+      if (this.analyseSocket) {
+        this.analyseSocket.removeAllListeners();
+        this.analyseSocket.close();
+      }
+      this.updateLinterInterval = clearInterval(this.updateLinterInterval);
+      this.statusBarStopButton.hide();
+      this.statusBarInformation.hide();
+      this.oc.clear();
+      if (notify) {
+        this.oc.appendLine("Elm-analyse process stopped");
+      }
+      this.oc.dispose();
+    }
+    else {
+      if (notify) {
+        vscode.window.showErrorMessage("Cannot stop Elm-analyse. Elm-analyse is not running.")
+      }
+    }
+  }
+
+  private updateLinter() {
+    if (this.unprocessedMessage) {
+      runLinter(vscode.window.activeTextEditor.document, this);
+      this.unprocessedMessage = false;
     }
   }
 
@@ -214,7 +246,7 @@ export class ElmAnalyse {
         {messageType:"NoTopLevelSignature", description: "This check will look for function declarations without a signature. We want our readers to understand our code. Adding a signature is a part of this. This check will skip definitions in let statements."},
         {messageType:"NoUncurriedPrefix", description: "It is unneeded to use an operator in prefix notation when you apply both arguments directly. This check will look for these kind of usages"},
         {messageType:"RedefineVariable", description: "You should not redefine a variable in a new lexical scope. This is confusing and may lead to bugs."},
-        {messageType:"UnnecessaryListConcat", description: "Yu should not use List.concat to concatenate literal lists. Just join the lists together."},
+        {messageType:"UnnecessaryListConcat", description: "You should not use List.concat to concatenate literal lists. Just join the lists together."},
         {messageType:"UnnecessaryParens", description: "If you want parenthesis, then you might want to look into Lisp. It is good to know when you do not need them in Elm and this check will let you know. This check follows this discussion from elm-format."},
         {messageType:"UnusedImport", description: "Imports that have no meaning should be removed."},
         {messageType:"UnusedImportAlias", description: "Sometimes you defined an alias for an import (import Foo as F), but it turns out you never use it. This check shows where you have unused import aliases."},
@@ -229,7 +261,7 @@ export class ElmAnalyse {
 
   public activateAnalyse(): vscode.Disposable[] {
     return [
-      vscode.commands.registerTextEditorCommand('elm.analyseStart', () => this.activateAnalyseProcesses()),
+      vscode.commands.registerTextEditorCommand('elm.analyseStart', () => this.execActivateAnalyseProcesses()),
       vscode.commands.registerCommand('elm.analyseStop', () => this.execStopAnalyse(/*notify*/ true)),
     ]
   }
@@ -237,4 +269,45 @@ export class ElmAnalyse {
     this.execStopAnalyse(/*notify*/ false);
   }
 
+}
+
+function checkElmAnalyseServerState(port: string): Thenable<ElmAnalyseServerState> {
+  let result = getElmAnalyseServerInfo('http://localhost:' + port)
+    .then(info => {
+      if (info.match(/Elm Analyse/)) {
+        return ElmAnalyseServerState.Running;
+      }
+      else {
+        return ElmAnalyseServerState.PortInUse;
+      }
+    }, err => {
+      return ElmAnalyseServerState.NotRunning
+    })
+  return result;
+}
+
+
+function getElmAnalyseServerInfo(url: string): Thenable<any> {
+  const titleRegex = /(<\s*title[^>]*>(.+?)<\s*\/\s*title)>/gi;
+  return new Promise((resolve, reject) => {
+    request(url, (err, _, body) => {
+      if (err) {
+        reject(err);
+      }
+      else {
+        let info = '';
+        try {
+          const match = titleRegex.exec(body);
+          if (match && match[2]) {
+            console.log(match[2]);
+            info = match[2];
+          }
+        }
+        catch (e) {
+          reject(e)
+        }
+        resolve(info);
+      }
+    })
+  });
 }

@@ -16,6 +16,7 @@
 * Integration with Elm Make
 * Custom Elm Snippets
 * Code formatting with Elm-format
+* Elm-analyse integration (experimental) with warnings and code actions
 
 ## Elm Installation
 
@@ -78,7 +79,7 @@ Ctrl+Shift+P - Elm install package
 
 vscode-elm will scan your projects to build intellisense results.
 **Assumption** your files match the layout of elm-format
- 
+
 Example behaviors are:
 
 * suggesting function names available in the current file or imported from your own modules
@@ -89,7 +90,7 @@ Example behaviors are:
 
 **important note regarding performance**
 
-With `elm.userProjectImportStrategy` set to `"dynamicLookup"` (default), every hover or autocomplete action will trigger a scan of the first few lines of every file in your src directory (not the elm-stuff directory). This is done to establish an accurate list of module names but could be slow for exceptionally large projects. 
+With `elm.userProjectImportStrategy` set to `"dynamicLookup"` (default), every hover or autocomplete action will trigger a scan of the first few lines of every file in your src directory (not the elm-stuff directory). This is done to establish an accurate list of module names but could be slow for exceptionally large projects.
 
 In testing with the Elm SPA example project no slowdown was noticed, but if your project slows down try one of these alternate settings:
 
@@ -149,6 +150,43 @@ You can also configure `elm-format` to run on save by enabling the `elm.formatOn
     "elm.formatOnSave": true
 }
 ```
+### Elm-analyse integration
+[Elm-analyse](https://github.com/stil4m/elm-analyse) is a tool that allows you to analyse your Elm code, identify deficiencies and apply best practices.
+The integration enables vscode to show any problems identified by elm-analyse as linting warnings in your code.
+
+![Elm-analyse](images/elm-analyse.gif)
+
+With a button to stop the elm-analyse process
+
+![Elm-analyse stop](images/elm-analyse-stop.png)
+
+To install elm-analyse
+```
+// bash/console
+{
+    npm install elm-analyse -g
+}
+```
+
+Commands:
+
+* To enable, run the command: Elm: `Start elm-analyse`
+* To disable, run the comand: Elm: `Stop elm-analyse`
+* When available - Code actions will show lightbulb to fix issue
+
+When running, any issues will show up in the problems window (`Ctrl+Shift+M`), `F8` to cycle. Issues will also show up as green linting warnings in your code.
+
+NOTE: *This is an early version*
+
+* Elm-analyse and this integration is still under development. API will change.
+* Running elm-analyse as a process inside vscode can cause performance issues. You can start elm-analyse as a separate process. When using the same port as specified in settings, the extension will detect the external process and use that instead of starting inside vscode.
+* Mostly working, but if the elm-analyse process was not stopped: Linux: ps aux | grep elm-analyse $kill -9 {process id from ps} / On Windows - locate node elm-analyse process
+
+Elm-analyse settings:
+
+* `elm.analyseCommand` - Command to run when executing elm-analyse
+* `elm.analysePort` - Port used by elm-analyse process
+* `elm.analyseEnabled` - Enable or disable elm-analyse process on startup.
 
 ### Clean Build Artifacts
 

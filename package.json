@@ -147,12 +147,7 @@
         "elm.analyseEnabled": {
           "type": "boolean",
           "default": false,
-          "description": "Enable or disable elm-analyse process on startup."
-        },
-        "elm.analyseAsExternalProcess": {
-          "type": "boolean",
-          "default": false,
-          "description": "Set to true if elm-analyse is running in separate process outside of vscode."
+          "description": "Enable or disable elm-analyse on startup."
         }
       }
     },
@@ -224,7 +219,7 @@
       },
       {
         "command": "elm.analyseStop",
-        "title": "Elm: Stop elm-analyse."
+        "title": "Elm: Stop elm-analyse"
       }
     ],
     "outputChannels": [
