@@ -220,7 +220,7 @@
       },
       {
         "command": "elm.analyseStart",
-        "title": "Elm: Run elm-analyse"
+        "title": "Elm: Start elm-analyse"
       },
       {
         "command": "elm.analyseStop",
