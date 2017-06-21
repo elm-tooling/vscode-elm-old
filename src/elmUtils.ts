@@ -49,9 +49,8 @@ export function execCmd
 
   const executingCmd: any = new Promise((resolve, reject) => {
     let cmdArguments = options ? options.cmdArguments : [];
-    childProcess = cp.exec(cmd  + ' ' + cmdArguments.join(' '), {
-      cwd: detectProjectRoot(fileName || workspace.rootPath + "/fakeFileName")
-    }, handleExit);
+
+    childProcess = cp.exec(cmd  + ' ' + cmdArguments.join(' '), { cwd: detectProjectRoot(fileName || workspace.rootPath + "/fakeFileName") }, handleExit);
 
     childProcess.stdout.on('data', (data: Buffer) => {
       if (firstResponse && onStart) {
@@ -112,7 +111,11 @@ export function execCmd
 
   function killProcess() {
     wasKilledbyUs = true;
-    childProcess.kill();
+    if (isWindows) {
+      cp.spawn('taskkill', ['/pid', childProcess.pid.toString(), '/f', '/t' ])
+    } else {
+      process.kill(-childProcess.pid, 'SIGKILL');
+    }
   }
 }
 
