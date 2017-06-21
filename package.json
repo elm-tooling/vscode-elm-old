@@ -146,7 +146,7 @@
         },
         "elm.analyseEnabled": {
           "type": "boolean",
-          "default": true,
+          "default": false,
           "description": "Enable or disable elm-analyse process on startup."
         },
         "elm.analyseAsExternalProcess": {
