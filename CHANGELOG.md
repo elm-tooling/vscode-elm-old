@@ -1,3 +1,7 @@
+### 0.14.1 - 21.06.2017
+* Added the ability to include function/type/type alias comments in intellisense (by @andrewsdev)
+* Fixed bugs in parsing elm-oracle hover results and bugs in userProject hover results (by @andrewsdev)
+
 ### 0.14.0 - 15.06.2017
 * Fix defaultModel snippet, Add Html.program snippet (by @iocube)
 * Bugfix: Error with one-line suggested annotation (by @hakonrossebo)
