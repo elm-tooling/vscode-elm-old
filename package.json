@@ -197,6 +197,14 @@
       {
         "command": "elm.clean",
         "title": "Elm: Clean build artifact"
+      },
+      {
+        "command": "elm.createJsonDecoderFromSelection",
+        "title": "Elm: Create Json Decoder from selection"
+      },
+      {
+        "command": "elm.createJsonEncoderFromSelection",
+        "title": "Elm: Create Json Encoder from selection"
       }
     ],
     "outputChannels": [
@@ -245,7 +253,8 @@
     "onCommand:elm.reactorStart",
     "onCommand:elm.install",
     "onCommand:elm.browsePackage",
-    "onCommand:elm.clean"
+    "onCommand:elm.clean",
+    "onCommand:elm.createJsonDecoderFromSelection"
   ],
   "main": "./out/src/elmMain",
   "scripts": {
