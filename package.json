@@ -108,7 +108,7 @@
           "description": "Max number of lines in a user hover suggestion (no effect if elm.userProjectIntellisense is false)"
         },
         "elm.userProjectImportStrategy": {
-          "type":"string",
+          "type": "string",
           "enum": [
             "dotIsFolder",
             "dotIsFilenameCharacter",
@@ -251,6 +251,7 @@
   "scripts": {
     "vscode:prepublish": "node ./node_modules/vscode/bin/compile",
     "compile": "node ./node_modules/vscode/bin/compile -watch -p ./",
+    "lint": "tslint \"src/*.ts\"",
     "test": "node ./node_modules/vscode/bin/test"
   },
   "devDependencies": {
@@ -258,9 +259,9 @@
     "vscode": "^0.10.7"
   },
   "dependencies": {
-    "rimraf": "^2.5.2",
     "elm-oracle": "^0.2.0",
     "request": "^2.69.0",
+    "tslint": "^3.3.0",
     "vscode-uri": "^1.0.0"
   }
 }
