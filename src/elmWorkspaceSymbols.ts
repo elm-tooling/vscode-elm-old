@@ -45,7 +45,7 @@ function symbolsFromFile(document): Promise<vscode.SymbolInformation[]> {
     },
     err => {
       return [] as vscode.SymbolInformation[];
-    }
+    },
   );
   return processed;
 }
@@ -72,7 +72,7 @@ function processWorkspace(query: string): Thenable<vscode.SymbolInformation[]> {
           },
           err => {
             return [];
-          }
+          },
         );
         let symbolInformation = processedTextDocuments.then(
           symbols => {
@@ -80,7 +80,7 @@ function processWorkspace(query: string): Thenable<vscode.SymbolInformation[]> {
           },
           err => {
             return [] as vscode.SymbolInformation[];
-          }
+          },
         );
         return symbolInformation;
       },

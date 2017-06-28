@@ -5,7 +5,7 @@ import { Range, SymbolInformation, SymbolKind, TextDocument } from 'vscode';
 export class ElmSymbolProvider implements vscode.DocumentSymbolProvider {
 
   provideDocumentSymbols = (doc: TextDocument, _) =>
-    Promise.resolve(processDocument(doc));
+    Promise.resolve(processDocument(doc))
 }
 
 export function processDocument(doc: TextDocument) {

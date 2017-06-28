@@ -1,20 +1,20 @@
-import * as vscode from 'vscode';
+import vscode = require('vscode');
 
 export class ElmCodeActionProvider implements vscode.CodeActionProvider {
   public provideCodeActions(
     document: vscode.TextDocument,
     range: vscode.Range,
     context: vscode.CodeActionContext,
-    token: vscode.CancellationToken
+    token: vscode.CancellationToken,
   ): Thenable<vscode.Command[]> {
     let wordRange = document.getWordRangeAtPosition(range.start);
     let currentWord: string = document.getText(wordRange);
     let currentWordPrefix = currentWord.substring(
       0,
-      currentWord.lastIndexOf('.')
+      currentWord.lastIndexOf('.'),
     );
     let currentWordSuffix = currentWord.substr(
-      currentWord.lastIndexOf('.') + 1
+      currentWord.lastIndexOf('.') + 1,
     );
     let annotationWordCriteria =
       'Top-level value `' +
@@ -145,7 +145,7 @@ function annotateFunction(msg: string) {
     });
   } else {
     vscode.window.showInformationMessage(
-      'Could not resolve function type annotation'
+      'Could not resolve function type annotation',
     );
   }
 }
@@ -175,11 +175,11 @@ function replaceSuggestedVariable(msg: string[]) {
 export function activateCodeActions(): vscode.Disposable[] {
   return [
     vscode.commands.registerCommand('elm.codeActionAnnotateFunction', msg =>
-      annotateFunction(msg)
+      annotateFunction(msg),
     ),
     vscode.commands.registerCommand(
       'elm.codeActionReplaceSuggestedVariable',
-      msg => replaceSuggestedVariable(msg)
+      msg => replaceSuggestedVariable(msg),
     ),
   ];
 }

@@ -22,7 +22,7 @@ export interface ExecCmdOptions {
   onStderr?: (data: string) => void;
   /** Called after the command (successfully or unsuccessfully) exits */
   onExit?: () => void;
-};
+}
 
 /** Type returned from execCmd. Is a promise for when the command completes
  *  and also a wrapper to access ChildProcess-like methods.
@@ -34,7 +34,7 @@ export interface ExecutingCmd extends Promise<{ stdout: string, stderr: string }
   kill();
   /** Is the process running */
   isRunning: boolean; // tslint:disable-line
-};
+}
 
 /** Executes a command. Shows an error message if the command isn't found */
 export function execCmd

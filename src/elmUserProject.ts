@@ -312,7 +312,7 @@ export function userProject(document: vscode.TextDocument, position: vscode.Posi
             position,
             currentWord,
             imports,
-            srcDirs
+            srcDirs,
           );
           results = [ ...results, ...importResults ];
         } catch (e) {
@@ -368,9 +368,9 @@ function localFunctions(filename: string, callerFile: string, action: OracleActi
             if (trimmedLine === '') { continue; }
 
             let params = currentLine.split(' ');
-            if (currentLine.includes('=') && params.filter((item, i) => {
+            if (currentLine.includes('=') && params.filter((item, paramsIndex) => {
               if (item === currentWord.slice(0, -1) && item.trim() !== '') {
-                paramIndex = i;
+                paramIndex = paramsIndex;
                 return true;
               } else {
                 return false;
@@ -565,14 +565,12 @@ function localFunctions(filename: string, callerFile: string, action: OracleActi
     // Step 5: Look up type aliases
     if (/^(type alias)/.test(lines[i].toLowerCase())) {
       let returnInfo = '';
-      suggestionList = [];
       if (toLowerOrHover(action, lines[i])
         .includes('type alias ' + (
           currentWord !== '[a-zA-Z]' ? toLowerOrHover(action, currentWord) : gOriginalWord.split('.')[1].trim()))
       ) {
         let j = 0;
         returnInfo = lines[i];
-        const suggestionList = [];
 
         let typeAliasName = lines[i].replace('type alias ', '').replace('=', '').trim();
 
