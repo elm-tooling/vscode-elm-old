@@ -565,6 +565,7 @@ function localFunctions(filename: string, callerFile: string, action: OracleActi
     // Step 5: Look up type aliases
     if (/^(type alias)/.test(lines[i].toLowerCase())) {
       let returnInfo = '';
+      suggestionList = [];
       if (toLowerOrHover(action, lines[i])
         .includes('type alias ' + (
           currentWord !== '[a-zA-Z]' ? toLowerOrHover(action, currentWord) : gOriginalWord.split('.')[1].trim()))
