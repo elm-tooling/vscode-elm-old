@@ -1,7 +1,8 @@
-import * as vscode from 'vscode'
-import { Range, TextEdit, StatusBarItem } from 'vscode'
+import * as vscode from 'vscode';
 
-import { execCmd } from './elmUtils'
+import { Range, StatusBarItem, TextEdit } from 'vscode';
+
+import { execCmd } from './elmUtils';
 
 export class ElmFormatProvider implements vscode.DocumentFormattingEditProvider {
   private showError;
@@ -13,8 +14,7 @@ export class ElmFormatProvider implements vscode.DocumentFormattingEditProvider 
   provideDocumentFormattingEdits(
     document: vscode.TextDocument,
     options: vscode.FormattingOptions,
-    token: vscode.CancellationToken)
-    : Thenable<TextEdit[]> {
+    token: vscode.CancellationToken): Thenable<TextEdit[]> {
     return elmFormat(document)
       .then(({ stdout }) => {
         const wholeDocument = new Range(0, 0, document.lineCount, document.getText().length);
@@ -63,14 +63,14 @@ function elmFormat(document: vscode.TextDocument) {
 function statusBarMessage(statusBarItem: StatusBarItem) {
   return function (err) {
     const message = (<string>err.message).includes('SYNTAX PROBLEM')
-      ? "Running elm-format failed. Check the file for syntax errors."
-      : "Running elm-format failed. Install from "
+      ? 'Running elm-format failed. Check the file for syntax errors.'
+      : 'Running elm-format failed. Install from '
       + "https://github.com/avh4/elm-format and make sure it's on your path";
-      let editor = vscode.window.activeTextEditor;
-      if (editor) {
-        statusBarItem.text = message;
-        statusBarItem.show();
-      }
-      return;
-  }
+    let editor = vscode.window.activeTextEditor;
+    if (editor) {
+      statusBarItem.text = message;
+      statusBarItem.show();
+    }
+    return;
+  };
 }

@@ -1,8 +1,8 @@
-import * as vscode from 'vscode';
 import * as cp from 'child_process';
-import {isWindows} from './elmUtils';
 import * as path from 'path';
+import * as vscode from 'vscode';
 
+import {isWindows} from './elmUtils';
 
 let reactor: cp.ChildProcess;
 let oc: vscode.OutputChannel = vscode.window.createOutputChannel('Elm Reactor');
@@ -20,8 +20,7 @@ function startReactor(): void {
 
     if (isWindows) {
       reactor = cp.exec('elm-reactor ' + args.join(' '), { cwd: cwd });
-    }
-    else {
+    } else {
       reactor = cp.spawn('elm-reactor', args, { cwd: cwd, detached: true });
     }
 
@@ -46,7 +45,7 @@ function startReactor(): void {
 function stopReactor(notify: boolean): void {
   if (reactor) {
     if (isWindows) {
-      cp.spawn('taskkill', ['/pid', reactor.pid.toString(), '/f', '/t' ])
+      cp.spawn('taskkill', ['/pid', reactor.pid.toString(), '/f', '/t' ]);
     } else {
       process.kill(-reactor.pid, 'SIGKILL');
     }

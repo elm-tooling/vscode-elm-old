@@ -1,8 +1,7 @@
-import * as vscode from 'vscode';
 import * as cp from 'child_process';
-import * as path from 'path';
-import * as utils from './elmUtils';
 import * as readline from 'readline';
+import * as utils from './elmUtils';
+import * as vscode from 'vscode';
 
 interface IElmIssue {
   tag: string;
@@ -11,7 +10,7 @@ interface IElmIssue {
   details: string;
   region: {
     start: { line: number; column: number; }
-    end: { line: number; column: number; }
+    end: { line: number; column: number; },
   };
   type: string;
   file: string;
@@ -30,12 +29,12 @@ function elmMakeIssueToDiagnostic(issue: IElmIssue): vscode.Diagnostic {
     issue.region.start.line - 1,
     issue.region.start.column - 1,
     issue.region.end.line - 1,
-    issue.region.end.column - 1
+    issue.region.end.column - 1,
   );
   return new vscode.Diagnostic(
     lineRange,
     issue.overview + ' - ' + issue.details.replace(/\[\d+m/g, ''),
-    severityStringToDiagnosticSeverity(issue.type)
+    severityStringToDiagnosticSeverity(issue.type),
   );
 }
 
@@ -48,8 +47,7 @@ function checkForErrors(filename): Promise<IElmIssue[]> {
     const args = [filename, '--report', 'json', '--output', '/dev/null'];
     if (utils.isWindows) {
       make = cp.exec(makeCommand + ' ' + args.join(' '), { cwd: cwd });
-    }
-    else {
+    } else {
       make = cp.spawn(makeCommand, args, { cwd: cwd });
     }
     // output is actually optional
@@ -59,12 +57,12 @@ function checkForErrors(filename): Promise<IElmIssue[]> {
     const lines: IElmIssue[] = [];
     stdoutlines.on('line', (line: string) => {
       // Ignore compiler success.
-      if (line.startsWith("Successfully generated")) {
+      if (line.startsWith('Successfully generated')) {
         return;
       }
       // Elm writes out JSON arrays of diagnostics, with one array per line.
       // Multiple lines may be received.
-      lines.push(...<IElmIssue[]>JSON.parse(line))
+      lines.push(...<IElmIssue[]>JSON.parse(line));
     });
     const stderr: Buffer[] = [];
     make.stderr.on('data', (data: Buffer) => {
@@ -88,19 +86,19 @@ function checkForErrors(filename): Promise<IElmIssue[]> {
           tag: 'error',
           overview: '',
           subregion: '',
-          details: stderr.join(""),
+          details: stderr.join(''),
           region: {
             start: {
               line: 1,
-              column: 1
+              column: 1,
             },
             end: {
               line: 1,
-              column: 1
-            }
+              column: 1,
+            },
           },
           type: 'error',
-          file: filename
+          file: filename,
         };
         resolve([errorResult]);
       } else {
@@ -114,31 +112,31 @@ export function runLinter(document: vscode.TextDocument): void {
   if (document.languageId !== 'elm') {
     return;
   }
-  let diagnostics: vscode.Diagnostic[] = [];
   let compileErrors: vscode.DiagnosticCollection = vscode.languages.createDiagnosticCollection('elm');
   let uri: vscode.Uri = document.uri;
 
-  compileErrors.clear()
-  
+  compileErrors.clear();
+
   checkForErrors(uri.fsPath)
     .then((compilerErrors: IElmIssue[]) => {
       const cwd: string = utils.detectProjectRoot(uri.fsPath) || vscode.workspace.rootPath;
-      let splitCompilerErrors: Map<string, IElmIssue[]> = new Map()
-      
+      let splitCompilerErrors: Map<string, IElmIssue[]> = new Map();
+
       compilerErrors.forEach((issue: IElmIssue) => {
-        //If provided path is relative, make it absolute
-        if(issue.file.startsWith('.'))
-          issue.file = cwd + issue.file.slice(1)
+        // If provided path is relative, make it absolute
+        if (issue.file.startsWith('.')) {
+          issue.file = cwd + issue.file.slice(1);
+        }
         if (splitCompilerErrors.has(issue.file)) {
-          splitCompilerErrors.get(issue.file).push(issue)
+          splitCompilerErrors.get(issue.file).push(issue);
         } else {
-          splitCompilerErrors.set(issue.file, [issue])
-        }  
-      })
-      //Turn split arrays into diagnostics and associate them with correct files in VS
+          splitCompilerErrors.set(issue.file, [issue]);
+        }
+      });
+      // Turn split arrays into diagnostics and associate them with correct files in VS
       splitCompilerErrors.forEach((issue: IElmIssue[], path: string) => {
         compileErrors.set(vscode.Uri.file(path), issue.map((error) => elmMakeIssueToDiagnostic(error)));
-      })
+      });
     })
     .catch((error) => {
       compileErrors.set(document.uri, []);
