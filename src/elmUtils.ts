@@ -13,8 +13,8 @@ export interface ExecCmdOptions {
   fileName?: string;
   /** Any arguments */
   cmdArguments?: string[];
-  /** Shows a message if an error occurs (in particular the command not being
-   * found), instead of rejecting. If this happens, the promise never resolves */
+  /** Shows a message if an error occurs (in particular the command not being */
+  /* found), instead of rejecting. If this happens, the promise never resolves */
   showMessageOnError?: boolean;
   /** Called after the process successfully starts */
   onStart?: () => void;
@@ -26,7 +26,7 @@ export interface ExecCmdOptions {
   onExit?: () => void;
   /** Text to add when command is not found (maybe helping how to install) */
   notFoundText?: string;
-};
+}
 
 /** Type returned from execCmd. Is a promise for when the command completes
  *  and also a wrapper to access ChildProcess-like methods.
@@ -50,7 +50,8 @@ export function execCmd
   const executingCmd: any = new Promise((resolve, reject) => {
     let cmdArguments = options ? options.cmdArguments : [];
 
-    childProcess = cp.exec(cmd  + ' ' + cmdArguments.join(' '), { cwd: detectProjectRoot(fileName || workspace.rootPath + "/fakeFileName") }, handleExit);
+    childProcess =
+      cp.exec(cmd + ' ' + cmdArguments.join(' '), { cwd: detectProjectRoot(fileName || workspace.rootPath + '/fakeFileName') }, handleExit);
 
     childProcess.stdout.on('data', (data: Buffer) => {
       if (firstResponse && onStart) {
@@ -87,7 +88,7 @@ export function execCmd
               || !isWindows && (<any>err).code === 127;
 
             if (cmdWasNotFound) {
-              let notFoundText = options ? options.notFoundText : "";
+              let notFoundText = options ? options.notFoundText : '';
               window.showErrorMessage(
                 `${cmdName} is not available in your path. ` +
                 notFoundText);
@@ -112,7 +113,7 @@ export function execCmd
   function killProcess() {
     wasKilledbyUs = true;
     if (isWindows) {
-      cp.spawn('taskkill', ['/pid', childProcess.pid.toString(), '/f', '/t' ])
+      cp.spawn('taskkill', ['/pid', childProcess.pid.toString(), '/f', '/t']);
     } else {
       childProcess.kill('SIGINT');
     }

@@ -8,7 +8,7 @@ import {ElmCompletionProvider} from './elmAutocomplete';
 import {runLinter, IElmIssue} from './elmLinter';
 import {activateRepl} from './elmRepl';
 import {activateMake} from './elmMake';
-//import {activateMakeWarn} from './elmMakeWarn';
+// import {activateMakeWarn} from './elmMakeWarn';
 import {activatePackage} from './elmPackage';
 import {activateClean} from './elmClean';
 import {ElmAnalyse} from './elmAnalyse';
@@ -19,7 +19,7 @@ import {ElmWorkspaceSymbolProvider} from './elmWorkspaceSymbols';
 import {configuration} from './elmConfiguration';
 
 const ELM_MODE: vscode.DocumentFilter = { language: 'elm', scheme: 'file' };
-const elmAnalyseIssues : IElmIssue[] = [];
+const elmAnalyseIssues: IElmIssue[] = [];
 const elmAnalyse = new ElmAnalyse(elmAnalyseIssues);
 // this method is called when your extension is activated
 export function activate(ctx: vscode.ExtensionContext) {

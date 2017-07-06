@@ -109,7 +109,7 @@ function checkForErrors(filename): Promise<IElmIssue[]> {
   });
 }
 
-export function runLinter(document: vscode.TextDocument, elmAnalyse : ElmAnalyse): void {
+export function runLinter(document: vscode.TextDocument, elmAnalyse: ElmAnalyse): void {
   if (document.languageId !== 'elm') {
     return;
   }
@@ -144,17 +144,17 @@ export function runLinter(document: vscode.TextDocument, elmAnalyse : ElmAnalyse
     });
 
   if (elmAnalyse.elmAnalyseIssues.length > 0) {
-    let splitCompilerErrors: Map<string, IElmIssue[]> = new Map()
+    let splitCompilerErrors: Map<string, IElmIssue[]> = new Map();
     elmAnalyse.elmAnalyseIssues.forEach((issue: IElmIssue) => {
       if (splitCompilerErrors.has(issue.file)) {
-        splitCompilerErrors.get(issue.file).push(issue)
+        splitCompilerErrors.get(issue.file).push(issue);
       } else {
-        splitCompilerErrors.set(issue.file, [issue])
+        splitCompilerErrors.set(issue.file, [issue]);
       }
-      splitCompilerErrors.forEach((issue: IElmIssue[], path: string) => {
-        compileErrors.set(vscode.Uri.file(path), issue.map((error) => elmMakeIssueToDiagnostic(error)));
-      })
-    })
+      splitCompilerErrors.forEach((analyserIssue: IElmIssue[], path: string) => {
+        compileErrors.set(vscode.Uri.file(path), analyserIssue.map((error) => elmMakeIssueToDiagnostic(error)));
+      });
+    });
 
   }
 }

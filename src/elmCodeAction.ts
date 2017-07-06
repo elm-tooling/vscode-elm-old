@@ -1,22 +1,35 @@
 import vscode = require('vscode');
 
 export class ElmCodeActionProvider implements vscode.CodeActionProvider {
-	public provideCodeActions(document: vscode.TextDocument, range: vscode.Range, context: vscode.CodeActionContext, token: vscode.CancellationToken): Thenable<vscode.Command[]> {
-		let isDirty = vscode.window.activeTextEditor.document.isDirty;
-		if (isDirty) {
-			return;
-		}
-		let wordRange = document.getWordRangeAtPosition(range.start);
-		let currentWord: string = document.getText(wordRange);
-		let currentWordPrefix = currentWord.substring(0, currentWord.lastIndexOf('.'));
-		let currentWordSuffix = currentWord.substr(currentWord.lastIndexOf('.') + 1);
-		let annotationWordCriteria = 'Top-level value `' + currentWord + '` does not have a type annotation. - I inferred the type annotation so you can copy it into your code:';
-		let modelFieldMissingCriteria = 'Hint: The record fields do not match up. Maybe you made one of these typos?'
-		let unnecessaryParensCriteria = /UnnecessaryParens/
-		let unusedVariableCriteria = /UnusedVariable/
-		let unusedImportedVariableCriteria = /UnusedImportedVariable/
-		let debugLogCriteria = /DebugLog/
-
+  public provideCodeActions(
+    document: vscode.TextDocument,
+    range: vscode.Range,
+    context: vscode.CodeActionContext,
+    token: vscode.CancellationToken,
+  ): Thenable<vscode.Command[]> {
+    let isDirty = vscode.window.activeTextEditor.document.isDirty;
+    if (isDirty) {
+      return;
+    }
+    let wordRange = document.getWordRangeAtPosition(range.start);
+    let currentWord: string = document.getText(wordRange);
+    let currentWordPrefix = currentWord.substring(
+      0,
+      currentWord.lastIndexOf('.'),
+    );
+    let currentWordSuffix = currentWord.substr(
+      currentWord.lastIndexOf('.') + 1,
+    );
+    let annotationWordCriteria =
+      'Top-level value `' +
+      currentWord +
+      '` does not have a type annotation. - I inferred the type annotation so you can copy it into your code:';
+    let modelFieldMissingCriteria =
+      'Hint: The record fields do not match up. Maybe you made one of these typos?';
+    let unnecessaryParensCriteria = /UnnecessaryParens/;
+    let unusedVariableCriteria = /UnusedVariable/;
+    let unusedImportedVariableCriteria = /UnusedImportedVariable/;
+    let debugLogCriteria = /DebugLog/;
 
     let suggestionsCriterias = [
       'Cannot find variable `' +
@@ -91,55 +104,51 @@ export class ElmCodeActionProvider implements vscode.CodeActionProvider {
         let message = diag.message.split('\n');
         let suggestions = message[message.length - 1].trim().split('<->');
 
-				let commands = suggestions
-					.map(val => modelName + val.trim())
-					.map(val => {
-						return {
-							title: 'Change to: ' + val,
-							command: 'elm.codeActionReplaceSuggestedVariable',
-							arguments: [[currentWord, val]]
-						}
-					});
-				return commands;
-			}
-			else if (diag.message.match(unnecessaryParensCriteria)) {
-				return [
-					{
-						title: 'Remove unnecessary parens',
-						command: 'elm.removeUnnecessaryParens',
-						arguments: [range]
-					}
-				]
-			}
-			else if (diag.message.match(unusedVariableCriteria)) {
-				return [
-					{
-						title: 'Change variable to _',
-						command: 'elm.changeVariableTo_',
-						arguments: [range]
-					}
-				]
-			}
-			else if (diag.message.match(unusedImportedVariableCriteria)) {
-				return [
-					{
-						title: 'Remove unused variable',
-						command: 'elm.removeUnusedImportedVariable',
-						arguments: [range]
-					}
-				]
-			}
-			else if (diag.message.match(debugLogCriteria)) {
-				return [
-					{
-						title: 'Remove debug log',
-						command: 'elm.removeDebugLog',
-						arguments: [range]
-					}
-				]
-			}
-			return [];
-		});
+        let commands = suggestions
+          .map(val => modelName + val.trim())
+          .map(val => {
+            return {
+              title: 'Change to: ' + val,
+              command: 'elm.codeActionReplaceSuggestedVariable',
+              arguments: [[currentWord, val]],
+            };
+          });
+        return commands;
+      } else if (diag.message.match(unnecessaryParensCriteria)) {
+        return [
+          {
+            title: 'Remove unnecessary parens',
+            command: 'elm.removeUnnecessaryParens',
+            arguments: [range],
+          },
+        ];
+      } else if (diag.message.match(unusedVariableCriteria)) {
+        return [
+          {
+            title: 'Change variable to _',
+            command: 'elm.changeVariableTo_',
+            arguments: [range],
+          },
+        ];
+      } else if (diag.message.match(unusedImportedVariableCriteria)) {
+        return [
+          {
+            title: 'Remove unused variable',
+            command: 'elm.removeUnusedImportedVariable',
+            arguments: [range],
+          },
+        ];
+      } else if (diag.message.match(debugLogCriteria)) {
+        return [
+          {
+            title: 'Remove debug log',
+            command: 'elm.removeDebugLog',
+            arguments: [range],
+          },
+        ];
+      }
+      return [];
+    });
 
     return Promise.all(promises).then(arrs => {
       let results = {};
@@ -167,22 +176,21 @@ function annotateFunction(msg: string) {
     vscode.window.showInformationMessage('Language is not Elm');
     return;
   }
-	let position = vscode.window.activeTextEditor.selection.active
-	let wordRange = editor.document.getWordRangeAtPosition(position);
-	let currentWord: string = editor.document.getText(wordRange);
-	let msgList = msg.split('\n');
-	if (msgList.length >= 1) {
-		let annotation = msgList
-			.map((val: string) => val.trim())
-		  .join(' ');
-		editor.edit(editBuilder => {
-			editBuilder.insert(position.translate(-1), annotation);
-		});
-		editor.document.save();
-	}
-	else {
-		vscode.window.showInformationMessage('Could not resolve function type annotation');
-	}
+  let position = vscode.window.activeTextEditor.selection.active;
+  let wordRange = editor.document.getWordRangeAtPosition(position);
+  let currentWord: string = editor.document.getText(wordRange);
+  let msgList = msg.split('\n');
+  if (msgList.length >= 1) {
+    let annotation = msgList.map((val: string) => val.trim()).join(' ');
+    editor.edit(editBuilder => {
+      editBuilder.insert(position.translate(-1), annotation);
+    });
+    editor.document.save();
+  } else {
+    vscode.window.showInformationMessage(
+      'Could not resolve function type annotation',
+    );
+  }
 }
 
 function replaceSuggestedVariable(msg: string[]) {
@@ -195,133 +203,180 @@ function replaceSuggestedVariable(msg: string[]) {
     vscode.window.showInformationMessage('Language is not Elm');
     return;
   }
-	let position = vscode.window.activeTextEditor.selection.active
-	let wordRange = editor.document.getWordRangeAtPosition(position);
-	let currentWord: string = editor.document.getText(wordRange);
-	if (msg.length == 2 && msg[0] == currentWord){
-		editor.edit(editBuilder => {
-			editBuilder.replace(wordRange, msg[1]);
-		});
-		editor.document.save();
-	}
-	else {
-		vscode.window.showInformationMessage('Could not find variable to replace');
-	}
+  let position = vscode.window.activeTextEditor.selection.active;
+  let wordRange = editor.document.getWordRangeAtPosition(position);
+  let currentWord: string = editor.document.getText(wordRange);
+  if (msg.length === 2 && msg[0] === currentWord) {
+    editor.edit(editBuilder => {
+      editBuilder.replace(wordRange, msg[1]);
+    });
+    editor.document.save();
+  } else {
+    vscode.window.showInformationMessage('Could not find variable to replace');
+  }
 }
 
-function removeUnnecessaryParens(range : vscode.Range) {
-	let editor = vscode.window.activeTextEditor;
-	if (!editor) {
-		vscode.window.showInformationMessage('No editor is active.');
-		return;
-	}
-  if (editor.document.languageId !== 'elm') {
-		vscode.window.showInformationMessage('Language is not Elm');
+function removeUnnecessaryParens(range: vscode.Range) {
+  let editor = vscode.window.activeTextEditor;
+  if (!editor) {
+    vscode.window.showInformationMessage('No editor is active.');
     return;
   }
-	let fullParens = editor.document.getText(range);
-	editor.edit(editBuilder => {
-		editBuilder.replace(range, fullParens.substring(1, fullParens.length - 1));
-	});
-	editor.document.save();
+  if (editor.document.languageId !== 'elm') {
+    vscode.window.showInformationMessage('Language is not Elm');
+    return;
+  }
+  let fullParens = editor.document.getText(range);
+  editor.edit(editBuilder => {
+    editBuilder.replace(range, fullParens.substring(1, fullParens.length - 1));
+  });
+  editor.document.save();
 }
 
 function changeVariableTo_(range: vscode.Range) {
-	let editor = vscode.window.activeTextEditor;
-	if (!editor) {
-		vscode.window.showInformationMessage('No editor is active.');
-		return;
-	}
-  if (editor.document.languageId !== 'elm') {
-		vscode.window.showInformationMessage('Language is not Elm');
+  let editor = vscode.window.activeTextEditor;
+  if (!editor) {
+    vscode.window.showInformationMessage('No editor is active.');
     return;
   }
-	let variableToFix = editor.document.getText(range);
-	editor.edit(editBuilder => {
-		editBuilder.replace(range, '_');
-	});
-	editor.document.save();
+  if (editor.document.languageId !== 'elm') {
+    vscode.window.showInformationMessage('Language is not Elm');
+    return;
+  }
+  let variableToFix = editor.document.getText(range);
+  editor.edit(editBuilder => {
+    editBuilder.replace(range, '_');
+  });
+  editor.document.save();
 }
 
 function removeUnusedImportedVariable(range: vscode.Range) {
-	let editor = vscode.window.activeTextEditor;
-	if (!editor) {
-		vscode.window.showInformationMessage('No editor is active.');
-		return;
-	}
-  if (editor.document.languageId !== 'elm') {
-		vscode.window.showInformationMessage('Language is not Elm');
+  let editor = vscode.window.activeTextEditor;
+  if (!editor) {
+    vscode.window.showInformationMessage('No editor is active.');
     return;
   }
-	let variableToFix = editor.document.getText(range);
-	let nextCharacters = editor.document.getText(range.with(range.end.translate(0, 0), range.end.translate(0, 100)));
-	let previousCharacters = editor.document.getText(range.with(range.start.translate(0, -15), range.start.translate(0, 0)));
+  if (editor.document.languageId !== 'elm') {
+    vscode.window.showInformationMessage('Language is not Elm');
+    return;
+  }
+  let variableToFix = editor.document.getText(range);
+  let nextCharacters = editor.document.getText(
+    range.with(range.end.translate(0, 0), range.end.translate(0, 100)),
+  );
+  let previousCharacters = editor.document.getText(
+    range.with(range.start.translate(0, -15), range.start.translate(0, 0)),
+  );
 
-	// between commas	or first variable
-	if (nextCharacters.trim().startsWith(',') && (previousCharacters.trim().endsWith(',') || previousCharacters.trim().endsWith('(')) ) {
-		let nextCharacterIndex = nextCharacters.indexOf(',') + 1;
-		if (nextCharacters[nextCharacterIndex] == ' ') {
-			nextCharacterIndex += 1;
-		}
-		editor.edit(editBuilder => {
-			editBuilder.replace(range.with(range.start, range.end.translate(0, nextCharacterIndex)), '');
-		});
-		editor.document.save();
-	}
-	// last variable
-	else if (nextCharacters.trim().startsWith(')') && previousCharacters.trim().endsWith(',')) {
-		let previousCharacterIndex = previousCharacters.lastIndexOf(',');
-		let previousCharacterOffset = previousCharacters.length - previousCharacterIndex;
-		if (previousCharacters[previousCharacterIndex] == ' ') {
-			previousCharacterOffset += 1;
-		}
-		editor.edit(editBuilder => {
-			editBuilder.replace(range.with(range.start.translate(0,-previousCharacterOffset), range.end), '');
-		});
-		editor.document.save();
-	}
-	// only one variable left
-	else if (nextCharacters.trim().startsWith(')') && previousCharacters.trim().endsWith('(')) {
-		let previousCharacterIndex = previousCharacters.lastIndexOf('exposing');
-		let previousCharacterOffset = previousCharacters.length - previousCharacterIndex;
-		if (previousCharacters[previousCharacterIndex - 1] == ' ') {
-			previousCharacterOffset += 1;
-		}
-		editor.edit(editBuilder => {
-			editBuilder.replace(range.with(range.start.translate(0,-previousCharacterOffset), range.end.translate(0, 5)), '');
-		});
-		editor.document.save();
-	}
+  // between commas	or first variable
+  if (
+    nextCharacters.trim().startsWith(',') &&
+    (previousCharacters.trim().endsWith(',') ||
+      previousCharacters.trim().endsWith('('))
+  ) {
+    let nextCharacterIndex = nextCharacters.indexOf(',') + 1;
+    if (nextCharacters[nextCharacterIndex] === ' ') {
+      nextCharacterIndex += 1;
+    }
+    editor.edit(editBuilder => {
+      editBuilder.replace(
+        range.with(range.start, range.end.translate(0, nextCharacterIndex)),
+        '',
+      );
+    });
+    editor.document.save();
+  } else if (
+    nextCharacters.trim().startsWith(')') &&
+    previousCharacters.trim().endsWith(',')
+  ) {
+    // last variable
+    let previousCharacterIndex = previousCharacters.lastIndexOf(',');
+    let previousCharacterOffset =
+      previousCharacters.length - previousCharacterIndex;
+    if (previousCharacters[previousCharacterIndex] === ' ') {
+      previousCharacterOffset += 1;
+    }
+    editor.edit(editBuilder => {
+      editBuilder.replace(
+        range.with(
+          range.start.translate(0, -previousCharacterOffset),
+          range.end,
+        ),
+        '',
+      );
+    });
+    editor.document.save();
+  } else if (
+    nextCharacters.trim().startsWith(')') &&
+    previousCharacters.trim().endsWith('(')
+  ) {
+    // only one variable left
+    let previousCharacterIndex = previousCharacters.lastIndexOf('exposing');
+    let previousCharacterOffset =
+      previousCharacters.length - previousCharacterIndex;
+    if (previousCharacters[previousCharacterIndex - 1] === ' ') {
+      previousCharacterOffset += 1;
+    }
+    editor.edit(editBuilder => {
+      editBuilder.replace(
+        range.with(
+          range.start.translate(0, -previousCharacterOffset),
+          range.end.translate(0, 5),
+        ),
+        '',
+      );
+    });
+    editor.document.save();
+  }
 }
 
 function removeDebugLog(range: vscode.Range) {
-	let editor = vscode.window.activeTextEditor;
-	if (!editor) {
-		vscode.window.showInformationMessage('No editor is active.');
-		return;
-	}
-  if (editor.document.languageId !== 'elm') {
-		vscode.window.showInformationMessage('Language is not Elm');
+  let editor = vscode.window.activeTextEditor;
+  if (!editor) {
+    vscode.window.showInformationMessage('No editor is active.');
     return;
   }
-	let nextCharacters = editor.document.getText(range.with(range.end.translate(0, 0), range.end.translate(0, 100)));
-	let debugLogEndIndex = nextCharacters.indexOf('"', nextCharacters.indexOf('"') + 1) + 1;
-	if (nextCharacters[debugLogEndIndex + 1] == ' ') {
-		debugLogEndIndex += 1;
-	}
-	editor.edit(editBuilder => {
-		editBuilder.replace(range.with(range.start, range.end.translate(0, debugLogEndIndex)), '');
-	});
-	editor.document.save();
+  if (editor.document.languageId !== 'elm') {
+    vscode.window.showInformationMessage('Language is not Elm');
+    return;
+  }
+  let nextCharacters = editor.document.getText(
+    range.with(range.end.translate(0, 0), range.end.translate(0, 100)),
+  );
+  let debugLogEndIndex =
+    nextCharacters.indexOf('"', nextCharacters.indexOf('"') + 1) + 1;
+  if (nextCharacters[debugLogEndIndex + 1] === ' ') {
+    debugLogEndIndex += 1;
+  }
+  editor.edit(editBuilder => {
+    editBuilder.replace(
+      range.with(range.start, range.end.translate(0, debugLogEndIndex)),
+      '',
+    );
+  });
+  editor.document.save();
 }
 
 export function activateCodeActions(): vscode.Disposable[] {
   return [
-    vscode.commands.registerCommand('elm.codeActionAnnotateFunction', (msg) => annotateFunction(msg)),
-		vscode.commands.registerCommand('elm.codeActionReplaceSuggestedVariable', (msg) => replaceSuggestedVariable(msg)),
-		vscode.commands.registerCommand('elm.removeUnnecessaryParens', (msg) => removeUnnecessaryParens(msg)),
-		vscode.commands.registerCommand('elm.changeVariableTo_', (msg) => changeVariableTo_(msg)),
-		vscode.commands.registerCommand('elm.removeUnusedImportedVariable', (msg) => removeUnusedImportedVariable(msg)),
-		vscode.commands.registerCommand('elm.removeDebugLog', (msg) => removeDebugLog(msg))
+    vscode.commands.registerCommand('elm.codeActionAnnotateFunction', msg =>
+      annotateFunction(msg),
+    ),
+    vscode.commands.registerCommand(
+      'elm.codeActionReplaceSuggestedVariable',
+      msg => replaceSuggestedVariable(msg),
+    ),
+    vscode.commands.registerCommand('elm.removeUnnecessaryParens', msg =>
+      removeUnnecessaryParens(msg),
+    ),
+    vscode.commands.registerCommand('elm.changeVariableTo_', msg =>
+      changeVariableTo_(msg),
+    ),
+    vscode.commands.registerCommand('elm.removeUnusedImportedVariable', msg =>
+      removeUnusedImportedVariable(msg),
+    ),
+    vscode.commands.registerCommand('elm.removeDebugLog', msg =>
+      removeDebugLog(msg),
+    ),
   ];
 }
