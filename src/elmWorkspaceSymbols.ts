@@ -37,7 +37,7 @@ export class ElmWorkspaceSymbolProvider implements vscode.WorkspaceSymbolProvide
     }
   }
 }
-function symbolsFromFile(document): Promise<vscode.SymbolInformation[]> {
+function symbolsFromFile(document): Thenable<vscode.SymbolInformation[]> {
   let processed = processTextDocuments([document]).then(
     val => {
       let res = val[0] as vscode.SymbolInformation[];
@@ -51,11 +51,11 @@ function symbolsFromFile(document): Promise<vscode.SymbolInformation[]> {
 }
 
 
-function openTextDocuments(uris: vscode.Uri[]): Promise<TextDocument[]> {
+function openTextDocuments(uris: vscode.Uri[]): Thenable<TextDocument[]> {
   return Promise.all(uris.map(uri => vscode.workspace.openTextDocument(uri).then(doc => doc)));
 }
 
-function processTextDocuments(documents: TextDocument[]): Promise<vscode.SymbolInformation[][]> {
+function processTextDocuments(documents: TextDocument[]): Thenable<vscode.SymbolInformation[][]> {
   return Promise.all(documents.map(document => processDocument(document)));
 }
 
@@ -85,5 +85,5 @@ function processWorkspace(query: string): Thenable<vscode.SymbolInformation[]> {
         return symbolInformation;
       },
       fileError => { return []; });
-  return docs;
+  return <any>docs;
 }
