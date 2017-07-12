@@ -6,7 +6,7 @@ const request = require('request');
 
 let oc: vscode.OutputChannel = vscode.window.createOutputChannel('Elm Package');
 
-function browsePackage(): Thenable<void> {
+function browsePackage(): Promise<void> {
   const quickPickPackageOptions: vscode.QuickPickOptions = {
     matchOnDescription: true,
     placeHolder: 'Choose a package',
@@ -72,7 +72,7 @@ function runInstall(): Thenable<void> {
     });
 }
 
-function getJSON(): Thenable<any[]> {
+function getJSON(): Promise<any[]> {
   return new Promise((resolve, reject) => {
     request('http://package.elm-lang.org/all-packages', (err, _, body) => {
       if (err) {

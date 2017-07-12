@@ -72,7 +72,7 @@ export function execCmd
       }
     });
 
-    function handleExit(err: Error, stdout: Buffer, stderr: Buffer) {
+    function handleExit(err: Error, stdout: string, stderr: string) {
       executingCmd.isRunning = false;
       if (onExit) {
         onExit();
@@ -97,7 +97,7 @@ export function execCmd
             reject(err);
           }
         } else {
-          resolve({ stdout: stdout.toString(), stderr: stderr.toString() });
+          resolve({ stdout: stdout, stderr: stderr });
         }
       }
     }

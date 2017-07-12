@@ -33,14 +33,14 @@ export function GetOracleResults(document: vscode.TextDocument,
       }
       let currentWord: string = document.getText(wordAtPosition);
 
-      p = cp.execFile('node', [oraclePath, fn, currentWord] , { cwd: cwd }, (err: Error, stdout: Buffer, stderr: Buffer) => {
+      p = cp.execFile('node', [oraclePath, fn, currentWord] , { cwd: cwd }, (err: Error, stdout: string, stderr: string) => {
         try {
           if (err) {
             return resolve(null);
           }
 
           const result: IOracleResult[] = [
-            ...JSON.parse(stdout.toString()),
+            ...JSON.parse(stdout),
             ...(config['userProjectIntellisense'] ? userProject.userProject(document, position, currentWord, action) : []),
           ];
           resolve(result);

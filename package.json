@@ -249,8 +249,8 @@
   ],
   "main": "./out/src/elmMain",
   "scripts": {
-    "vscode:prepublish": "node ./node_modules/vscode/bin/compile",
-    "compile": "node ./node_modules/vscode/bin/compile -watch -p ./",
+    "vscode:prepublish": "tsc -p ./",
+    "compile": "tsc -watch -p ./",
     "lint": "tslint \"src/*.ts\"",
     "test": "node ./node_modules/vscode/bin/test",
     "postinstall": "node ./node_modules/vscode/bin/install"
@@ -265,6 +265,8 @@
     "rimraf": "^2.5.2",
     "tslint": "^5.4.3",
     "vscode-uri": "^1.0.0",
+    "mocha": "^2.3.3",
+    "@types/mocha": "^2.2.32",
     "@types/node": "^6.0.50"
   }
 }
