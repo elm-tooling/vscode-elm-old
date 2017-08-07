@@ -31,7 +31,8 @@ export interface ExecCmdOptions {
 /** Type returned from execCmd. Is a promise for when the command completes
  *  and also a wrapper to access ChildProcess-like methods.
  */
-export interface ExecutingCmd extends Promise<{ stdout: string, stderr: string }> {
+export interface ExecutingCmd
+  extends Promise<{ stdout: string; stderr: string }> {
   /** The process's stdin */
   stdin: NodeJS.WritableStream;
   /** End the process */
@@ -41,17 +42,27 @@ export interface ExecutingCmd extends Promise<{ stdout: string, stderr: string }
 }
 
 /** Executes a command. Shows an error message if the command isn't found */
-export function execCmd
-  (cmd: string, options: ExecCmdOptions = {}): ExecutingCmd {
-
+export function execCmd(
+  cmd: string,
+  options: ExecCmdOptions = {},
+): ExecutingCmd {
   const { fileName, onStart, onStdout, onStderr, onExit } = options;
-  let childProcess, firstResponse = true, wasKilledbyUs = false;
+  let childProcess,
+    firstResponse = true,
+    wasKilledbyUs = false;
 
   const executingCmd: any = new Promise((resolve, reject) => {
     let cmdArguments = options ? options.cmdArguments : [];
 
-    childProcess =
-      cp.exec(cmd + ' ' + cmdArguments.join(' '), { cwd: detectProjectRoot(fileName || workspace.rootPath + '/fakeFileName') }, handleExit);
+    childProcess = cp.exec(
+      cmd + ' ' + cmdArguments.join(' '),
+      {
+        cwd: detectProjectRoot(
+          fileName || workspace.rootPath + '/fakeFileName',
+        ),
+      },
+      handleExit,
+    );
 
     childProcess.stdout.on('data', (data: Buffer) => {
       if (firstResponse && onStart) {
@@ -82,16 +93,17 @@ export function execCmd
         if (err) {
           if (options.showMessageOnError) {
             const cmdName = cmd.split(' ', 1)[0];
-            const cmdWasNotFound
+            const cmdWasNotFound =
               // Windows method apparently still works on non-English systems
-              = isWindows && err.message.includes(`'${cmdName}' is not recognized`)
-              || !isWindows && (<any>err).code === 127;
+              (isWindows &&
+                err.message.includes(`'${cmdName}' is not recognized`)) ||
+              (!isWindows && (<any>err).code === 127);
 
             if (cmdWasNotFound) {
               let notFoundText = options ? options.notFoundText : '';
               window.showErrorMessage(
-                `${cmdName} is not available in your path. ` +
-                notFoundText);
+                `${cmdName} is not available in your path. ` + notFoundText,
+              );
             } else {
               window.showErrorMessage(err.message);
             }
@@ -136,7 +148,6 @@ export function findProj(dir: string): string {
     } else {
       return findProj(parent);
     }
-
   }
 }
 
@@ -148,10 +159,11 @@ export function detectProjectRoot(fileName: string): string {
   return undefined;
 }
 
-
 export function getIndicesOf(searchStr: string, str: string): number[] {
-  let startIndex = 0, searchStrLen = searchStr.length;
-  let index, indices = [];
+  let startIndex = 0,
+    searchStrLen = searchStr.length;
+  let index,
+    indices = [];
   while ((index = str.indexOf(searchStr, startIndex)) > -1) {
     indices.push(index);
     startIndex = index + searchStrLen;
@@ -159,4 +171,5 @@ export function getIndicesOf(searchStr: string, str: string): number[] {
   return indices;
 }
 
-export const pluginPath = vscode.extensions.getExtension('sbrink.elm').extensionPath;
+export const pluginPath = vscode.extensions.getExtension('sbrink.elm')
+  .extensionPath;

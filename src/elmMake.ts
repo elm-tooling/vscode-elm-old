@@ -16,9 +16,12 @@ function execMake(editor: vscode.TextEditor, warn: boolean): void {
       oc.clear();
     }
     let file = editor.document.fileName;
-    const cwd: string = utils.detectProjectRoot(file) || vscode.workspace.rootPath;
+    const cwd: string =
+      utils.detectProjectRoot(file) || vscode.workspace.rootPath;
 
-    const config: vscode.WorkspaceConfiguration = vscode.workspace.getConfiguration('elm');
+    const config: vscode.WorkspaceConfiguration = vscode.workspace.getConfiguration(
+      'elm',
+    );
     const name: string = <string>config.get('makeOutput');
     const specialFile: string = <string>config.get('makeSpecialFile');
     const makeCommand: string = <string>config.get('makeCommand');
@@ -47,8 +50,8 @@ function execMake(editor: vscode.TextEditor, warn: boolean): void {
     });
     oc.show(vscode.ViewColumn.Three);
   } catch (e) {
-     console.error('Running Elm Make failed', e);
-     vscode.window.showErrorMessage('Running Elm Make failed');
+    console.error('Running Elm Make failed', e);
+    vscode.window.showErrorMessage('Running Elm Make failed');
   }
 }
 
@@ -63,5 +66,6 @@ function runMakeWarn(editor: vscode.TextEditor): void {
 export function activateMake(): vscode.Disposable[] {
   return [
     vscode.commands.registerTextEditorCommand('elm.make', runMake),
-    vscode.commands.registerTextEditorCommand('elm.makeWarn', runMakeWarn)];
+    vscode.commands.registerTextEditorCommand('elm.makeWarn', runMakeWarn),
+  ];
 }
