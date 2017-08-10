@@ -1,7 +1,7 @@
 {
   "name": "elm",
   "description": "Elm Language Support for Visual Studio Code",
-  "version": "0.14.1",
+  "version": "0.15.0",
   "publisher": "sbrink",
   "author": {
     "name": "Krzysztof Cieslak"

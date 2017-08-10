@@ -42,12 +42,11 @@ Syntax highlighting is essential. The full language is supported. Can we improve
 
 ### Error highlighting
 
-![Error highlighting](images/errorHighlighting.gif)
-
 We support error highlighting **on save**. If you check *Auto save* under File, you should get feedback immediately.
 
+![Error highlighting](images/errorHighlighting.gif)
+
 This is marked **experimental** because we still have to improve the project detection.
-We'll solve this in the next days.
 
 ### Hover info - Function information
 
@@ -58,23 +57,29 @@ You can hover over a function and get the signature and comment.
 ### Document and Workspace symbols
 
 Use context menu "Go to definition" or F12. Alt+F12 to Peek
+
 ![Go to definition](images/gotoDefinition.gif)
 
 Ctrl+Shift+O for document symbols and Ctrl+T for workspace symbols
+
 ![Search/browse document symbols and workspace symbols](images/searchDefinition.gif)
 
 ### Code Actions (Lightbulb on errors and warnings with fixes)
 
 Tip - use Ctrl+. to invoke code action when the lightbulb is visible
+
 ![Code actions](images/codeActions.gif)
 
 ### Integration with Elm Package (Browse and install packages)
 
 Ctrl+Shift+P - Elm browse packages
+
 ![Browse packages](images/browsePackages.gif)
 
 Ctrl+Shift+P - Elm install package
+
 ![Install package](images/installPackage.gif)
+
 ### Local Project Intellisense (experimental)
 
 vscode-elm will scan your projects to build intellisense results.

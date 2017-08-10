@@ -1,3 +1,7 @@
+### 0.15.0 - 10.08.2017
+* Add integration with `Elm-analyse` (by @hakonrossebo)
+* Use TsLint on `vscode-elm` code base (by @littleStudent)
+
 ### 0.14.1 - 21.06.2017
 * Added the ability to include function/type/type alias comments in intellisense (by @andrewsdev)
 * Fixed bugs in parsing elm-oracle hover results and bugs in userProject hover results (by @andrewsdev)
