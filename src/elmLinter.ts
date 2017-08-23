@@ -2,7 +2,7 @@ import * as cp from 'child_process';
 import * as readline from 'readline';
 import * as utils from './elmUtils';
 import * as vscode from 'vscode';
-import {ElmAnalyse} from './elmAnalyse';
+import { ElmAnalyse } from './elmAnalyse';
 
 export interface IElmIssue {
   tag: string;
@@ -10,18 +10,23 @@ export interface IElmIssue {
   subregion: string;
   details: string;
   region: {
-    start: { line: number; column: number; }
-    end: { line: number; column: number; },
+    start: { line: number; column: number };
+    end: { line: number; column: number };
   };
   type: string;
   file: string;
 }
 
-function severityStringToDiagnosticSeverity(severity: string): vscode.DiagnosticSeverity {
+function severityStringToDiagnosticSeverity(
+  severity: string,
+): vscode.DiagnosticSeverity {
   switch (severity) {
-    case 'error': return vscode.DiagnosticSeverity.Error;
-    case 'warning': return vscode.DiagnosticSeverity.Warning;
-    default: return vscode.DiagnosticSeverity.Error;
+    case 'error':
+      return vscode.DiagnosticSeverity.Error;
+    case 'warning':
+      return vscode.DiagnosticSeverity.Warning;
+    default:
+      return vscode.DiagnosticSeverity.Error;
   }
 }
 
@@ -41,9 +46,12 @@ function elmMakeIssueToDiagnostic(issue: IElmIssue): vscode.Diagnostic {
 
 function checkForErrors(filename): Promise<IElmIssue[]> {
   return new Promise((resolve, reject) => {
-    const config: vscode.WorkspaceConfiguration = vscode.workspace.getConfiguration('elm');
+    const config: vscode.WorkspaceConfiguration = vscode.workspace.getConfiguration(
+      'elm',
+    );
     const makeCommand: string = <string>config.get('makeCommand');
-    const cwd: string = utils.detectProjectRoot(filename) || vscode.workspace.rootPath;
+    const cwd: string =
+      utils.detectProjectRoot(filename) || vscode.workspace.rootPath;
     let make: cp.ChildProcess;
     const args = [filename, '--report', 'json', '--output', '/dev/null'];
     if (utils.isWindows) {
@@ -54,7 +62,10 @@ function checkForErrors(filename): Promise<IElmIssue[]> {
     // output is actually optional
     // (fixed in https://github.com/Microsoft/vscode/commit/b4917afe9bdee0e9e67f4094e764f6a72a997c70,
     // but unreleased at this time)
-    const stdoutlines: readline.ReadLine = readline.createInterface({ input: make.stdout, output: undefined });
+    const stdoutlines: readline.ReadLine = readline.createInterface({
+      input: make.stdout,
+      output: undefined,
+    });
     const lines: IElmIssue[] = [];
     stdoutlines.on('line', (line: string) => {
       // Ignore compiler success.
@@ -63,7 +74,7 @@ function checkForErrors(filename): Promise<IElmIssue[]> {
       }
       // Elm writes out JSON arrays of diagnostics, with one array per line.
       // Multiple lines may be received.
-      lines.push(...<IElmIssue[]>JSON.parse(line));
+      lines.push(...(<IElmIssue[]>JSON.parse(line)));
     });
     const stderr: Buffer[] = [];
     make.stderr.on('data', (data: Buffer) => {
@@ -74,7 +85,9 @@ function checkForErrors(filename): Promise<IElmIssue[]> {
     make.on('error', (err: Error) => {
       stdoutlines.close();
       if (err && (<any>err).code === 'ENOENT') {
-        vscode.window.showInformationMessage("The 'elm-make' compiler is not available.  Install Elm from http://elm-lang.org/.");
+        vscode.window.showInformationMessage(
+          "The 'elm-make' compiler is not available.  Install Elm from http://elm-lang.org/.",
+        );
         resolve([]);
       } else {
         reject(err);
@@ -109,18 +122,24 @@ function checkForErrors(filename): Promise<IElmIssue[]> {
   });
 }
 
-export function runLinter(document: vscode.TextDocument, elmAnalyse: ElmAnalyse): void {
+export function runLinter(
+  document: vscode.TextDocument,
+  elmAnalyse: ElmAnalyse,
+): void {
   if (document.languageId !== 'elm') {
     return;
   }
-  let compileErrors: vscode.DiagnosticCollection = vscode.languages.createDiagnosticCollection('elm');
+  let compileErrors: vscode.DiagnosticCollection = vscode.languages.createDiagnosticCollection(
+    'elm',
+  );
   let uri: vscode.Uri = document.uri;
 
   compileErrors.clear();
 
   checkForErrors(uri.fsPath)
     .then((compilerErrors: IElmIssue[]) => {
-      const cwd: string = utils.detectProjectRoot(uri.fsPath) || vscode.workspace.rootPath;
+      const cwd: string =
+        utils.detectProjectRoot(uri.fsPath) || vscode.workspace.rootPath;
       let splitCompilerErrors: Map<string, IElmIssue[]> = new Map();
 
       compilerErrors.forEach((issue: IElmIssue) => {
@@ -136,10 +155,13 @@ export function runLinter(document: vscode.TextDocument, elmAnalyse: ElmAnalyse)
       });
       // Turn split arrays into diagnostics and associate them with correct files in VS
       splitCompilerErrors.forEach((issue: IElmIssue[], path: string) => {
-        compileErrors.set(vscode.Uri.file(path), issue.map((error) => elmMakeIssueToDiagnostic(error)));
+        compileErrors.set(
+          vscode.Uri.file(path),
+          issue.map(error => elmMakeIssueToDiagnostic(error)),
+        );
       });
     })
-    .catch((error) => {
+    .catch(error => {
       compileErrors.set(document.uri, []);
     });
 
@@ -151,10 +173,14 @@ export function runLinter(document: vscode.TextDocument, elmAnalyse: ElmAnalyse)
       } else {
         splitCompilerErrors.set(issue.file, [issue]);
       }
-      splitCompilerErrors.forEach((analyserIssue: IElmIssue[], path: string) => {
-        compileErrors.set(vscode.Uri.file(path), analyserIssue.map((error) => elmMakeIssueToDiagnostic(error)));
-      });
+      splitCompilerErrors.forEach(
+        (analyserIssue: IElmIssue[], path: string) => {
+          compileErrors.set(
+            vscode.Uri.file(path),
+            analyserIssue.map(error => elmMakeIssueToDiagnostic(error)),
+          );
+        },
+      );
     });
-
   }
 }

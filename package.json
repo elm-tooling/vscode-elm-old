@@ -283,23 +283,25 @@
   "scripts": {
     "vscode:prepublish": "tsc -p ./",
     "compile": "tsc -watch -p ./",
-    "lint": "tslint \"src/*.ts\"",
+    "lint": "tslint \"src/**/*.ts\" && prettier \"{src,__{tests,mocks}__}/**/*.ts\"  --single-quote --trailing-comma all --list-different",
     "test": "node ./node_modules/vscode/bin/test",
-    "postinstall": "node ./node_modules/vscode/bin/install"
+    "postinstall": "node ./node_modules/vscode/bin/install",
+    "prettier": "prettier --single-quote --trailing-comma all --write \"{src,__{tests,mocks}__}/**/*.ts\""
   },
   "devDependencies": {
     "typescript": "^2.4.0",
     "vscode": "1.1.0"
   },
   "dependencies": {
+    "@types/mocha": "^2.2.32",
+    "@types/node": "^6.0.50",
     "elm-oracle": "^0.2.0",
+    "mocha": "^2.3.3",
+    "prettier": "^1.5.3",
     "request": "^2.69.0",
     "rimraf": "^2.5.2",
     "tslint": "^5.4.3",
     "vscode-uri": "^1.0.0",
-    "mocha": "^2.3.3",
-    "@types/mocha": "^2.2.32",
-    "@types/node": "^6.0.50",
     "ws": "^3.0.0"
   }
 }

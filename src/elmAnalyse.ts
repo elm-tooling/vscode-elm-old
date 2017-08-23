@@ -37,7 +37,7 @@ export class ElmAnalyse {
     {
       messageType: 'DebugLog',
       description:
-      'This check will look if a Debug.log is used within the code. \
+        'This check will look if a Debug.log is used within the code. \
         This is nice for development, but you do not want to ship this code to package users or your endusers.',
     },
     {
@@ -53,19 +53,19 @@ export class ElmAnalyse {
     {
       messageType: 'DuplicateImport',
       description:
-      'This check will look for imports that are defined twice. \
+        'This check will look for imports that are defined twice. \
         The Elm compiler will not fail on this, but it is better to merge these two imports into one.',
     },
     {
       messageType: 'ExposeAll',
       description:
-      'This check will look for modules that expose all their definitions. \
+        'This check will look for modules that expose all their definitions. \
         This is not a best practice. You want to be clear about the API that a module defined.',
     },
     {
       messageType: 'ImportAll',
       description:
-      'This check will look for imports that expose all functions from a module (..). \
+        'This check will look for imports that expose all functions from a module (..). \
         When other people read your code, it would be nice if the origin of a used function can be traced back to the providing module.',
     },
     {
@@ -81,14 +81,14 @@ export class ElmAnalyse {
     {
       messageType: 'NoTopLevelSignature',
       description:
-      'This check will look for function declarations without a signature. \
+        'This check will look for function declarations without a signature. \
         We want our readers to understand our code. Adding a signature is a part of this. \
         This check will skip definitions in let statements.',
     },
     {
       messageType: 'NoUncurriedPrefix',
       description:
-      'It is unneeded to use an operator in prefix notation when you apply both arguments directly. \
+        'It is unneeded to use an operator in prefix notation when you apply both arguments directly. \
         This check will look for these kind of usages',
     },
     {
@@ -104,7 +104,7 @@ export class ElmAnalyse {
     {
       messageType: 'UnnecessaryParens',
       description:
-      'If you want parenthesis, then you might want to look into Lisp. \
+        'If you want parenthesis, then you might want to look into Lisp. \
         It is good to know when you do not need them in Elm and this check will let you know. \
         This check follows this discussion from elm-format.',
     },
@@ -116,7 +116,7 @@ export class ElmAnalyse {
     {
       messageType: 'UnusedImportAlias',
       description:
-      'Sometimes you defined an alias for an import (import Foo as F), but it turns out you never use it. \
+        'Sometimes you defined an alias for an import (import Foo as F), but it turns out you never use it. \
         This check shows where you have unused import aliases.',
     },
     {
@@ -137,7 +137,7 @@ export class ElmAnalyse {
     {
       messageType: 'UnusedTypeAlias',
       description:
-      'When you defined an type alias, but you do not use it in any signature or expose it, \
+        'When you defined an type alias, but you do not use it in any signature or expose it, \
         then it is just filling up space. It is better to remove it.',
     },
     {
@@ -178,8 +178,12 @@ export class ElmAnalyse {
 
   public activateAnalyse(): vscode.Disposable[] {
     return [
-      vscode.commands.registerTextEditorCommand('elm.analyseStart', () => this.execActivateAnalyseProcesses()),
-      vscode.commands.registerCommand('elm.analyseStop', () => this.execStopAnalyse(/*notify*/ true)),
+      vscode.commands.registerTextEditorCommand('elm.analyseStart', () =>
+        this.execActivateAnalyseProcesses(),
+      ),
+      vscode.commands.registerCommand('elm.analyseStop', () =>
+        this.execStopAnalyse(/*notify*/ true),
+      ),
     ];
   }
   public deactivateAnalyse(): void {
@@ -362,7 +366,7 @@ export class ElmAnalyse {
               () => this.updateLinter(),
               500,
             );
-          },         3000);
+          }, 3000);
         }
       });
     } catch (e) {
@@ -402,7 +406,6 @@ export class ElmAnalyse {
       this.unprocessedMessage = false;
     }
   }
-
 }
 
 function checkElmAnalyseServerState(

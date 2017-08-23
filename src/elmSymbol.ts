@@ -3,15 +3,14 @@ import * as vscode from 'vscode';
 import { Range, SymbolInformation, SymbolKind, TextDocument } from 'vscode';
 
 export class ElmSymbolProvider implements vscode.DocumentSymbolProvider {
-
   provideDocumentSymbols = (doc: TextDocument, _) =>
-    Promise.resolve(processDocument(doc))
+    Promise.resolve(processDocument(doc));
 }
 
 export function processDocument(doc: TextDocument) {
-
   const docRange = doc.validateRange(
-    new Range(0, 0, Number.MAX_SAFE_INTEGER, Number.MAX_SAFE_INTEGER));
+    new Range(0, 0, Number.MAX_SAFE_INTEGER, Number.MAX_SAFE_INTEGER),
+  );
 
   return getSymbolsForRange(docRange, /^(?=\S)/m, 0, rootProcessor());
 
@@ -24,21 +23,26 @@ export function processDocument(doc: TextDocument) {
   type RangeAndText = [Range, string];
 
   /** Get the symbols in a range */
-  function getSymbolsForRange
-    (range: Range, splitter: RegExp, splitterLength, subProcessor: RangeProcessor): SymbolInformation[] {
+  function getSymbolsForRange(
+    range: Range,
+    splitter: RegExp,
+    splitterLength,
+    subProcessor: RangeProcessor,
+  ): SymbolInformation[] {
     // get the whole text for the range & split it with the splitter
-    const
-      docText = doc.getText(range),
+    const docText = doc.getText(range),
       texts = docText.split(splitter);
 
     // convert split strings into RangeAndText tuples. Handles block comments
     const rangeTexts: RangeAndText[] = [];
     let insideCommentBlock = false;
     for (let p = doc.offsetAt(range.start), i = 0; i < texts.length; i++) {
-      let [text, isInsideCommentBlock] = cleanupBlockComments(texts[i], insideCommentBlock);
+      let [text, isInsideCommentBlock] = cleanupBlockComments(
+        texts[i],
+        insideCommentBlock,
+      );
       insideCommentBlock = isInsideCommentBlock;
-      const
-        startPos = doc.positionAt(p),
+      const startPos = doc.positionAt(p),
         endPos = doc.positionAt(p + text.length);
       rangeTexts.push([new Range(startPos, endPos), text]);
       p += text.length + splitterLength;
@@ -60,7 +64,10 @@ export function processDocument(doc: TextDocument) {
   type RangeProcessor = (rt: RangeAndText) => SymbolInformation[];
 
   /** A function with a hack to handle block comments */
-  function cleanupBlockComments(text: string, insideCommentBlock: boolean): [string, boolean] {
+  function cleanupBlockComments(
+    text: string,
+    insideCommentBlock: boolean,
+  ): [string, boolean] {
     if (text.trim().includes('{-')) {
       text = text.replace(/.{2}/, '--');
       insideCommentBlock = true;
@@ -78,8 +85,7 @@ export function processDocument(doc: TextDocument) {
    */
   function defaultProcessor(kind: SymbolKind): RangeProcessor {
     return function([range, text]: [Range, string]): SymbolInformation[] {
-      const
-        // this RegExp could be improved
+      const // this RegExp could be improved
         nameMatch = text.match(/^(([\w']+)|\(.*?\))\s*/),
         name = nameMatch && nameMatch[0];
       // Filter out type annotations too
@@ -98,15 +104,16 @@ export function processDocument(doc: TextDocument) {
 
   /** Processes module... statements. Extends the range to the whole document */
   function moduleProcessor([range, text]) {
-    return defaultProcessor(SymbolKind.Module)
-      ([new Range(range.start, docRange.end), text]);
+    return defaultProcessor(SymbolKind.Module)([
+      new Range(range.start, docRange.end),
+      text,
+    ]);
   }
 
   /** Processor for ranges found at the top level of the document.
    *  Processes according to type of statement
    */
   function rootProcessor(): RangeProcessor {
-
     const types: [string, RangeProcessor][] = [
       ['module ', moduleProcessor],
       ['type alias ', defaultProcessor(SymbolKind.Class)],
@@ -132,8 +139,7 @@ export function processDocument(doc: TextDocument) {
    *  for each constructor
    */
   function typeProcessor([range, text]: RangeAndText) {
-    const
-      symbols = defaultProcessor(SymbolKind.Class)([range, text]),
+    const symbols = defaultProcessor(SymbolKind.Class)([range, text]),
       allText = doc.getText(range),
       equalPos = allText.indexOf('='),
       childrenStart = doc.positionAt(doc.offsetAt(range.start) + equalPos + 1);
@@ -141,8 +147,11 @@ export function processDocument(doc: TextDocument) {
     if (equalPos > -1) {
       const constructorSymbols = getSymbolsForRange(
         new Range(childrenStart, range.end),
-        /\|/, 1, defaultProcessor(SymbolKind.Constructor));
-      constructorSymbols.forEach(s => s.containerName = symbols[0].name);
+        /\|/,
+        1,
+        defaultProcessor(SymbolKind.Constructor),
+      );
+      constructorSymbols.forEach(s => (s.containerName = symbols[0].name));
 
       return symbols.concat(constructorSymbols);
     } else {
