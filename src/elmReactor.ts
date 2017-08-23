@@ -2,7 +2,7 @@ import * as cp from 'child_process';
 import * as path from 'path';
 import * as vscode from 'vscode';
 
-import {isWindows} from './elmUtils';
+import { isWindows } from './elmUtils';
 
 let reactor: cp.ChildProcess;
 let oc: vscode.OutputChannel = vscode.window.createOutputChannel('Elm Reactor');
@@ -12,11 +12,14 @@ function startReactor(): void {
   try {
     stopReactor(/*notify*/ false);
 
-    const config: vscode.WorkspaceConfiguration = vscode.workspace.getConfiguration('elm');
+    const config: vscode.WorkspaceConfiguration = vscode.workspace.getConfiguration(
+      'elm',
+    );
     const host: string = <string>config.get('reactorHost');
     const port: string = <string>config.get('reactorPort');
     const subdir: string = <string>config.get('reactorSubdir');
-    const args = ['-a=' + host, '-p=' + port], cwd = path.join(vscode.workspace.rootPath, subdir);
+    const args = ['-a=' + host, '-p=' + port],
+      cwd = path.join(vscode.workspace.rootPath, subdir);
 
     if (isWindows) {
       reactor = cp.exec('elm-reactor ' + args.join(' '), { cwd: cwd });
@@ -45,7 +48,7 @@ function startReactor(): void {
 function stopReactor(notify: boolean): void {
   if (reactor) {
     if (isWindows) {
-      cp.spawn('taskkill', ['/pid', reactor.pid.toString(), '/f', '/t' ]);
+      cp.spawn('taskkill', ['/pid', reactor.pid.toString(), '/f', '/t']);
     } else {
       process.kill(-reactor.pid, 'SIGKILL');
     }
@@ -61,13 +64,18 @@ function stopReactor(notify: boolean): void {
 }
 
 export function activateReactor(): vscode.Disposable[] {
-  statusBarStopButton = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left);
+  statusBarStopButton = vscode.window.createStatusBarItem(
+    vscode.StatusBarAlignment.Left,
+  );
   statusBarStopButton.text = '$(primitive-square)';
   statusBarStopButton.command = 'elm.reactorStop';
   statusBarStopButton.tooltip = 'Stop reactor';
   return [
     vscode.commands.registerCommand('elm.reactorStart', startReactor),
-    vscode.commands.registerCommand('elm.reactorStop', () => stopReactor(/*notify*/ true))];
+    vscode.commands.registerCommand('elm.reactorStop', () =>
+      stopReactor(/*notify*/ true),
+    ),
+  ];
 }
 
 export function deactivateReactor(): void {
