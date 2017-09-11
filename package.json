@@ -26,7 +26,7 @@
     "theme": "dark"
   },
   "engines": {
-    "vscode": "^0.10.1"
+    "vscode": "^1.6.0"
   },
   "categories": [
     "Languages",
