@@ -32,8 +32,8 @@ export function activate(ctx: vscode.ExtensionContext) {
     }),
   );
   ctx.subscriptions.push(
-    vscode.workspace.onDidSaveTextDocument((document: vscode.TextDocument) => {
-      runFormatOnSave(document, elmFormatStatusBar);
+    vscode.workspace.onWillSaveTextDocument((documentWillSaveEvent: vscode.TextDocumentWillSaveEvent) => {
+      documentWillSaveEvent.waitUntil(runFormatOnSave(documentWillSaveEvent.document, elmFormatStatusBar));
     }),
   );
   activateRepl().forEach((d: vscode.Disposable) => ctx.subscriptions.push(d));

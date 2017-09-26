@@ -14,16 +14,17 @@ export class ElmFormatProvider
 
   provideDocumentFormattingEdits(
     document: vscode.TextDocument,
-    options: vscode.FormattingOptions,
-    token: vscode.CancellationToken,
+    options?: vscode.FormattingOptions,
+    token?: vscode.CancellationToken,
   ): Thenable<TextEdit[]> {
     return elmFormat(document)
       .then(({ stdout }) => {
+        const lastLineId = document.lineCount - 1;
         const wholeDocument = new Range(
           0,
           0,
-          document.lineCount,
-          document.getText().length,
+          lastLineId,
+          document.lineAt(lastLineId).text.length,
         );
         return [TextEdit.replace(wholeDocument, stdout)];
       })
@@ -35,7 +36,7 @@ const ignoreNextSave = new WeakSet<vscode.TextDocument>();
 export function runFormatOnSave(
   document: vscode.TextDocument,
   statusBarItem: StatusBarItem,
-) {
+): Thenable<vscode.TextEdit[]> {
   statusBarItem.hide();
   if (document.languageId !== 'elm' || ignoreNextSave.has(document)) {
     return;
@@ -43,24 +44,16 @@ export function runFormatOnSave(
   const showError = statusBarMessage(statusBarItem);
   const config = vscode.workspace.getConfiguration('elm');
   const active = vscode.window.activeTextEditor;
-  const range = new vscode.Range(
-    0,
-    0,
-    document.lineCount,
-    document.getText().length,
-  );
 
   if (config['formatOnSave'] && active.document === document) {
-    elmFormat(active.document)
-      .then(({ stdout }) => {
-        active.edit(editor => editor.replace(range, stdout));
-        ignoreNextSave.add(document);
-        return document.save();
-      })
-      .then(() => {
+    const provider = new ElmFormatProvider(statusBarItem);
+    ignoreNextSave.add(document);
+    return provider
+      .provideDocumentFormattingEdits(document)
+      .then(edits => {
         ignoreNextSave.delete(document);
-      })
-      .catch(showError);
+        return edits;
+      });
   }
 }
 
