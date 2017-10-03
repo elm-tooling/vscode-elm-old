@@ -1,3 +1,9 @@
+### 0.15.1 - 03.10.2017
+* added prettier to the project (by @littleStudent)
+* Fix package installation  (by @wolverian)
+* save file only once formatting is finished (by @gyzerok)
+* Snippets for elm-test test and describe blocks (by @andys8 )
+
 ### 0.15.0 - 10.08.2017
 * Add integration with `Elm-analyse` (by @hakonrossebo)
 * Use TsLint on `vscode-elm` code base (by @littleStudent)
