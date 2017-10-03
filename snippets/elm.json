@@ -1,120 +1,133 @@
 {
   ".source.elm": {
-    "number -> number": {
+    "negate": {
       "prefix": "negate",
-      "body": "negate ${1:number}"
+      "body": "negate ${1:number}",
+      "description": "number -> number"
     },
-    "Float -> Float": {
+    "turns": {
       "prefix": "turns",
-      "body": "turns ${1:float}"
+      "body": "turns ${1:float}",
+      "description": "Float -> Float"
     },
-    "a -> b -> a": {
+    "always": {
       "prefix": "always",
-      "body": "always ${1:a} ${2:b}"
+      "body": "always ${1:a} ${2:b}",
+      "description": "a -> b -> a"
     },
-    "Float -> Float -> Float": {
+    "logBase": {
       "prefix": "logBase",
-      "body": "logBase ${1:float} ${2:float}"
+      "body": "logBase ${1:float} ${2:float}",
+      "description": "Float -> Float -> Float"
     },
-    "Float -> Int": {
+    "truncate": {
       "prefix": "truncate",
-      "body": "truncate ${1:float}"
+      "body": "truncate ${1:float}",
+      "description": "Float -> Int"
     },
-    "number -> number -> number -> number": {
+    "clamp": {
       "prefix": "clamp",
-      "body": "clamp ${1:number} ${2:number} ${3:number}"
+      "body": "clamp ${1:number} ${2:number} ${3:number}",
+      "description": "number -> number -> number -> number"
     },
-    "comparable -> comparable -> Order": {
+    "compare": {
       "prefix": "compare",
-      "body": "compare ${1:comparable} ${2:comparable}"
+      "body": "compare ${1:comparable} ${2:comparable}",
+      "description": "comparable -> comparable -> Order"
     },
-    "((a,b) -> c) -> a -> b -> c": {
+    "curry": {
       "prefix": "curry",
-      "body": "curry ${1:function} ${2:a} ${3:b}"
+      "body": "curry ${1:function} ${2:a} ${3:b}",
+      "description": "((a,b) -> c) -> a -> b -> c"
     },
-    "Float": {
-      "prefix": "pi",
-      "body": "pi"
-    },
-    "(a -> b -> c) -> (b -> a -> c)": {
+    "flip": {
       "prefix": "flip",
-      "body": "flip ${1:function} ${2:function}"
+      "body": "flip ${1:function} ${2:function}",
+      "description": "(a -> b -> c) -> (b -> a -> c)"
     },
-    "(Float,Float) -> (Float,Float)": {
+    "toPolar": {
       "prefix": "toPolar",
-      "body": "toPolar ${1:tuple}"
+      "body": "toPolar ${1:tuple}",
+      "description": "(Float,Float) -> (Float,Float)"
     },
-    "(a,b) -> a": {
-      "prefix": "fst",
-      "body": "fst ${1:tuple}"
+    "first": {
+      "prefix": "first",
+      "body": "first ${1:tuple}",
+      "description": "(a,b) -> a"
     },
-    "a -> a": {
+    "identity": {
       "prefix": "identity",
-      "body": "identity ${1:a}"
+      "body": "identity ${1:a}",
+      "description": "a -> a"
     },
-    "Float -> Bool": {
+    "isNaN": {
       "prefix": "isNaN",
-      "body": "isNaN ${1:float}"
+      "body": "isNaN ${1:float}",
+      "description": "Float -> Bool"
     },
-    "comparable -> comparable -> comparable": {
+    "min": {
       "prefix": "min",
-      "body": "min ${1:comparable} ${2:comparable}"
+      "body": "min ${1:comparable} ${2:comparable}",
+      "description": "comparable -> comparable -> comparable"
     },
-    "Bool -> Bool": {
+    "not": {
       "prefix": "not",
-      "body": "not ${1:bool}"
+      "body": "not ${1:bool}",
+      "description": "Bool -> Bool"
     },
-    "Bool": {
-      "prefix": "otherwise",
-      "body": "otherwise"
-    },
-    "Int -> Int -> Int": {
+    "rem": {
       "prefix": "rem",
-      "body": "rem ${1:int} ${2:int}"
+      "body": "rem ${1:int} ${2:int}",
+      "description": "Int -> Int -> Int"
     },
-    "(a,b) -> b": {
-      "prefix": "snd",
-      "body": "snd ${1:tuple}"
+    "second": {
+      "prefix": "second",
+      "body": "second ${1:tuple}",
+      "description": "(a,b) -> b"
     },
-    "Int -> Float": {
+    "toFloat": {
       "prefix": "toFloat",
-      "body": "toFloat ${1:int}"
+      "body": "toFloat ${1:int}",
+      "description": "Int -> Float"
     },
-    "a -> String": {
+    "toString": {
       "prefix": "toString",
-      "body": "toString ${1:a}"
+      "body": "toString ${1:a}",
+      "description": "a -> String"
     },
-    "(a -> b -> c) -> (a,b) -> c": {
+    "uncurry": {
       "prefix": "uncurry",
-      "body": "uncurry ${1:function} ${2:tuple}"
+      "body": "uncurry ${1:function} ${2:tuple}",
+      "description": "(a -> b -> c) -> (a,b) -> c"
     },
-    "Bool -> Bool -> Bool": {
+    "xor": {
       "prefix": "xor",
-      "body": "xor ${1:bool} ${2:bool}"
+      "body": "xor ${1:bool} ${2:bool}",
+      "description": "Bool -> Bool -> Bool"
     },
     "Module": {
       "prefix": "module",
       "body": [
-        "module ${Name} exposing ($1..)",
-        "$1"
+        "module ${1:Name} exposing (${2:..})"
       ],
       "description": "Module definition"
     },
     "Import": {
       "prefix": "import",
       "body": [
-        "import ${Name} exposing ($1..)"
+        "import ${1:Name} exposing (${2:..})"
       ],
       "description": "Unqualified import"
     },
     "Case of": {
       "prefix": "caseof",
       "body": [
-        "case ${expression} of",
-        "    ${option1} ->",
-        "        $1",
-        "    ${option2} ->",
-        "        $2"
+        "case ${1:expression} of",
+        "    ${2:option1} ->",
+        "        $3",
+        "",
+        "    ${4:option2} ->",
+        "        $5"
       ],
       "description": "Case of expression with 2 alternatives"
     },
@@ -122,7 +135,7 @@
       "prefix": "comment",
       "body": [
         "{-",
-        "Multi-line comment ",
+        "$0",
         "-}"
       ],
       "description": "Multi-line comment"
@@ -150,14 +163,14 @@
     "Update record": {
       "prefix": "recordupdate",
       "body": [
-        "{ ${recordName} | ${key1} = $1 }"
+        "{ ${1:recordName} | ${2:key} = $0 }"
       ],
       "description": "Update record"
     },
     "Anonymous function": {
       "prefix": "anonymous",
       "body": [
-        "(\\ ${argument} -> ${argument} < 0)"
+        "\\ ${argument} -> ${argument}$0"
       ],
       "description": "Anonymous function"
     },
@@ -166,7 +179,6 @@
       "body": [
         "type ${Typename}",
         "    = ${Value1}",
-        "    | ${Value2}",
         "    | ${Value2}"
       ],
       "description": "Union type"
@@ -176,9 +188,7 @@
       "body": [
         "type Msg",
         "    = NoOp",
-        "    | ${Message2}",
-        "    | ${Message3}",
-        "$1"
+        "    | ${Message}"
       ],
       "description": "Default message union type"
     },
@@ -187,7 +197,7 @@
       "body": [
         "${functionName} : ${ArgumentType} -> ${ReturnType}",
         "${functionName} ${argumentName} =",
-        "    ${--function body here}"
+        "    ${functionBody}"
       ],
       "description": "Function with type annotation"
     },
@@ -204,23 +214,23 @@
     "Update function": {
       "prefix": "update",
       "body": [
-        "${update} : Msg -> Model -> ( Model, Cmd Msg )",
-        "${update} msg model =",
+        "update : Msg -> Model -> ( Model, Cmd Msg )",
+        "update msg model =",
         "    case msg of",
         "        NoOp ->",
         "            ( model, Cmd.none )",
-        "    case msg of",
+        "",
         "        ${option1} ->",
-        "            $1"
+        "            $0"
       ],
       "description": "Default update function"
     },
     "View function": {
       "prefix": "view",
       "body": [
-        "${view} : Model -> Html Msg",
-        "${view} model =",
-        "    $1"
+        "view : Model -> Html Msg",
+        "view model =",
+        "    $0"
       ],
       "description": "Default view function"
     },
@@ -241,26 +251,23 @@
     "Main Program": {
       "prefix": "mainprogram",
       "body": [
-        "--uncomment if needed -- import Html.App as App",
-        "",
-        "main : Program Never",
+        "main : Program Never Model Msg",
         "main =",
-        "    App.program",
-        "        { init = (model, Cmd Msg)",
+        "    Html.program",
+        "        { init = init",
         "        , view = view",
         "        , update = update",
         "        , subscriptions = subscriptions",
-        "    }",
-        "$1"
+        "        }"
       ],
       "description": "Main Program Never"
     },
     "Subscriptions": {
       "prefix": "subscriptions",
       "body": [
-        "${subscriptions} : Model -> Sub Msg",
-        "${subscriptions} model =",
-        "    ${Sub.none}"
+        "subscriptions : Model -> Sub Msg",
+        "subscriptions model =",
+        "    Sub.none"
       ],
       "description": "Subscriptions"
     },
@@ -270,6 +277,7 @@
         "type alias Model =",
         "    { statusText : String",
         "    }",
+        "",
         "",
         "model : Model",
         "model =",
@@ -282,7 +290,6 @@
       "prefix": "Html.program",
       "body": [
         "module ${Name} exposing (Model, Msg, update, view, subscriptions, init)",
-        "",
         "",
         "import Html exposing (..)",
         "",
@@ -320,8 +327,7 @@
         "view : Model -> Html Msg",
         "view model =",
         "    div []",
-        "        [ text \"New Html Program\"",
-        "        ]",
+        "        [ text \"New Html Program\" ]",
         "",
         "",
         "subscriptions : Model -> Sub Msg",
@@ -337,13 +343,13 @@
       "description": "Html program"
     },
     "Elm-test describe": {
-      "prefix": "desc",
+      "prefix": "describe",
       "body": [
         "describe \"${1:name}\"",
         "    [ $0",
         "    ]"
       ],
-      "description": "Elm-test describe"
+      "description": "describe block in Elm-test"
     },
     "Elm-test test": {
       "prefix": "test",
@@ -352,7 +358,7 @@
         "    \\_ ->",
         "        $0"
       ],
-      "description": "Elm-test test"
+      "description": "test block in Elm-test"
     }
   }
 }
