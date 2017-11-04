@@ -34,6 +34,11 @@ Then, in `.vscode/settings.json`, add the following:
 "elm.makeCommand": "./node_modules/.bin/elm-make"
 ```
 
+For Windows
+```
+"elm.makeCommand": ".\\node_modules\\.bin\\elm-make"
+```
+
 ## Feature details
 
 ### Syntax highlighting
@@ -155,6 +160,20 @@ You can also configure `elm-format` to run on save by enabling the `elm.formatOn
     "elm.formatOnSave": true
 }
 ```
+
+### Elm-format - local installation
+If you have elm-format installed locally add this line to '.vscode/settings.json'
+
+```
+"elm.formatCommand": "./node_modules/.bin/elm-format"
+```
+
+For Windows
+```
+"elm.formatCommand": ".\\node_modules\\.bin\\elm-format"
+```
+
+
 ### Elm-analyse integration
 [Elm-analyse](https://github.com/stil4m/elm-analyse) is a tool that allows you to analyse your Elm code, identify deficiencies and apply best practices.
 The integration enables vscode to show any problems identified by elm-analyse as linting warnings in your code.
