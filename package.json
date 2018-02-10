@@ -250,6 +250,14 @@
     ],
     "grammars": [
       {
+        "scopeName": "markdown.elm.codeblock",
+        "path": "./syntaxes/codeblock.json",
+        "injectTo": ["text.html.markdown"],
+        "embeddedLanguages": {
+          "meta.embedded.block.elm": "elm"
+        }
+      },
+      {
         "language": "elm",
         "scopeName": "source.elm",
         "path": "./syntaxes/elm.json"

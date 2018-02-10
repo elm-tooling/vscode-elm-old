@@ -43,7 +43,7 @@ For Windows
 
 ### Syntax highlighting
 
-Syntax highlighting is essential. The full language is supported. Can we improve the highlighting further? Please create an [issue](https://github.com/sbrink/vscode-elm/issues)!
+Syntax highlighting is essential. The full language is supported. Fenced code blocks in markdown files are highlighted too. Can we improve the highlighting further? Please create an [issue](https://github.com/sbrink/vscode-elm/issues)!
 
 ### Error highlighting
 
