@@ -32,31 +32,6 @@ export class ElmFormatProvider
   }
 }
 
-const ignoreNextSave = new WeakSet<vscode.TextDocument>();
-export function runFormatOnSave(
-  document: vscode.TextDocument,
-  statusBarItem: StatusBarItem,
-): Thenable<vscode.TextEdit[]> {
-  statusBarItem.hide();
-  if (document.languageId !== 'elm' || ignoreNextSave.has(document)) {
-    return;
-  }
-  const showError = statusBarMessage(statusBarItem);
-  const config = vscode.workspace.getConfiguration('elm');
-  const active = vscode.window.activeTextEditor;
-
-  if (config['formatOnSave'] && active.document === document) {
-    const provider = new ElmFormatProvider(statusBarItem);
-    ignoreNextSave.add(document);
-    return provider
-      .provideDocumentFormattingEdits(document)
-      .then(edits => {
-        ignoreNextSave.delete(document);
-        return edits;
-      });
-  }
-}
-
 function elmFormat(document: vscode.TextDocument) {
   const config: vscode.WorkspaceConfiguration = vscode.workspace.getConfiguration(
     'elm',
