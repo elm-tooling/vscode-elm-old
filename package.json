@@ -247,7 +247,9 @@
       {
         "scopeName": "markdown.elm.codeblock",
         "path": "./syntaxes/codeblock.json",
-        "injectTo": ["text.html.markdown"],
+        "injectTo": [
+          "text.html.markdown"
+        ],
         "embeddedLanguages": {
           "meta.embedded.block.elm": "elm"
         }
