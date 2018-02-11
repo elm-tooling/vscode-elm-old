@@ -11,8 +11,15 @@ export function processDocument(doc: TextDocument) {
   const docRange = doc.validateRange(
     new Range(0, 0, Number.MAX_SAFE_INTEGER, Number.MAX_SAFE_INTEGER),
   );
+  const symbols = getSymbolsForRange(docRange, /^(?=\S)/m, 0, rootProcessor());
+  const moduleName = symbols.filter(x => x.kind === SymbolKind.Module).map(x => {
+    return x.name;
+  })[0];
 
-  return getSymbolsForRange(docRange, /^(?=\S)/m, 0, rootProcessor());
+  return symbols.map(s => {
+    s.containerName = moduleName;
+    return s;
+  });
 
   // -- Helper functions -- //
 
@@ -104,10 +111,12 @@ export function processDocument(doc: TextDocument) {
 
   /** Processes module... statements. Extends the range to the whole document */
   function moduleProcessor([range, text]) {
-    return defaultProcessor(SymbolKind.Module)([
-      new Range(range.start, docRange.end),
-      text,
-    ]);
+    const matches = text.match(/^[A-Z][a-zA-Z0-9_.]*/);
+    if (matches[0]) {
+      return [new SymbolInformation(matches[0], SymbolKind.Module, new Range(range.start, docRange.end), doc.uri)];
+    } else {
+      return [];
+    }
   }
 
   /** Processor for ranges found at the top level of the document.
