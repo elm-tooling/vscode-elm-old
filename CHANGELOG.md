@@ -1,3 +1,10 @@
+### 0.16.0 - 11.02.2018
+*  Jump to symbol based on imports. Jump to symbol that has been fully qualified such as `MyModule.myFunction` (by @joeandaverde)
+* Fix cursor moving when formatting with elm-format (by @adam77)
+* Support elm code syntax highlighting in markdown files (by @kachkaev)
+* Snippets improvement (by @andys8)
+* Fix `elm.makeCommand` sample path for Windows (by @lukaszgasior)
+
 ### 0.15.1 - 03.10.2017
 * added prettier to the project (by @littleStudent)
 * Fix package installation  (by @wolverian)
