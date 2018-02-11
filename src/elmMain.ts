@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 
 import { ElmCodeActionProvider, activateCodeActions } from './elmCodeAction';
-import { ElmFormatProvider, runFormatOnSave } from './elmFormat';
+import { ElmFormatProvider } from './elmFormat';
 import { activateReactor, deactivateReactor } from './elmReactor';
 
 import { ElmCompletionProvider } from './elmAutocomplete';
@@ -29,11 +29,6 @@ export function activate(ctx: vscode.ExtensionContext) {
   ctx.subscriptions.push(
     vscode.workspace.onDidSaveTextDocument((document: vscode.TextDocument) => {
       runLinter(document, elmAnalyse);
-    }),
-  );
-  ctx.subscriptions.push(
-    vscode.workspace.onWillSaveTextDocument((documentWillSaveEvent: vscode.TextDocumentWillSaveEvent) => {
-      documentWillSaveEvent.waitUntil(runFormatOnSave(documentWillSaveEvent.document, elmFormatStatusBar));
     }),
   );
   activateRepl().forEach((d: vscode.Disposable) => ctx.subscriptions.push(d));
