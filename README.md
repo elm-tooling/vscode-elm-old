@@ -17,6 +17,7 @@
 * Custom Elm Snippets
 * Code formatting with Elm-format
 * Elm-analyse integration (experimental) with warnings and code actions
+* Function reference-count and whether it is exposed
 
 ## Elm Installation
 
