@@ -3,7 +3,7 @@ import * as vscode from 'vscode';
 import { ElmCodeActionProvider, activateCodeActions } from './elmCodeAction';
 import { ElmFormatProvider } from './elmFormat';
 import { activateReactor, deactivateReactor } from './elmReactor';
-
+import { ElmFunctionHeaderProvider } from './elmFunctionHeader';
 import { ElmCompletionProvider } from './elmAutocomplete';
 import { runLinter, IElmIssue } from './elmLinter';
 import { activateRepl } from './elmRepl';
@@ -88,6 +88,12 @@ export function activate(ctx: vscode.ExtensionContext) {
   );
   ctx.subscriptions.push(
     vscode.languages.registerWorkspaceSymbolProvider(workspaceProvider),
+  );
+  ctx.subscriptions.push(
+    vscode.languages.registerCodeLensProvider(
+      ELM_MODE,
+      new ElmFunctionHeaderProvider(),
+    ),
   );
 
   vscode.workspace.onDidSaveTextDocument((document: vscode.TextDocument) => {
