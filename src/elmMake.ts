@@ -29,6 +29,10 @@ function execMake(editor: vscode.TextEditor, warn: boolean): void {
       file = path.resolve(cwd, specialFile);
     }
 
+    if (utils.isWindows) {
+      file = "\"" + file + "\""
+    }
+
     let args = [file, '--yes', '--output=' + name];
     if (warn) {
       args.push('--warn');

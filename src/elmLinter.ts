@@ -53,6 +53,9 @@ function checkForErrors(filename): Promise<IElmIssue[]> {
     const cwd: string =
       utils.detectProjectRoot(filename) || vscode.workspace.rootPath;
     let make: cp.ChildProcess;
+    if (utils.isWindows) {
+      filename = "\"" + filename + "\""
+    }
     const args = [filename, '--report', 'json', '--output', '/dev/null'];
     if (utils.isWindows) {
       make = cp.exec(makeCommand + ' ' + args.join(' '), { cwd: cwd });
