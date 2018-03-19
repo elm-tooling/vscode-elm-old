@@ -7,9 +7,11 @@ import { execCmd } from './elmUtils';
 export class ElmFormatProvider
   implements vscode.DocumentFormattingEditProvider {
   private showError;
+  private clearError;
   constructor(statusBarItem: StatusBarItem) {
     statusBarItem.hide();
     this.showError = statusBarMessage(statusBarItem);
+    this.clearError = clearStatus(statusBarItem);
   }
 
   provideDocumentFormattingEdits(
@@ -19,6 +21,7 @@ export class ElmFormatProvider
   ): Thenable<TextEdit[]> {
     return elmFormat(document)
       .then(({ stdout }) => {
+        this.clearError();
         const lastLineId = document.lineCount - 1;
         const wholeDocument = new Range(
           0,
@@ -47,6 +50,13 @@ function elmFormat(document: vscode.TextDocument) {
   format.stdin.end();
 
   return format;
+}
+
+function clearStatus(statusBarItem: StatusBarItem) {
+  return function () {
+    statusBarItem.text = '';
+    statusBarItem.hide();
+  }
 }
 
 function statusBarMessage(statusBarItem: StatusBarItem) {
