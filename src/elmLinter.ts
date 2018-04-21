@@ -129,7 +129,7 @@ export function runLinter(
   document: vscode.TextDocument,
   elmAnalyse: ElmAnalyse,
 ): void {
-  if (document.languageId !== 'elm') {
+  if (document.languageId !== 'elm' || document.uri.scheme !== 'file') {
     return;
   }
   let compileErrors: vscode.DiagnosticCollection = vscode.languages.createDiagnosticCollection(

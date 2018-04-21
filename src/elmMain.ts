@@ -93,7 +93,8 @@ export function activate(ctx: vscode.ExtensionContext) {
   vscode.workspace.onDidSaveTextDocument((document: vscode.TextDocument) => {
     if (
       document === vscode.window.activeTextEditor.document &&
-      document.languageId === ELM_MODE.language
+      document.languageId === ELM_MODE.language &&
+      document.uri.scheme === ELM_MODE.scheme
     ) {
       workspaceProvider.update(document);
     }
