@@ -1,3 +1,9 @@
+### 0.17.0 - 26.04.2018
+* Limiting workspace symbols and linting to local files (by @lostintangent)
+* Fixed issue with elm-make and spaces in paths (by @Arbyy)
+* Fix error message not clearing when formatting with elm-format (by @adam77)
+* Make folding not eat up empty lines (by @szabba)
+
 ### 0.16.0 - 11.02.2018
 *  Jump to symbol based on imports. Jump to symbol that has been fully qualified such as `MyModule.myFunction` (by @joeandaverde)
 * Fix cursor moving when formatting with elm-format (by @adam77)
