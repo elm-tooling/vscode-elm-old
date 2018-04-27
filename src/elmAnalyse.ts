@@ -14,6 +14,23 @@ enum ElmAnalyseServerState {
   Running,
 }
 
+interface IElmAnalyseMessage {
+  type: string;
+  file: string;
+  data: IElmAnalyseMessageData
+}
+
+interface IElmAnalyseMessageData {
+  description: string,
+  properties: { range: number[] } | { range1: number[], range2: number[] } | { ranges: number[][] }
+}
+
+interface IElmAnalyseMessageParseResult {
+  success: boolean;
+  reason: string;
+  messageType: string;
+}
+
 export class ElmAnalyse {
   private statusBarStopButton: vscode.StatusBarItem;
   private statusBarInformation: vscode.StatusBarItem;
@@ -24,133 +41,7 @@ export class ElmAnalyse {
   private oc: vscode.OutputChannel = vscode.window.createOutputChannel(
     'Elm Analyse',
   );
-  private messageDescriptionsMap: Map<string, string>;
-  private messageDescriptions: {
-    messageType: string;
-    description: string;
-  }[] = [
-    {
-      messageType: 'DebugCrash',
-      description:
-        'This check will look if a Debug.crash is used within the code. You may not want to ship this to your end users.',
-    },
-    {
-      messageType: 'DebugLog',
-      description:
-        'This check will look if a Debug.log is used within the code. \
-        This is nice for development, but you do not want to ship this code to package users or your endusers.',
-    },
-    {
-      messageType: 'DropConcatOfLists',
-      description:
-        'If you concatenate two lists ([...] ++ [...]), then you can merge them into one list.',
-    },
-    {
-      messageType: 'DropConsOfItemAndList',
-      description:
-        'If you cons an item to a literal list (x :x [1, 2, 3]), then you can just put the item into the list.',
-    },
-    {
-      messageType: 'DuplicateImport',
-      description:
-        'This check will look for imports that are defined twice. \
-        The Elm compiler will not fail on this, but it is better to merge these two imports into one.',
-    },
-    {
-      messageType: 'ExposeAll',
-      description:
-        'This check will look for modules that expose all their definitions. \
-        This is not a best practice. You want to be clear about the API that a module defined.',
-    },
-    {
-      messageType: 'ImportAll',
-      description:
-        'This check will look for imports that expose all functions from a module (..). \
-        When other people read your code, it would be nice if the origin of a used function can be traced back to the providing module.',
-    },
-    {
-      messageType: 'LineLengthExceeded',
-      description:
-        'This check will mark files that contain lines that exceed over 150 characters (#18 allows configuring this variable).',
-    },
-    {
-      messageType: 'MultiLineRecordFormatting',
-      description:
-        'This check will if records in type aliases are formatted on multiple lines if the type alias has multiple fields.',
-    },
-    {
-      messageType: 'NoTopLevelSignature',
-      description:
-        'This check will look for function declarations without a signature. \
-        We want our readers to understand our code. Adding a signature is a part of this. \
-        This check will skip definitions in let statements.',
-    },
-    {
-      messageType: 'NoUncurriedPrefix',
-      description:
-        'It is unneeded to use an operator in prefix notation when you apply both arguments directly. \
-        This check will look for these kind of usages',
-    },
-    {
-      messageType: 'RedefineVariable',
-      description:
-        'You should not redefine a variable in a new lexical scope. This is confusing and may lead to bugs.',
-    },
-    {
-      messageType: 'UnnecessaryListConcat',
-      description:
-        'You should not use List.concat to concatenate literal lists. Just join the lists together.',
-    },
-    {
-      messageType: 'UnnecessaryParens',
-      description:
-        'If you want parenthesis, then you might want to look into Lisp. \
-        It is good to know when you do not need them in Elm and this check will let you know. \
-        This check follows this discussion from elm-format.',
-    },
 
-    {
-      messageType: 'UnusedImport',
-      description: 'Imports that have no meaning should be removed.',
-    },
-    {
-      messageType: 'UnusedImportAlias',
-      description:
-        'Sometimes you defined an alias for an import (import Foo as F), but it turns out you never use it. \
-        This check shows where you have unused import aliases.',
-    },
-    {
-      messageType: 'UnusedImportedVariable',
-      description:
-        'When a function is imported from a module but unused, it is better to remove it.',
-    },
-    {
-      messageType: 'UnusedPatternVariable',
-      description:
-        'Variables in pattern matching that are unused should be replaced with _ to avoid unnecessary noice.',
-    },
-    {
-      messageType: 'UnusedTopLevel',
-      description:
-        'Functions that are unused in a module and not exported are dead code. These should be removed.',
-    },
-    {
-      messageType: 'UnusedTypeAlias',
-      description:
-        'When you defined an type alias, but you do not use it in any signature or expose it, \
-        then it is just filling up space. It is better to remove it.',
-    },
-    {
-      messageType: 'UnusedVariable',
-      description:
-        'Variables that are not used could be removed or marked as _ to avoid unnecessary noise.',
-    },
-    {
-      messageType: 'UseConsOverConcat',
-      description:
-        'If you concatenate two lists, but the right hand side is a single element list, then you should use the cons operator.  ',
-    },
-  ];
   public constructor(public elmAnalyseIssues: IElmIssue[]) {
     this.statusBarStopButton = vscode.window.createStatusBarItem(
       vscode.StatusBarAlignment.Left,
@@ -163,10 +54,6 @@ export class ElmAnalyse {
     this.statusBarStopButton.command = 'elm.analyseStop';
     this.statusBarStopButton.tooltip = 'Stop elm-analyse process';
     this.analyse = {} as ExecutingCmd;
-    this.messageDescriptionsMap = new Map();
-    this.messageDescriptions.forEach(element => {
-      this.messageDescriptionsMap.set(element.messageType, element.description);
-    });
     const config: vscode.WorkspaceConfiguration = vscode.workspace.getConfiguration(
       'elm',
     );
@@ -212,33 +99,21 @@ export class ElmAnalyse {
         try {
           this.elmAnalyseIssues = [];
           const state = JSON.parse(stateJson);
-          const messages = state.messages;
-          messages.forEach(message => {
-            if (
-              message.hasOwnProperty('data') &&
-              message.data.hasOwnProperty('type')
-            ) {
-              let messageType = message.data.type;
-              if (message.data.hasOwnProperty(messageType)) {
-                const messageTypeInfo = message.data[messageType];
-                const messageInfoFileSrc = messageTypeInfo.file;
-                const messageInfoFileRange = this.parseMessageInfoFileRange(
-                  messageTypeInfo,
-                );
-                const detail = this.parseMessageInfoDetail(messageType);
-                const issue: IElmIssue = {
-                  tag: 'analyser',
-                  overview: messageType,
-                  subregion: '',
-                  details: detail,
-                  region: this.correctRange(messageInfoFileRange),
-                  type: 'warning',
-                  file: path.join(cwd, messageInfoFileSrc),
-                };
-                this.elmAnalyseIssues.push(issue);
+          const messages: IElmAnalyseMessage[] = state.messages;
+          var failedMessages =
+            messages.map(message =>
+              this.parseMessage(cwd, message)
+            ).filter(result => !result.success);
+          if (failedMessages.length > 0) {
+            var items = failedMessages.map(result => 'Type: \'' + result.messageType + '\' - ' + result.reason);
+            var messageText = items.length + ' of ' + messages.length + ' messages from Elm-analyse could not be parsed. Check if you are running at least elm-analyse 0.14.2 or higher and has been configured correctly.';
+            vscode.window.showErrorMessage(messageText, 'Show details'
+            ).then(item => {
+              if (item === 'Show details') {
+                vscode.window.showErrorMessage(messageText + "\n\nFollowing messages could not be parsed:\n" + items.join("\n"));
               }
-            }
-          });
+            });
+          }
           this.unprocessedMessage = true;
         } catch (e) {
           vscode.window.showErrorMessage(
@@ -258,20 +133,70 @@ export class ElmAnalyse {
     }
   }
 
-  private parseMessageInfoFileRange(messageTypeInfo) {
-    let messageInfoFileRange = [0, 0, 0, 0];
-    if (messageTypeInfo.hasOwnProperty('range')) {
-      messageInfoFileRange = messageTypeInfo.range.real;
+  private parseMessage(cwd: string, message: IElmAnalyseMessage): IElmAnalyseMessageParseResult {
+    function generateError(reason: string): IElmAnalyseMessageParseResult {
+      return { success: false, reason: reason, messageType: message.type || null }
+    };
+    function generateMissingError(path: string): IElmAnalyseMessageParseResult {
+      return generateError(path + ' is missing');
     }
-    return messageInfoFileRange;
+
+    try {
+      if (!message.hasOwnProperty('data')) {
+        return generateMissingError('message.data');
+      }
+
+      if (!message.hasOwnProperty('type')) {
+        return generateMissingError('message.type');
+      }
+
+      if (!message.hasOwnProperty('file')) {
+        return generateMissingError('message.file');
+      }
+
+      if (!message.data.hasOwnProperty('description')) {
+        return generateMissingError('message.data.description');
+      }
+
+      if (!message.data.hasOwnProperty('properties')) {
+        return generateMissingError('message.data.properties');
+      }
+
+      var messageInfoFileRanges = this.parseMessageInfoFileRanges(message.data);
+      messageInfoFileRanges.forEach(messageInfoFileRange => {
+        const issue: IElmIssue = {
+          tag: 'analyser',
+          overview: message.type,
+          subregion: '',
+          details: message.data.description,
+          region: this.correctRange(messageInfoFileRange),
+          type: 'warning',
+          file: path.join(cwd, message.file),
+        };
+        this.elmAnalyseIssues.push(issue);
+      });
+
+      return { success: true, reason: null, messageType: null };
+    } catch (e) {
+      return generateError('message parsing failed');
+    }
   }
 
-  private parseMessageInfoDetail(messageType: string) {
-    let detail = '';
-    if (this.messageDescriptionsMap.has(messageType)) {
-      detail = this.messageDescriptionsMap.get(messageType);
+  private parseMessageInfoFileRanges(messageInfoData: IElmAnalyseMessageData) {
+    var messageInfoFileRanges: number[][];
+    var messageInfoProperties = <any>messageInfoData.properties;
+    if (messageInfoProperties.hasOwnProperty('range')) {
+      messageInfoFileRanges = [messageInfoProperties.range];
+    } else if (messageInfoProperties.hasOwnProperty('range1') && messageInfoProperties.hasOwnProperty('range2')) {
+      messageInfoFileRanges = [messageInfoProperties.range1, messageInfoProperties.range2];
     }
-    return detail;
+    else if (messageInfoProperties.hasOwnProperty('ranges')) {
+      messageInfoFileRanges = messageInfoProperties.ranges;
+    }
+    else {
+      messageInfoFileRanges = [[0, 0, 0, 0]];
+    }
+    return messageInfoFileRanges;
   }
 
   private correctRange(range: number[]) {
