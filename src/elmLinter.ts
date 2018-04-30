@@ -4,15 +4,17 @@ import * as utils from './elmUtils';
 import * as vscode from 'vscode';
 import { ElmAnalyse } from './elmAnalyse';
 
+export interface IElmIssueRegion {
+  start: { line: number; column: number };
+  end: { line: number; column: number };
+}
+
 export interface IElmIssue {
   tag: string;
   overview: string;
   subregion: string;
   details: string;
-  region: {
-    start: { line: number; column: number };
-    end: { line: number; column: number };
-  };
+  region: IElmIssueRegion;
   type: string;
   file: string;
 }
