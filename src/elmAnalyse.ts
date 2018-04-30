@@ -6,7 +6,7 @@ import * as utils from './elmUtils';
 import * as path from 'path';
 import * as readline from 'readline';
 import { isWindows, execCmd, ExecutingCmd } from './elmUtils';
-import { runLinter, IElmIssue } from './elmLinter';
+import { runLinter, IElmIssue, IElmIssueRegion } from './elmLinter';
 
 enum ElmAnalyseServerState {
   NotRunning = 1,
@@ -162,14 +162,15 @@ export class ElmAnalyse {
         return generateMissingError('message.data.properties');
       }
 
-      var messageInfoFileRanges = this.parseMessageInfoFileRanges(message.data);
-      messageInfoFileRanges.forEach(messageInfoFileRange => {
+      const messageInfoFileRegions = this.parseMessageInfoFileRanges(message.data).map(this.convertRangeToRegion);
+      const description = this.correctRangeWithinDescription(messageInfoFileRegions, message.data.description);
+      messageInfoFileRegions.forEach(messageInfoFileRegion => {
         const issue: IElmIssue = {
           tag: 'analyser',
           overview: message.type,
           subregion: '',
-          details: message.data.description,
-          region: this.correctRange(messageInfoFileRange),
+          details: description,
+          region: this.correctRegion(messageInfoFileRegion),
           type: 'warning',
           file: path.join(cwd, message.file),
         };
@@ -199,15 +200,41 @@ export class ElmAnalyse {
     return messageInfoFileRanges;
   }
 
-  private correctRange(range: number[]) {
+  private convertRangeToRegion(range: number[]): IElmIssueRegion {
     return {
       start: {
-        line: range[0] + 1,
-        column: range[1] + 1,
+        line: range[0],
+        column: range[1],
       },
       end: {
-        line: range[2] + 1,
-        column: range[3] + 1,
+        line: range[2],
+        column: range[3],
+      },
+    };
+  }
+
+  private correctRangeWithinDescription(originalRegions: IElmIssueRegion[], originalDescription: string): string {
+    function formatRegion(region: IElmIssueRegion): string {
+      return `((${region.start.line},${region.start.column}),(${region.end.line},${region.end.column}))`;
+    }
+
+    return originalRegions.reduce((currentDescription, originalRegion): string => {
+      const correctedRegion = this.correctRegion(originalRegion);
+      const originalRegionText = formatRegion(originalRegion);
+      const correctedRegionText = formatRegion(correctedRegion);
+      return currentDescription.replace(originalRegionText, correctedRegionText);
+    }, originalDescription);
+  }
+
+  private correctRegion(region: IElmIssueRegion): IElmIssueRegion {
+    return {
+      start: {
+        line: region.start.line + 1,
+        column: region.start.column + 1,
+      },
+      end: {
+        line: region.end.line + 1,
+        column: region.end.column + 1,
       },
     };
   }
