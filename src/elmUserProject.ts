@@ -590,13 +590,17 @@ function localFunctions(
         results.push({
           name: (functionDefinition !== ''
             ? functionDefinition
-            : typeSignature.split(':')[0])
+            : typeSignature.split(':')[0]
+          )
             .split(splitOnSpace)[0]
             .trim(),
           fullName:
             functionDefinition !== ''
               ? functionDefinition
-              : typeSignature.split(':')[0].split(splitOnSpace)[0].trim(),
+              : typeSignature
+                  .split(':')[0]
+                  .split(splitOnSpace)[0]
+                  .trim(),
           signature: typeSignature !== '' ? typeSignature : functionDefinition,
           href: filename,
           kind: vscode.CompletionItemKind.Function,
@@ -693,7 +697,10 @@ function localFunctions(
               .trim()
               .split(splitOnSpace)[0]
               .trim(),
-            signature: item.replace('|', '').replace('=', '').trim(),
+            signature: item
+              .replace('|', '')
+              .replace('=', '')
+              .trim(),
             href: filename,
             kind: vscode.CompletionItemKind.Enum,
             comment:

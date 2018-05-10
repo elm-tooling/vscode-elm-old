@@ -53,10 +53,10 @@ function elmFormat(document: vscode.TextDocument) {
 }
 
 function clearStatus(statusBarItem: StatusBarItem) {
-  return function () {
+  return function() {
     statusBarItem.text = '';
     statusBarItem.hide();
-  }
+  };
 }
 
 function statusBarMessage(statusBarItem: StatusBarItem) {
