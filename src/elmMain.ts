@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 
 import { ElmCodeActionProvider, activateCodeActions } from './elmCodeAction';
 import { ElmFormatProvider } from './elmFormat';
+import { ElmRangeFormatProvider } from './elmFormat';
 import { activateReactor, deactivateReactor } from './elmReactor';
 
 import { ElmCompletionProvider } from './elmAutocomplete';
@@ -84,6 +85,12 @@ export function activate(ctx: vscode.ExtensionContext) {
     vscode.languages.registerDocumentFormattingEditProvider(
       ELM_MODE,
       new ElmFormatProvider(elmFormatStatusBar),
+    ),
+  );
+  ctx.subscriptions.push(
+    vscode.languages.registerDocumentRangeFormattingEditProvider(
+      ELM_MODE,
+      new ElmRangeFormatProvider(elmFormatStatusBar),
     ),
   );
   ctx.subscriptions.push(

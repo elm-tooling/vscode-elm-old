@@ -35,6 +35,42 @@ export class ElmFormatProvider
   }
 }
 
+export class ElmRangeFormatProvider
+  implements vscode.DocumentRangeFormattingEditProvider {
+  private showError;
+  private clearError;
+  constructor(statusBarItem: StatusBarItem) {
+    statusBarItem.hide();
+    this.showError = statusBarMessage(statusBarItem);
+    this.clearError = clearStatus(statusBarItem);
+  }
+
+/*
+Formatting range is the same as formatting whole document,
+rather than user's current selection.
+*/
+  provideDocumentRangeFormattingEdits(
+    document: vscode.TextDocument,
+    range: vscode.Range,
+    options?: vscode.FormattingOptions,
+    token?: vscode.CancellationToken,
+  ): Thenable<TextEdit[]> {
+    return elmFormat(document)
+      .then(({ stdout }) => {
+        this.clearError();
+        const lastLineId = document.lineCount - 1;
+        const wholeDocument = new Range(
+          0,
+          0,
+          lastLineId,
+          document.lineAt(lastLineId).text.length,
+        );
+        return [TextEdit.replace(wholeDocument, stdout)];
+      })
+      .catch(this.showError);
+  }
+}
+
 function elmFormat(document: vscode.TextDocument) {
   const config: vscode.WorkspaceConfiguration = vscode.workspace.getConfiguration(
     'elm',
