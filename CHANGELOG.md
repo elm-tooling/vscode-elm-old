@@ -1,3 +1,7 @@
+### 0.18.0 - 22.05.2018
+* Make linting work again with elm-analyse 0.14.2 (by @Yarith)
+* Handle formatSelection the same as formatDocument (by @milesfrain)
+
 ### 0.17.0 - 26.04.2018
 * Limiting workspace symbols and linting to local files (by @lostintangent)
 * Fixed issue with elm-make and spaces in paths (by @Arbyy)
