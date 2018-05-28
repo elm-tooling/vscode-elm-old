@@ -163,6 +163,15 @@ You can also configure `elm-format` to run on save by enabling `editor.formatOnS
 }
 ```
 
+On Windows you may [need](https://github.com/Krzysztof-Cieslak/vscode-elm/issues/191#issuecomment-371465313) to add `editor.formatOnSaveTimeout`:
+    
+``` settings.json
+"[elm]": {
+    "editor.formatOnSave": true,
+    "editor.formatOnSaveTimeout": 1500
+},
+```
+
 ### Elm-format - local installation
 If you have elm-format installed locally add this line to '.vscode/settings.json'
 
