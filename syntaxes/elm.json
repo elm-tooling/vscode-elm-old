@@ -6,59 +6,10 @@
   "scopeName": "source.elm",
   "patterns": [
     {
-      "name": "meta.import.elm",
-      "begin": "^\\b(import)\\s*",
-      "beginCaptures": {
-        "1": {
-          "name": "keyword.other.elm"
-        }
-      },
-      "end": "$",
-      "patterns": [
-        {
-          "match": "(as|exposing)",
-          "name": "keyword.import.elm"
-        },
-        {
-          "include": "#module_chunk"
-        },
-        {
-          "include": "#period"
-        },
-        {
-          "include": "#module_exports"
-        }
-      ]
+      "include": "#import"
     },
     {
-      "begin": "^\\b((port |effect )?module)\\s+",
-      "beginCaptures": {
-        "1": {
-          "name": "keyword.other.elm"
-        }
-      },
-      "end": "$",
-      "endCaptures": {
-        "1": {
-          "name": "keyword.other.elm"
-        }
-      },
-      "name": "meta.declaration.module.elm",
-      "patterns": [
-        {
-          "include": "#module_chunk"
-        },
-        {
-          "include": "#period"
-        },
-        {
-          "match": "(exposing)",
-          "name": "keyword.other.elm"
-        },
-        {
-          "include": "#module_exports"
-        }
-      ]
+      "include": "#module"
     },
     {
       "include": "#debug"
@@ -71,75 +22,19 @@
       "name": "comment.unused.elm"
     },
     {
-      "begin": "^(port\\s+)?([a-z_][a-zA-Z0-9_']*)\\s+(\\:)",
-      "beginCaptures": {
-        "1": {
-          "name": "keyword.other.port.elm"
-        },
-        "2": {
-          "name": "entity.name.function.elm"
-        },
-        "3": {
-          "name": "keyword.other.colon.elm"
-        }
-      },
-      "end": "$",
-      "name": "meta.function.type-declaration.elm",
-      "patterns": [
-        {
-          "include": "#type_signature"
-        }
-      ]
+      "include": "#type-signature"
     },
     {
-      "name": "string.quoted.triple.elm",
-      "begin": "\"\"\"",
-      "beginCaptures": {
-        "0": {
-          "name": "punctuation.definition.string.begin.elm"
-        }
-      },
-      "end": "\"\"\"",
-      "endCaptures": {
-        "0": {
-          "name": "punctuation.definition.string.end.elm"
-        }
-      },
-      "patterns": [
-        {
-          "match": "\\\\(NUL|SOH|STX|ETX|EOT|ENQ|ACK|BEL|BS|HT|LF|VT|FF|CR|SO|SI|DLE|DC1|DC2|DC3|DC4|NAK|SYN|ETB|CAN|EM|SUB|ESC|FS|GS|RS|US|SP|DEL|[abfnrtv\\\\\\\"'\\&]|x[0-9a-fA-F]{1,5})",
-          "name": "constant.character.escape.elm"
-        },
-        {
-          "match": "\\^[A-Z@\\[\\]\\\\\\^_]",
-          "name": "constant.character.escape.control.elm"
-        }
-      ]
+      "include": "#type-declaration"
     },
     {
-      "name": "string.quoted.double.elm",
-      "begin": "\"",
-      "beginCaptures": {
-        "0": {
-          "name": "punctuation.definition.string.begin.elm"
-        }
-      },
-      "end": "\"",
-      "endCaptures": {
-        "0": {
-          "name": "punctuation.definition.string.end.elm"
-        }
-      },
-      "patterns": [
-        {
-          "match": "\\\\(NUL|SOH|STX|ETX|EOT|ENQ|ACK|BEL|BS|HT|LF|VT|FF|CR|SO|SI|DLE|DC1|DC2|DC3|DC4|NAK|SYN|ETB|CAN|EM|SUB|ESC|FS|GS|RS|US|SP|DEL|[abfnrtv\\\\\\\"'\\&]|x[0-9a-fA-F]{1,5})",
-          "name": "constant.character.escape.elm"
-        },
-        {
-          "match": "\\^[A-Z@\\[\\]\\\\\\^_]",
-          "name": "constant.character.escape.control.elm"
-        }
-      ]
+      "include": "#type-alias-declaration"
+    },
+    {
+      "include": "#string-double"
+    },
+    {
+      "include": "#string-triple"
     },
     {
       "comment": "Floats are always decimal",
@@ -151,11 +46,7 @@
       "name": "constant.numeric.elm"
     },
     {
-      "match": "\\b([0-9]+)\\b",
-      "name": "constant.numeric.elm"
-    },
-    {
-      "include": "#module_prefix"
+      "include": "#module-prefix"
     },
     {
       "include": "#constructor"
@@ -168,7 +59,7 @@
           "name": "punctuation.bracket.elm"
         },
         "2": {
-          "name": "record.field.name.elm"
+          "name": "entity.name.record.field.elm"
         },
         "3": {
           "name": "keyword.other.elm"
@@ -183,7 +74,7 @@
           "name": "punctuation.separator.comma.elm"
         },
         "2": {
-          "name": "record.field.name.elm"
+          "name": "entity.name.record.field.elm"
         },
         "3": {
           "name": "keyword.other.elm"
@@ -198,7 +89,7 @@
       "include": "#comma"
     },
     {
-      "include": "#parens"
+      "include": "#parenthesis"
     },
     {
       "match": "(->)",
@@ -212,18 +103,24 @@
       "name": "keyword.other.elm"
     },
     {
-      "match": "\\b(type|case|of|let|in|as|port|exposing|alias|infixl|infixr|infix)\\s+",
+      "match": "\\b(type|as|port|exposing|alias|infixl|infixr|infix)\\s+",
       "name": "keyword.other.elm"
     },
     {
-      "match": "\\b(if|then|else)\\s+",
+      "match": "\\b(if|then|else|case|of|let|in)\\s+",
       "name": "keyword.control.elm"
+    },
+    {
+      "include": "#record-accessor"
     },
     {
       "include": "#top_level_value"
     },
     {
       "include": "#period"
+    },
+    {
+      "include": "#square_brackets"
     }
   ],
   "repository": {
@@ -231,9 +128,9 @@
       "match": "(,)",
       "name": "punctuation.separator.comma.elm"
     },
-    "parens": {
+    "parenthesis": {
       "match": "(\\(|\\))",
-      "name": "punctuation.separator.parens.elm"
+      "name": "punctuation.parenthesis.elm"
     },
     "block_comment": {
       "applyEndPatternLast": 1,
@@ -268,32 +165,134 @@
         }
       ]
     },
-    "debug": {
-      "captures": {
+    "import": {
+      "name": "meta.import.elm",
+      "begin": "^\\b(import)\\s*",
+      "beginCaptures": {
         "1": {
-          "name": "invalid.illegal"
-        },
-        "2": {
-          "name": "kerword.other.elm"
-        },
-        "3": {
-          "name": "constant.language"
+          "name": "keyword.other.elm"
         }
       },
-      "match": "\\b(Debug)(.)(log)\\b",
-      "name": "variable.parameter"
+      "end": "\\n(?!\\s)",
+      "patterns": [
+        {
+          "match": "(as|exposing)",
+          "name": "keyword.import.elm"
+        },
+        {
+          "include": "#module_chunk"
+        },
+        {
+          "include": "#period"
+        },
+        {
+          "match": "\\s+",
+          "name": "punctuation.spaces.elm"
+        },
+        {
+          "include": "#module-exports"
+        }
+      ]
     },
-    "module_exports": {
+    "module": {
+      "begin": "^\\b((port |effect )?module)\\s+",
+      "beginCaptures": {
+        "1": {
+          "name": "keyword.other.elm"
+        }
+      },
+      "end": "\\n(?!\\s)",
+      "endCaptures": {
+        "1": {
+          "name": "keyword.other.elm"
+        }
+      },
+      "name": "meta.declaration.module.elm",
+      "patterns": [
+        {
+          "include": "#module_chunk"
+        },
+        {
+          "include": "#period"
+        },
+        {
+          "match": "(exposing)",
+          "name": "keyword.other.elm"
+        },
+        {
+          "match": "\\s+",
+          "name": "punctuation.spaces.elm"
+        },
+        {
+          "include": "#module-exports"
+        }
+      ]
+    },
+    "string-triple": {
+      "name": "string.quoted.triple.elm",
+      "begin": "\"\"\"",
+      "beginCaptures": {
+        "0": {
+          "name": "punctuation.definition.string.begin.elm"
+        }
+      },
+      "end": "\"\"\"",
+      "endCaptures": {
+        "0": {
+          "name": "punctuation.definition.string.end.elm"
+        }
+      },
+      "patterns": [
+        {
+          "match": "\\\\(NUL|SOH|STX|ETX|EOT|ENQ|ACK|BEL|BS|HT|LF|VT|FF|CR|SO|SI|DLE|DC1|DC2|DC3|DC4|NAK|SYN|ETB|CAN|EM|SUB|ESC|FS|GS|RS|US|SP|DEL|[abfnrtv\\\\\\\"'\\&]|x[0-9a-fA-F]{1,5})",
+          "name": "constant.character.escape.elm"
+        },
+        {
+          "match": "\\^[A-Z@\\[\\]\\\\\\^_]",
+          "name": "constant.character.escape.control.elm"
+        }
+      ]
+    },
+    "string-double": {
+      "name": "string.quoted.double.elm",
+      "begin": "\"",
+      "beginCaptures": {
+        "0": {
+          "name": "punctuation.definition.string.begin.elm"
+        }
+      },
+      "end": "\"",
+      "endCaptures": {
+        "0": {
+          "name": "punctuation.definition.string.end.elm"
+        }
+      },
+      "patterns": [
+        {
+          "match": "\\\\(NUL|SOH|STX|ETX|EOT|ENQ|ACK|BEL|BS|HT|LF|VT|FF|CR|SO|SI|DLE|DC1|DC2|DC3|DC4|NAK|SYN|ETB|CAN|EM|SUB|ESC|FS|GS|RS|US|SP|DEL|[abfnrtv\\\\\\\"'\\&]|x[0-9a-fA-F]{1,5})",
+          "name": "constant.character.escape.elm"
+        },
+        {
+          "match": "\\^[A-Z@\\[\\]\\\\\\^_]",
+          "name": "constant.character.escape.control.elm"
+        }
+      ]
+    },
+    "debug": {
+      "match": "\\b(Debug)\\b",
+      "name": "invalid.illegal.debug.elm"
+    },
+    "module-exports": {
       "begin": "(\\()",
       "beginCaptures": {
         "1": {
-          "name": "punctuation.parens"
+          "name": "punctuation.parenthesis.module-export.elm"
         }
       },
       "end": "(\\))",
       "endCaptures": {
         "1": {
-          "name": "punctuation.parens"
+          "name": "punctuation.parenthesis.module-export.elm"
         }
       },
       "name": "meta.declaration.exports.elm",
@@ -311,15 +310,19 @@
           "name": "punctuation.separator.comma.elm"
         },
         {
+          "match": "\\s+",
+          "name": "punctuation.spaces.elm"
+        },
+        {
           "include": "#comma"
         },
         {
           "match": "\\(\\.\\.\\)",
-          "name": "punctuation.parens.ellipses.elm"
+          "name": "punctuation.parenthesis.ellipses.elm"
         },
         {
           "match": "\\.\\.",
-          "name": "punctuation.parens.ellipses.elm"
+          "name": "punctuation.parenthesis.ellipses.elm"
         },
         {
           "include": "#infix_op"
@@ -331,27 +334,19 @@
         }
       ]
     },
-    "module_name": {
-      "match": "([A-Z][a-zA-Z0-9.]*)",
-      "name": "support.other.module.name.elm",
-      "captures": {
-        "1": {
-          "name": "support.other.module.elm"
-        },
-        "2": {
-          "name": "keyword.other.elm"
-        }
-      }
-    },
     "module_chunk": {
       "match": "[A-Z][a-zA-Z0-9]*",
       "name": "support.other.module.elm"
     },
     "period": {
       "match": "[.]",
-      "name": "keyword.other.elm"
+      "name": "keyword.other.period.elm"
     },
-    "module_prefix": {
+    "square_brackets": {
+      "match": "[\\[\\]]",
+      "name": "punctuation.definition.list.elm"
+    },
+    "module-prefix": {
       "match": "([A-Z][a-zA-Z0-9]+)(\\.)",
       "name": "support.other.module.name.elm",
       "captures": {
@@ -359,7 +354,7 @@
           "name": "support.other.module.elm"
         },
         "2": {
-          "name": "keyword.other.elm"
+          "name": "keyword.other.period.elm"
         }
       }
     },
@@ -375,30 +370,199 @@
       "match": "^[a-z][a-zA-Z0-9]*\\b",
       "name": "entity.name.function.top_level.elm"
     },
-    "record_accessor": {
+    "record-accessor": {
       "match": "(\\.)([a-z][a-zA-Z0-9]+)",
       "name": "support.other.record.accessor",
       "captures": {
         "1": {
-          "name": "keyword.other.elm"
+          "name": "keyword.other.period.elm"
         },
         "2": {
-          "name": "record.field.accessor.elm"
+          "name": "entity.name.record.field.accessor.elm"
         }
       }
     },
     "infix_op": {
       "match": "(\\|\\>|\\|\\=|\\=\\=|\\|\\.|\\|\\=|\\<\\||\\+\\+|\\:\\:|\\+|\\-|\\*|\\/|\\/\\/|\\^|\\>\\>|\\<\\<)",
-      "name": "keyword.operator.function.infix.elm"
+      "name": "keyword.operator.elm"
     },
-    "type_signature": {
+    "type-declaration": {
+      "begin": "^(type\\s+)([A-Z][a-zA-Z0-9_']*)\\s+",
+      "beginCaptures": {
+        "1": {
+          "name": "keyword.other.type.elm"
+        },
+        "2": {
+          "name": "storage.type.elm"
+        }
+      },
+      "end": "^\\n$",
+      "name": "meta.function.type-declaration.elm",
+      "patterns": [
+        {
+          "match": "\\s+",
+          "name": "punctuation.spaces.elm"
+        },
+        {
+          "match": "\\=",
+          "name": "keyword.other.elm"
+        },
+        {
+          "match": "\\|",
+          "name": "keyword.other.elm"
+        },
+        {
+          "include": "#module-prefix"
+        },
+        {
+          "include": "#constructor"
+        },
+        {
+          "match": "\\b[a-z][a-zA-Z0-9]*\\b",
+          "name": "variable.other.generic-type.elm"
+        },
+        {
+          "match": "\\b[A-Z][a-zA-Z0-9]*\\b",
+          "name": "storage.type.elm"
+        },
+        {
+          "include": "#comments"
+        },
+        {
+          "include": "#type-record"
+        }
+      ]
+    },
+    "type-alias-declaration": {
+      "begin": "^(type\\s+)(alias\\s+)([A-Z][a-zA-Z0-9_']*)\\s+",
+      "beginCaptures": {
+        "1": {
+          "name": "keyword.other.type.elm"
+        },
+        "2": {
+          "name": "keyword.other.type.alias.elm"
+        },
+        "3": {
+          "name": "storage.type.elm"
+        }
+      },
+      "end": "^\\n$",
+      "name": "meta.function.type-declaration.elm",
+      "patterns": [
+        {
+          "match": "\\n\\s+",
+          "name": "punctuation.spaces.elm"
+        },
+        {
+          "match": "\\=",
+          "name": "keyword.other.elm"
+        },
+        {
+          "include": "#module-prefix"
+        },
+        {
+          "match": "\\b[A-Z][a-zA-Z0-9]*\\b",
+          "name": "storage.type.elm"
+        },
+        {
+          "match": "\\b[a-z][a-zA-Z0-9]*\\b",
+          "name": "variable.other.generic-type.elm"
+        },
+        {
+          "include": "#comments"
+        },
+        {
+          "include": "#type-record"
+        }
+      ]
+    },
+    "type-record": {
+      "begin": "(\\{)",
+      "beginCaptures": {
+        "1": {
+          "name": "punctuation.bracket.elm"
+        }
+      },
+      "end": "(\\})",
+      "endCaptures": {
+        "1": {
+          "name": "punctuation.bracket.elm"
+        }
+      },
+      "name": "meta.function.type-record.elm",
+      "patterns": [
+        {
+          "match": "\\s+",
+          "name": "punctuation.spaces.elm"
+        },
+        {
+          "name": "meta.record.field.elm",
+          "match": "([a-z][a-zA-Z0-9]*)\\s+(\\:)",
+          "captures": {
+            "1": {
+              "name": "entity.name.record.field.elm"
+            },
+            "2": {
+              "name": "keyword.other.elm"
+            }
+          }
+        },
+        {
+          "match": "\\,",
+          "name": "punctuation.separator.comma.elm"
+        },
+        {
+          "include": "#module-prefix"
+        },
+        {
+          "match": "\\b[a-z][a-zA-Z0-9]*\\b",
+          "name": "variable.other.generic-type.elm"
+        },
+        {
+          "match": "\\b[A-Z][a-zA-Z0-9]*\\b",
+          "name": "storage.type.elm"
+        },
+        {
+          "include": "#comments"
+        },
+        {
+          "include": "#type-record"
+        }
+      ]
+    },
+    "type-signature": {
+      "begin": "^(port\\s+)?([a-z_][a-zA-Z0-9_']*)\\s+(\\:)",
+      "beginCaptures": {
+        "1": {
+          "name": "keyword.other.port.elm"
+        },
+        "2": {
+          "name": "entity.name.function.elm"
+        },
+        "3": {
+          "name": "keyword.other.colon.elm"
+        }
+      },
+      "end": "((^(?=[a-z]))|^$)",
+      "name": "meta.function.type-declaration.elm",
+      "patterns": [
+        {
+          "include": "#type-signature-chunk"
+        }
+      ]
+    },
+    "type-signature-chunk": {
       "patterns": [
         {
           "match": "->",
           "name": "keyword.other.arrow.elm"
         },
         {
-          "include": "#module_prefix"
+          "match": "\\s+",
+          "name": "punctuation.spaces.elm"
+        },
+        {
+          "include": "#module-prefix"
         },
         {
           "match": "\\b[a-z][a-zA-Z0-9]*\\b",
@@ -410,16 +574,19 @@
         },
         {
           "match": "\\(\\)",
-          "name": "support.constant.unit.elm"
+          "name": "constant.other.unit.elm"
         },
         {
           "include": "#comma"
         },
         {
-          "include": "#parens"
+          "include": "#parenthesis"
         },
         {
           "include": "#comments"
+        },
+        {
+          "include": "#type-record"
         }
       ]
     }
