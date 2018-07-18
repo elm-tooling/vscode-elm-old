@@ -359,6 +359,11 @@
         "        $0"
       ],
       "description": "test block in Elm-test"
+    },
+    "todo": {
+      "prefix": "todo",
+      "body": "-- TODO: $0",
+      "description": "TODO comment"
     }
   }
 }
