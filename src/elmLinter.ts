@@ -127,6 +127,8 @@ function checkForErrors(filename): Promise<IElmIssue[]> {
   });
 }
 
+let compileErrors: vscode.DiagnosticCollection;
+
 export function runLinter(
   document: vscode.TextDocument,
   elmAnalyse: ElmAnalyse,
@@ -134,12 +136,14 @@ export function runLinter(
   if (document.languageId !== 'elm' || document.uri.scheme !== 'file') {
     return;
   }
-  let compileErrors: vscode.DiagnosticCollection = vscode.languages.createDiagnosticCollection(
-    'elm',
-  );
+
   let uri: vscode.Uri = document.uri;
 
-  compileErrors.clear();
+  if (!compileErrors) {
+    compileErrors = vscode.languages.createDiagnosticCollection('elm');
+  } else {
+    compileErrors.clear();
+  }
 
   checkForErrors(uri.fsPath)
     .then((compilerErrors: IElmIssue[]) => {
