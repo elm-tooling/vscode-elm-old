@@ -1,3 +1,10 @@
+### 0.19.0 - 27.07.2018
+* Snippets: Add todo comment snippet (by @andys8)
+* Refactoring diagnostic init for LS (by @lostintangent)
+* Grammar updates (by @mdgriffith)
+* Compilable Msg placeholder in HTML.program snippet (by @milesfrain)
+* Info about editor.formatOnSaveTimeout on Windows (by @rofrol)
+
 ### 0.18.0 - 22.05.2018
 * Make linting work again with elm-analyse 0.14.2 (by @Yarith)
 * Handle formatSelection the same as formatDocument (by @milesfrain)
