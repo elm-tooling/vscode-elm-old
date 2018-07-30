@@ -207,7 +207,7 @@
         "let",
         "    $1",
         "in",
-        "    $2"
+        "$0"
       ],
       "description": "Let expression"
     },
