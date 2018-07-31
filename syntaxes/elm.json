@@ -46,6 +46,12 @@
       "name": "constant.numeric.elm"
     },
     {
+      "include": "#glsl"
+    },
+    {
+      "include": "#record-prefix"
+    },
+    {
       "include": "#module-prefix"
     },
     {
@@ -346,6 +352,21 @@
       "match": "[\\[\\]]",
       "name": "punctuation.definition.list.elm"
     },
+    "record-prefix": {
+      "match": "([a-z][a-zA-Z0-9]+)(\\.)([a-z][a-zA-Z0-9]+)",
+      "name": "record.accessor.elm",
+      "captures": {
+        "1": {
+          "name": "record.name.elm"
+        },
+        "2": {
+          "name": "keyword.other.period.elm"
+        },
+        "3": {
+          "name": "entity.name.record.field.accessor.elm"
+        }
+      }
+    },
     "module-prefix": {
       "match": "([A-Z][a-zA-Z0-9]+)(\\.)",
       "name": "support.other.module.name.elm",
@@ -359,19 +380,19 @@
       }
     },
     "constructor": {
-      "match": "\\b[A-Z][a-zA-Z0-9]+\\b",
+      "match": "\\b[A-Z][a-zA-Z0-9_]+\\b",
       "name": "constant.other.elm"
     },
     "value": {
-      "match": "\\b[a-z][a-zA-Z0-9]*\\b",
+      "match": "\\b[a-z][a-zA-Z0-9_]*\\b",
       "name": "support.function.elm"
     },
     "top_level_value": {
-      "match": "^[a-z][a-zA-Z0-9]*\\b",
+      "match": "^[a-z][a-zA-Z0-9_]*\\b",
       "name": "entity.name.function.top_level.elm"
     },
     "record-accessor": {
-      "match": "(\\.)([a-z][a-zA-Z0-9]+)",
+      "match": "(\\.)([a-z][a-zA-Z0-9_]+)",
       "name": "support.other.record.accessor",
       "captures": {
         "1": {
@@ -404,25 +425,26 @@
           "name": "punctuation.spaces.elm"
         },
         {
-          "match": "\\=",
-          "name": "keyword.other.elm"
-        },
-        {
-          "match": "\\|",
-          "name": "keyword.other.elm"
+          "name": "meta.record.field.elm",
+          "match": "(\\=|\\|)\\s+([A-Z][a-zA-Z0-9_]+)\\b",
+          "captures": {
+            "1": {
+              "name": "keyword.other.elm"
+            },
+            "2": {
+              "name": "constant.other.elm"
+            }
+          }
         },
         {
           "include": "#module-prefix"
         },
         {
-          "include": "#constructor"
-        },
-        {
-          "match": "\\b[a-z][a-zA-Z0-9]*\\b",
+          "match": "\\b[a-z][a-zA-Z0-9_]*\\b",
           "name": "variable.other.generic-type.elm"
         },
         {
-          "match": "\\b[A-Z][a-zA-Z0-9]*\\b",
+          "match": "\\b[A-Z][a-zA-Z0-9_]*\\b",
           "name": "storage.type.elm"
         },
         {
@@ -461,11 +483,11 @@
           "include": "#module-prefix"
         },
         {
-          "match": "\\b[A-Z][a-zA-Z0-9]*\\b",
+          "match": "\\b[A-Z][a-zA-Z0-9_]*\\b",
           "name": "storage.type.elm"
         },
         {
-          "match": "\\b[a-z][a-zA-Z0-9]*\\b",
+          "match": "\\b[a-z][a-zA-Z0-9_]*\\b",
           "name": "variable.other.generic-type.elm"
         },
         {
@@ -494,6 +516,10 @@
         {
           "match": "\\s+",
           "name": "punctuation.spaces.elm"
+        },
+        {
+          "match": "->",
+          "name": "keyword.other.arrow.elm"
         },
         {
           "name": "meta.record.field.elm",
@@ -569,7 +595,7 @@
           "name": "variable.other.generic-type.elm"
         },
         {
-          "match": "\\b[A-Z][a-zA-Z0-9]*\\b",
+          "match": "\\b[A-Z][a-zA-Z0-9_]*\\b",
           "name": "storage.type.elm"
         },
         {
@@ -587,6 +613,68 @@
         },
         {
           "include": "#type-record"
+        }
+      ]
+    },
+    "glsl": {
+      "begin": "(\\[)(glsl)(\\|)",
+      "beginCaptures": {
+        "1": {
+          "name": "entity.glsl.bracket.elm"
+        },
+        "2": {
+          "name": "entity.glsl.name.elm"
+        },
+        "3": {
+          "name": "entity.glsl.bracket.elm"
+        }
+      },
+      "end": "(\\|\\])",
+      "endCaptures": {
+        "1": {
+          "name": "entity.glsl.bracket.elm"
+        }
+      },
+      "name": "meta.glsl.definition.elm",
+      "patterns": [
+        {
+          "match": "(attribute|uniform|varying|precision|const)",
+          "name": "keyword.storage.glsl"
+        },
+        {
+          "match": "(\\{|\\}|\\(|\\)|\\;|\\,)",
+          "name": "punctuation.glsl"
+        },
+        {
+          "match": "(\\=|\\.|\\*|\\\\|\\+|\\%)",
+          "name": "keyword.operator.glsl"
+        },
+        {
+          "match": "(vec2|vec3|vec4|bvec2|bvec3|bvec4|ivec2|ivec3|ivec4|mat2|mat3|mat4|lowp|mediump|highp|int|float|bool|sampler2D|samplerCube|void)\\s",
+          "name": "storage.type.elm"
+        },
+        {
+          "match": "(vec2|vec3|vec4|bvec2|bvec3|bvec4|ivec2|ivec3|ivec4|mat2|mat3|mat4|sampler2D|samplerCube|texture2D)",
+          "name": "entity.function.constructor.glsl"
+        },
+        {
+          "comment": "Floats are always decimal",
+          "match": "\\b([0-9]+\\.[0-9]+([eE][+-]?[0-9]+)?|[0-9]+[eE][+-]?[0-9]+)\\b",
+          "name": "constant.numeric.float.elm"
+        },
+        {
+          "match": "\\b([0-9]+)\\b",
+          "name": "constant.numeric.elm"
+        },
+        {
+          "captures": {
+            "1": {
+              "name": "punctuation.definition.comment.elm"
+            }
+          },
+          "begin": "//",
+          "end": "$",
+          "name": "comment.line.double-dash.elm"
         }
       ]
     }
