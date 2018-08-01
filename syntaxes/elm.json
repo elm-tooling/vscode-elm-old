@@ -65,10 +65,10 @@
           "name": "punctuation.bracket.elm"
         },
         "2": {
-          "name": "entity.record.elm"
+          "name": "record.name.elm"
         },
         "3": {
-          "name": "punctuation.pipe.elm"
+          "name": "keyword.pipe.elm"
         },
         "4": {
           "name": "entity.name.record.field.elm"
@@ -80,7 +80,7 @@
       "match": "(\\|)\\s+([a-z][a-zA-Z0-9]*)\\s+(\\=)",
       "captures": {
         "1": {
-          "name": "punctuation.pipe.elm"
+          "name": "keyword.pipe.elm"
         },
         "2": {
           "name": "entity.name.record.field.elm"
@@ -98,7 +98,7 @@
           "name": "punctuation.bracket.elm"
         },
         "2": {
-          "name": "entity.record.elm"
+          "name": "record.name.elm"
         }
       }
     },
@@ -490,6 +490,10 @@
               "name": "constant.type-constructor.elm"
             }
           }
+        },
+        {
+          "match": "\\=",
+          "name": "keyword.operator.assignment.elm"
         },
         {
           "include": "#module-prefix"
