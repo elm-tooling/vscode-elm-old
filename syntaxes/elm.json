@@ -404,7 +404,7 @@
       "name": "punctuation.definition.list.elm"
     },
     "record-prefix": {
-      "match": "([a-z][a-zA-Z0-9]+)(\\.)([a-z][a-zA-Z0-9]+)",
+      "match": "([a-z][a-zA-Z0-9]*)(\\.)([a-z][a-zA-Z0-9]*)",
       "name": "record.accessor.elm",
       "captures": {
         "1": {
@@ -419,7 +419,7 @@
       }
     },
     "module-prefix": {
-      "match": "([A-Z][a-zA-Z0-9]+)(\\.)",
+      "match": "([A-Z][a-zA-Z0-9]*)(\\.)",
       "name": "meta.module.name.elm",
       "captures": {
         "1": {
@@ -431,7 +431,7 @@
       }
     },
     "constructor": {
-      "match": "\\b[A-Z][a-zA-Z0-9_]+\\b",
+      "match": "\\b[A-Z][a-zA-Z0-9_]*\\b",
       "name": "constant.type-constructor.elm"
     },
     "value": {
@@ -447,7 +447,7 @@
       "name": "entity.name.function.top_level.elm"
     },
     "record-accessor": {
-      "match": "(\\.)([a-z][a-zA-Z0-9_]+)",
+      "match": "(\\.)([a-z][a-zA-Z0-9_]*)",
       "name": "meta.record.accessor",
       "captures": {
         "1": {
@@ -481,7 +481,7 @@
         },
         {
           "name": "meta.record.field.elm",
-          "match": "(\\=|\\|)\\s+([A-Z][a-zA-Z0-9_]+)\\b",
+          "match": "(\\=|\\|)\\s+([A-Z][a-zA-Z0-9_]*)\\b",
           "captures": {
             "1": {
               "name": "keyword.operator.assignment.elm"
