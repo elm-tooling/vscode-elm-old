@@ -143,6 +143,12 @@
           "type": "boolean",
           "default": false,
           "description": "Enable or disable elm-analyse on startup."
+        },
+        "elm.useWorkSpaceRootForElmRoot": {
+          "type": "boolean",
+          "default": false,
+          "description": "Disable trying to detect elm-package from the current file and just use the VSCode workspace's root as the location of elm-package.json."
+
         }
       }
     },
