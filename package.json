@@ -251,7 +251,8 @@
           "text.html.markdown"
         ],
         "embeddedLanguages": {
-          "meta.embedded.block.elm": "elm"
+          "meta.embedded.block.elm": "elm",
+          "meta.embedded.block.glsl": "glsl"
         }
       },
       {
