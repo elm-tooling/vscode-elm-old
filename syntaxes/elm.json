@@ -698,46 +698,10 @@
           "name": "entity.glsl.bracket.elm"
         }
       },
-      "name": "meta.glsl.definition.elm",
+      "name": "meta.embedded.block.glsl",
       "patterns": [
         {
-          "match": "(attribute|uniform|varying|precision|const)",
-          "name": "keyword.storage.glsl"
-        },
-        {
-          "match": "(\\{|\\}|\\(|\\)|\\;|\\,)",
-          "name": "punctuation.glsl"
-        },
-        {
-          "match": "(\\=|\\.|\\*|\\\\|\\+|\\%)",
-          "name": "keyword.operator.glsl"
-        },
-        {
-          "match": "(vec2|vec3|vec4|bvec2|bvec3|bvec4|ivec2|ivec3|ivec4|mat2|mat3|mat4|lowp|mediump|highp|int|float|bool|sampler2D|samplerCube|void)\\s",
-          "name": "storage.type.elm"
-        },
-        {
-          "match": "(vec2|vec3|vec4|bvec2|bvec3|bvec4|ivec2|ivec3|ivec4|mat2|mat3|mat4|sampler2D|samplerCube|texture2D)",
-          "name": "entity.function.constructor.glsl"
-        },
-        {
-          "comment": "Floats are always decimal",
-          "match": "\\b([0-9]+\\.[0-9]+([eE][+-]?[0-9]+)?|[0-9]+[eE][+-]?[0-9]+)\\b",
-          "name": "constant.numeric.float.elm"
-        },
-        {
-          "match": "\\b([0-9]+)\\b",
-          "name": "constant.numeric.elm"
-        },
-        {
-          "captures": {
-            "1": {
-              "name": "punctuation.definition.comment.elm"
-            }
-          },
-          "begin": "//",
-          "end": "$",
-          "name": "comment.line.double-dash.elm"
+          "include": "source.glsl"
         }
       ]
     }
