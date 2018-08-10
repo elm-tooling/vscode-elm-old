@@ -160,7 +160,8 @@ export function userProject(
   let imports: Imports[] = [];
   let results: IOracleResult[] = [];
 
-  const cwd = detectProjectRoot(document.fileName) || vscode.workspace.rootPath;
+  const cwd = config['useWorkSpaceRootForElmRoot'] ? vscode.workspace.rootPath : detectProjectRoot(document.fileName) || vscode.workspace.rootPath
+
   gCwd = cwd;
   const elmPackageString: string = fs.readFileSync(
     path.join(cwd, 'elm-package.json'),
