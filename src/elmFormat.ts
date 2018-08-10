@@ -92,7 +92,7 @@ function clearStatus(statusBarItem: StatusBarItem) {
   return function () {
     statusBarItem.text = '';
     statusBarItem.hide();
-  }
+  };
 }
 
 function statusBarMessage(statusBarItem: StatusBarItem) {
