@@ -30,7 +30,7 @@ function execMake(editor: vscode.TextEditor, warn: boolean): void {
     }
 
     if (utils.isWindows) {
-      file = "\"" + file + "\""
+      file = '"' + file + '"';
     }
 
     let args = [file, '--yes', '--output=' + name];

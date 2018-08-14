@@ -42,18 +42,35 @@ export interface ExecutingCmd
 }
 
 /** Executes a command. Shows an error message if the command isn't found */
-export function execCmd
-  (cmd: string, options: ExecCmdOptions = {}): ExecutingCmd {
-
-  const { fileName, onStart, onStdout, onStderr, onExit, cmdArguments } = options;
-  let childProcess, firstResponse = true, wasKilledbyUs = false;
+export function execCmd(
+  cmd: string,
+  options: ExecCmdOptions = {},
+): ExecutingCmd {
+  const {
+    fileName,
+    onStart,
+    onStdout,
+    onStderr,
+    onExit,
+    cmdArguments,
+  } = options;
+  let childProcess,
+    firstResponse = true,
+    wasKilledbyUs = false;
 
   const executingCmd: any = new Promise((resolve, reject) => {
+    // tslint:disable-next-line:no-shadowed-variable
     let cmdArguments = options ? options.cmdArguments : [];
-    
-    childProcess =
-      cp.exec(cmd + ' ' + (cmdArguments || []).join(' '), { cwd: detectProjectRoot(fileName || workspace.rootPath + '/fakeFileName') }, handleExit);
 
+    childProcess = cp.exec(
+      cmd + ' ' + (cmdArguments || []).join(' '),
+      {
+        cwd: detectProjectRoot(
+          fileName || workspace.rootPath + '/fakeFileName',
+        ),
+      },
+      handleExit,
+    );
 
     childProcess.stdout.on('data', (data: Buffer) => {
       if (firstResponse && onStart) {
