@@ -6,16 +6,28 @@ import * as vscode from 'vscode';
 let make: cp.ChildProcess;
 let oc: vscode.OutputChannel = vscode.window.createOutputChannel('Elm Make');
 
-function getArguments(makeFile: string, file, warn: boolean, name: string): string[] {
-  if (makeFile.endsWith("elm-make")) {
-    let args = [file, '--yes', '--output=' + name];
-    if (warn) {
-      args.push('--warn');
-    }
-    return args;
-  } else {
-    return ['make', file, '--output=' + name];;
+function getMakeAndArguments(file, warn: boolean): [string, string, string[]] {
+  const config: vscode.WorkspaceConfiguration = vscode.workspace.getConfiguration('elm');
+  const name: string = <string>config.get('makeOutput');
+  const make018Command: string = <string>config.get('makeCommand');
+  const compiler: string = <string>config.get('compiler');
+  const [cwd, elmVersion] = utils.detectProjectRootAndElmVersion(file, vscode.workspace.rootPath)
+  const specialFile: string = <string>config.get('makeSpecialFile');
+  if (specialFile.length > 0) {
+    file = path.resolve(cwd, specialFile);
   }
+  if (utils.isWindows) {
+    file = "\"" + file + "\""
+  }
+  const args018 = [file, '--yes', '--output=' + name];
+  if (warn) {
+    args018.push('--warn');
+  }
+  const args019 = ['make', file, '--output=' + name];
+  const args = utils.isElm019(elmVersion) ? args019 : args018;
+  const makeCommand = utils.isElm019(elmVersion) ? compiler : make018Command;
+
+  return [cwd, makeCommand, args];
 }
 
 function execMake(editor: vscode.TextEditor, warn: boolean): void {
@@ -27,24 +39,8 @@ function execMake(editor: vscode.TextEditor, warn: boolean): void {
       make.kill();
       oc.clear();
     }
-    let file = editor.document.fileName;
-    const cwd: string =
-      utils.detectProjectRoot(file) || vscode.workspace.rootPath;
-
-    const config: vscode.WorkspaceConfiguration = vscode.workspace.getConfiguration(
-      'elm',
-    );
-    const name: string = <string>config.get('makeOutput');
-    const specialFile: string = <string>config.get('makeSpecialFile');
-    const makeCommand: string = <string>config.get('makeCommand');
-    if (specialFile.length > 0) {
-      file = path.resolve(cwd, specialFile);
-    }
-
-    if (utils.isWindows) {
-      file = "\"" + file + "\""
-    }
-    let args = getArguments(makeCommand, file, warn, name);
+    let file = editor.document.fileName;    
+    let [cwd, makeCommand, args] = getMakeAndArguments(file, warn);
     
     if (utils.isWindows) {
       make = cp.exec(makeCommand + ' ' + args.join(' '), { cwd: cwd });
