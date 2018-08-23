@@ -75,7 +75,12 @@
         "elm.makeCommand": {
           "type": "string",
           "default": "elm",
-          "description": "Command to run when executing elm make, for versions of elm prior to 0.19 this should be set to elm-make rather than the single 'elm' command."
+          "description": "Command to run when executing elm make, this is for versions of elm prior to 0.19."
+        },
+        "elm.compiler": {
+          "type": "string",
+          "default": "elm",
+          "description": "Command to run when executing elm compiler and its sub commands like make, repl etc, this is for versions of elm 0.19+"
         },
         "elm.makeSpecialFile": {
           "type": "string",
