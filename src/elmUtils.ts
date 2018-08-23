@@ -51,8 +51,10 @@ export function execCmd
   const executingCmd: any = new Promise((resolve, reject) => {
     let cmdArguments = options ? options.cmdArguments : [];
 
+    const dummyPath = path.join(vscode.workspace.rootPath, 'dummyfile');
+    const [cwdCurrent, elmVersion] = detectProjectRootAndElmVersion(fileName || dummyPath, workspace.rootPath);
     childProcess =
-      cp.exec(cmd + ' ' + (cmdArguments || []).join(' '), { cwd: detectProjectRoot(fileName || workspace.rootPath + '/fakeFileName') }, handleExit);
+      cp.exec(cmd + ' ' + (cmdArguments || []).join(' '), { cwd: cwdCurrent }, handleExit);
 
 
     childProcess.stdout.on('data', (data: Buffer) => {
