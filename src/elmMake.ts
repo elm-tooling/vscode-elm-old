@@ -6,6 +6,18 @@ import * as vscode from 'vscode';
 let make: cp.ChildProcess;
 let oc: vscode.OutputChannel = vscode.window.createOutputChannel('Elm Make');
 
+function getArguments(makeFile: string, file, warn: boolean, name: string): string[] {
+  if (makeFile.endsWith("elm-make")) {
+    let args = [file, '--yes', '--output=' + name];
+    if (warn) {
+      args.push('--warn');
+    }
+    return args;
+  } else {
+    return ['make', file, '--output=' + name];;
+  }
+}
+
 function execMake(editor: vscode.TextEditor, warn: boolean): void {
   try {
     if (editor.document.languageId !== 'elm') {
@@ -32,16 +44,14 @@ function execMake(editor: vscode.TextEditor, warn: boolean): void {
     if (utils.isWindows) {
       file = "\"" + file + "\""
     }
-
-    let args = [file, '--yes', '--output=' + name];
-    if (warn) {
-      args.push('--warn');
-    }
+    let args = getArguments(makeCommand, file, warn, name);
+    
     if (utils.isWindows) {
       make = cp.exec(makeCommand + ' ' + args.join(' '), { cwd: cwd });
     } else {
       make = cp.spawn(makeCommand, args, { cwd: cwd });
     }
+
     make.stdout.on('data', (data: Buffer) => {
       if (data) {
         oc.append(data.toString());
