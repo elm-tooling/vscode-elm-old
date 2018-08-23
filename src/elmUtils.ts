@@ -50,7 +50,7 @@ export function execCmd
 
   const executingCmd: any = new Promise((resolve, reject) => {
     let cmdArguments = options ? options.cmdArguments : [];
-    
+
     childProcess =
       cp.exec(cmd + ' ' + (cmdArguments || []).join(' '), { cwd: detectProjectRoot(fileName || workspace.rootPath + '/fakeFileName') }, handleExit);
 
@@ -123,6 +123,29 @@ export function execCmd
   }
 }
 
+export function findProjAndElmVersion(dir: string): [string, string] {
+  if (fs.lstatSync(dir).isDirectory()) {
+    const files = fs.readdirSync(dir);
+    const elm019file = files.find((v, i) => v === 'elm.json');
+    const elm018file = files.find((v, i) => v === 'elm-package.json');
+    if (elm019file !== undefined) {
+      return [dir + path.sep + elm019file, '0.19'];
+    }
+    if (elm018file !== undefined) {
+      return [dir + path.sep + elm018file, '0.18'];
+    }
+    let parent = '';
+    if (dir.lastIndexOf(path.sep) > 0) {
+      parent = dir.substr(0, dir.lastIndexOf(path.sep));
+    }
+    if (parent === '') {
+      return ['', ''];
+    } else {
+      return findProjAndElmVersion(parent);
+    }
+  }
+}
+
 export function findProj(dir: string): string {
   if (fs.lstatSync(dir).isDirectory()) {
     const files = fs.readdirSync(dir);
@@ -142,12 +165,24 @@ export function findProj(dir: string): string {
   }
 }
 
+export function detectProjectRootAndElmVersion(fileName: string, workspaceRootPath: string): [string, string] {
+  const proj = findProjAndElmVersion(path.dirname(fileName));
+  if (proj[0] !== '') {
+    return [path.dirname(proj[0]), proj[1]];
+  }
+  return [workspaceRootPath, '0.19'];
+}
+
 export function detectProjectRoot(fileName: string): string {
   const proj = findProj(path.dirname(fileName));
   if (proj !== '') {
     return path.dirname(proj);
   }
   return undefined;
+}
+
+export function isElm019(elmVersion: string): boolean {
+  return elmVersion === '0.19' ? true : false
 }
 
 export function getIndicesOf(searchStr: string, str: string): number[] {

@@ -51,14 +51,18 @@ function checkForErrors(filename): Promise<IElmIssue[]> {
     const config: vscode.WorkspaceConfiguration = vscode.workspace.getConfiguration(
       'elm',
     );
-    const makeCommand: string = <string>config.get('makeCommand');
-    const cwd: string =
-      utils.detectProjectRoot(filename) || vscode.workspace.rootPath;
+    const make018Command: string = <string>config.get('makeCommand');
+    const compiler: string = <string>config.get('compiler');
+    const [cwd, elmVersion] = utils.detectProjectRootAndElmVersion(filename, vscode.workspace.rootPath)
     let make: cp.ChildProcess;
     if (utils.isWindows) {
       filename = "\"" + filename + "\""
     }
-    const args = [filename, '--report', 'json', '--output', '/dev/null'];
+    const args018 = [filename, '--report', 'json', '--output', '/dev/null'];
+    const args019 = ['make', filename, '--report', 'json', '--output', '/dev/null'];
+    const args = utils.isElm019(elmVersion) ? args019 : args018;
+    const makeCommand = utils.isElm019(elmVersion) ? compiler : make018Command;
+
     if (utils.isWindows) {
       make = cp.exec(makeCommand + ' ' + args.join(' '), { cwd: cwd });
     } else {
