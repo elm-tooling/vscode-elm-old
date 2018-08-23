@@ -1,10 +1,22 @@
+import * as cp from 'child_process';
 import * as vscode from 'vscode';
-
-import { execCmd } from './elmUtils';
+import * as path from 'path';
+import * as utils from './elmUtils';
 
 const request = require('request');
 
 let oc: vscode.OutputChannel = vscode.window.createOutputChannel('Elm Package');
+
+function getInstallPackageCommand(packageName): string {
+  const config: vscode.WorkspaceConfiguration = vscode.workspace.getConfiguration('elm');
+  const dummyPath = path.join(vscode.workspace.rootPath, 'dummyfile');
+  const [_, elmVersion] = utils.detectProjectRootAndElmVersion(dummyPath, vscode.workspace.rootPath)
+  const args018 = 'elm-package install ' + packageName + ' --yes';
+  const args019 = 'elm install ' + packageName;
+  const args = utils.isElm019(elmVersion) ? args019 : args018;
+
+  return args;
+}
 
 function browsePackage(): Promise<void> {
   const quickPickPackageOptions: vscode.QuickPickOptions = {
@@ -15,6 +27,7 @@ function browsePackage(): Promise<void> {
     matchOnDescription: false,
     placeHolder: 'Choose a version, or press <esc> to browse the latest',
   };
+
 
   return getJSON()
     .then(transformToPackageQuickPickItems)
@@ -34,18 +47,18 @@ function browsePackage(): Promise<void> {
           oc.show(vscode.ViewColumn.Three);
           let uri = selectedVersion
             ? vscode.Uri.parse(
-                'http://package.elm-lang.org/packages/' +
-                  selectedPackage.label +
-                  '/' +
-                  selectedVersion.label,
-              )
+              'https://package.elm-lang.org/packages/' +
+              selectedPackage.label +
+              '/' +
+              selectedVersion.label,
+            )
             : vscode.Uri.parse(
-                'http://package.elm-lang.org/packages/' +
-                  selectedPackage.label +
-                  '/latest',
-              );
-          vscode.commands.executeCommand('vscode.open', uri, 3);
-        });
+              'https://package.elm-lang.org/packages/' +
+              selectedPackage.label +
+              '/latest',
+            );
+          vscode.commands.executeCommand('vscode.open', uri);
+        }).then(() => { });
     });
 }
 
@@ -53,18 +66,19 @@ interface ElmPackageQuickPickItem extends vscode.QuickPickItem {
   info: any;
 }
 
+
 function transformToPackageQuickPickItems(
   packages: any[],
 ): ElmPackageQuickPickItem[] {
-  return packages.map(item => {
-    return { label: item.name, description: item.summary, info: item };
+  return Object.keys(packages).map(item => {
+    return { label: item, description: item, info: packages[item] };
   });
 }
 
 function transformToPackageVersionQuickPickItems(
   selectedPackage: ElmPackageQuickPickItem,
 ): vscode.QuickPickItem[] {
-  return selectedPackage.info.versions.map(version => {
+  return selectedPackage.info.map(version => {
     return { label: version, description: null };
   });
 }
@@ -83,17 +97,18 @@ function runInstall(): Thenable<void> {
       const packageName = value ? value.label : '';
       oc.show(vscode.ViewColumn.Three);
 
-      return execCmd(`elm-package install ${packageName} --yes`, {
+      let command = getInstallPackageCommand(packageName);
+      return utils.execCmd(command, {
         onStdout: data => oc.append(data),
         onStderr: data => oc.append(data),
         showMessageOnError: true,
-      }).then(() => {});
+      }).then(() => { });
     });
 }
 
 function getJSON(): Promise<any[]> {
   return new Promise((resolve, reject) => {
-    request('http://package.elm-lang.org/all-packages', (err, _, body) => {
+    request('https://package.elm-lang.org/all-packages', (err, _, body) => {
       if (err) {
         reject(err);
       } else {
@@ -109,8 +124,10 @@ function getJSON(): Promise<any[]> {
   });
 }
 
-function transformToQuickPickItems(json: any[]): vscode.QuickPickItem[] {
-  return json.map(item => ({ label: item.name, description: item.summary }));
+function transformToQuickPickItems(packages: any[]): vscode.QuickPickItem[] {
+  return Object.keys(packages).map(item => {
+    return { label: item, description: '', info: packages[item] };
+  });
 }
 
 export function activatePackage(): vscode.Disposable[] {
