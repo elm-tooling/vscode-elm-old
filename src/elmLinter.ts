@@ -54,7 +54,7 @@ function checkForErrors(filename): Promise<IElmIssue[]> {
     const make018Command: string = <string>config.get('makeCommand');
     const compiler: string = <string>config.get('compiler');
     const [cwd, elmVersion] = utils.detectProjectRootAndElmVersion(filename, vscode.workspace.rootPath)
-    let make: cp.ChildProcess;
+    let make;
     if (utils.isWindows) {
       filename = "\"" + filename + "\""
     }
@@ -71,62 +71,79 @@ function checkForErrors(filename): Promise<IElmIssue[]> {
     // output is actually optional
     // (fixed in https://github.com/Microsoft/vscode/commit/b4917afe9bdee0e9e67f4094e764f6a72a997c70,
     // but unreleased at this time)
-    const stdoutlines: readline.ReadLine = readline.createInterface({
-      input: make.stdout,
-      output: undefined,
+    const stderrlines = readline.createInterface({
+      input: make.stderr,
+      output: undefined
     });
-    const lines: IElmIssue[] = [];
-    stdoutlines.on('line', (line: string) => {
-      // Ignore compiler success.
-      if (line.startsWith('Successfully generated')) {
-        return;
+
+    const lines = [];
+
+    stderrlines.on('line', line => {
+      const errorObject = JSON.parse(line);
+
+      if (errorObject.type === 'compile-errors') {
+        errorObject.errors.forEach(error => {
+          const problems = error.problems.map(problem => ({
+            tag: 'error',
+            overview: problem.title,
+            subregion: '',
+            details: problem.message
+              .map(
+                message =>
+                  typeof message === 'string' ? message : message.string
+              )
+              .join(''),
+            region: problem.region,
+            type: 'error',
+            file: error.path
+          }));
+
+          lines.push(...problems);
+        });
+      } else if (errorObject.type === 'error') {
+        const problem = {
+          tag: 'error',
+          overview: errorObject.title,
+          subregion: '',
+          details: errorObject.message
+            .map(
+              message =>
+                typeof message === 'string' ? message : message.string
+            )
+            .join(''),
+          region: {
+            start: {
+              line: 1,
+              column: 1
+            },
+            end: {
+              line: 1,
+              column: 1
+            }
+          },
+          type: 'error',
+          file: errorObject.path
+        };
+
+        lines.push(problem);
       }
-      // Elm writes out JSON arrays of diagnostics, with one array per line.
-      // Multiple lines may be received.
-      lines.push(...(<IElmIssue[]>JSON.parse(line)));
     });
-    const stderr: Buffer[] = [];
-    make.stderr.on('data', (data: Buffer) => {
-      if (data) {
-        stderr.push(data);
-      }
-    });
-    make.on('error', (err: Error) => {
-      stdoutlines.close();
-      if (err && (<any>err).code === 'ENOENT') {
+
+    make.on('error', err => {
+      stderrlines.close();
+      if (err && err.code === 'ENOENT') {
         vscode.window.showInformationMessage(
-          "The 'elm-make' compiler is not available.  Install Elm from http://elm-lang.org/.",
+          "The 'elm-make' compiler is not available.  Install Elm from http://elm-lang.org/."
         );
         resolve([]);
       } else {
         reject(err);
       }
     });
-    make.on('close', (code: number, signal: string) => {
-      stdoutlines.close();
-      if (stderr.length) {
-        let errorResult: IElmIssue = {
-          tag: 'error',
-          overview: '',
-          subregion: '',
-          details: stderr.join(''),
-          region: {
-            start: {
-              line: 1,
-              column: 1,
-            },
-            end: {
-              line: 1,
-              column: 1,
-            },
-          },
-          type: 'error',
-          file: filename,
-        };
-        resolve([errorResult]);
-      } else {
-        resolve(lines);
-      }
+
+    make.on('close', (code, signal) => {
+      stderrlines.close();
+      resolve(lines);
     });
   });
 }
