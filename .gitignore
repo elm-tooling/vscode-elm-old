@@ -4,3 +4,4 @@ elm-stuff
 issueList.md
 yarn-error.log
 package-lock.json
+.vscode-test

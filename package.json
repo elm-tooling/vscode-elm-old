@@ -298,6 +298,7 @@
   "main": "./out/src/elmMain",
   "scripts": {
     "vscode:prepublish": "tsc -p ./",
+    "build": "tsc -p ./",
     "compile": "tsc -watch -p ./",
     "lint": "tslint \"src/**/*.ts\" && prettier \"{src,__{tests,mocks}__}/**/*.ts\"  --single-quote --trailing-comma all --list-different",
     "test": "node ./node_modules/vscode/bin/test",

@@ -164,7 +164,7 @@ You can also configure `elm-format` to run on save by enabling `editor.formatOnS
 ```
 
 On Windows you may [need](https://github.com/Krzysztof-Cieslak/vscode-elm/issues/191#issuecomment-371465313) to add `editor.formatOnSaveTimeout`:
-    
+
 ``` settings.json
 "[elm]": {
     "editor.formatOnSave": true,
@@ -227,14 +227,26 @@ Elm-analyse settings:
 
 You can delete your `elm-stuff/build-artifacts` directly from vscode by using `Elm: Clean build artifacts` command.
 
-## Help wanted
-
-Building all these things will take some time. So pull requests are much appreciated!
-
 ## Acknowledgements
 
 * Grammar file is taken and converted from [atom-elm](https://github.com/edubkendo/atom-elm).
 * Initial snippets from [Elm.tmLanguage](https://github.com/deadfoxygrandpa/Elm.tmLanguage)
+
+## How to contribute
+
+*Imposter syndrome disclaimer*: I want your help. No really, I do.
+
+There might be a little voice inside that tells you you're not ready; that you need to do one more tutorial, or learn another framework, or write a few more blog posts before you can help me with this project.
+
+I assure you, that's not the case.
+
+This project has some clear Contribution Guidelines and expectations that you can [read here](https://github.com/Krzysztof-Cieslak/vscode-elm/blob/master/CONTRIBUTING.md).
+
+The contribution guidelines outline the process that you'll need to follow to get a patch merged. By making expectations and process explicit, I hope it will make it easier for you to contribute.
+
+And you don't just have to write code. You can help out by writing documentation, tests, or even by giving feedback about this work. (And yes, that includes giving feedback about the contribution guidelines.)
+
+Thank you for contributing!
 
 ## Contributing and copyright
 
@@ -246,5 +258,8 @@ The library is available under [MIT license](https://github.com/Krzysztof-Ciesla
 ## Maintainer(s)
 
 * Krzysztof Cieslak [@Krzysztof-Cieslak](https://github.com/Krzysztof-Cieslak)
+
+## Past Maintainer(s)
+
 * Sascha Brink [@sbrink](https://github.com/sbrink)
 * Robert Jeppesen [@rojepp](https://github.com/rojepp)
