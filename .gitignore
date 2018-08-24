@@ -3,3 +3,4 @@ node_modules
 elm-stuff
 issueList.md
 yarn-error.log
+package-lock.json
