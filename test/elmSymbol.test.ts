@@ -46,8 +46,9 @@ suite("elmSymbol", () => {
 
     return workspace.openTextDocument(filePath)
       .then(doc => symbolProvider.provideDocumentSymbols(doc, null))
-      .then(actualSymbols => {
-        assert.equal(actualSymbols.length, expectedSymbols.length,
+      .then(async actualSymbols => {
+        let as = await actualSymbols
+        assert.equal(as.length, expectedSymbols.length,
           "Number of found symbols mismatch")
         expectedSymbols.forEach((ex, i) => {
           let ac = actualSymbols[i];
