@@ -5,3 +5,5 @@ issueList.md
 yarn-error.log
 package-lock.json
 .vscode-test
+*.vsix
+.DS_Store
