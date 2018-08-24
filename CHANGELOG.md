@@ -1,3 +1,9 @@
+### 0.20.0 - 24.08.2018
+* Snippets: Let expression indentation (elm-format) (by @andys8)
+* Add ability to configure elm-package locating. (by @jackfranklin)
+* Syntax Polish (by @mdgriffith)
+* Elm 0.19 update (by @hakonrossebo and @7sharp9)
+
 ### 0.19.0 - 27.07.2018
 * Snippets: Add todo comment snippet (by @andys8)
 * Refactoring diagnostic init for LS (by @lostintangent)
