@@ -1,5 +1,6 @@
 import * as cp from 'child_process';
 import * as path from 'path';
+import * as utils from './elmUtils';
 import * as vscode from 'vscode';
 
 import { isWindows } from './elmUtils';
@@ -7,6 +8,21 @@ import { isWindows } from './elmUtils';
 let reactor: cp.ChildProcess;
 let oc: vscode.OutputChannel = vscode.window.createOutputChannel('Elm Reactor');
 let statusBarStopButton: vscode.StatusBarItem;
+
+function getReactorAndArguments(host: string, port: string, subdir: string): [string, string, string[]] {
+  const config: vscode.WorkspaceConfiguration = vscode.workspace.getConfiguration('elm');
+  const dummyPath = path.join(vscode.workspace.rootPath, 'dummyfile');
+  const reactor018Command: string = 'elm-reactor'
+  const compiler: string = <string>config.get('compiler');
+  const [cwd, elmVersion] = utils.detectProjectRootAndElmVersion(dummyPath, vscode.workspace.rootPath)
+  const args018 = ['-a=' + host, 'p=' + port];
+  const args019 = ['reactor', '--port=' + port];
+  const cwdWithSubdir = path.join(cwd, subdir);
+  const args = utils.isElm019(elmVersion) ? args019 : args018;
+  const reactorCommand = utils.isElm019(elmVersion) ? compiler : reactor018Command;
+
+  return [cwdWithSubdir, reactorCommand, args];
+}
 
 function startReactor(): void {
   try {
@@ -18,13 +34,12 @@ function startReactor(): void {
     const host: string = <string>config.get('reactorHost');
     const port: string = <string>config.get('reactorPort');
     const subdir: string = <string>config.get('reactorSubdir');
-    const args = ['-a=' + host, '-p=' + port],
-      cwd = path.join(vscode.workspace.rootPath, subdir);
+    const [cwd, reactorCommand, args] = getReactorAndArguments(host, port, subdir);
 
     if (isWindows) {
-      reactor = cp.exec('elm-reactor ' + args.join(' '), { cwd: cwd });
+      reactor = cp.exec(reactorCommand + ' ' + args.join(' '), { cwd: cwd });
     } else {
-      reactor = cp.spawn('elm-reactor', args, { cwd: cwd, detached: true });
+      reactor = cp.spawn(reactorCommand, args, { cwd: cwd, detached: true });
     }
 
     reactor.stdout.on('data', (data: Buffer) => {
@@ -32,6 +47,7 @@ function startReactor(): void {
         oc.append(data.toString());
       }
     });
+
     reactor.stderr.on('data', (data: Buffer) => {
       if (data) {
         oc.append(data.toString());
