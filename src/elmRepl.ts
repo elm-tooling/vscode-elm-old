@@ -1,10 +1,26 @@
 import * as vscode from 'vscode';
+import * as path from 'path';
 
-import { ExecutingCmd, execCmd } from './elmUtils';
+import * as utils from './elmUtils';
 import { TextEditor, window, workspace } from 'vscode';
 
-let repl = {} as ExecutingCmd;
+let repl = {} as utils.ExecutingCmd;
 let oc: vscode.OutputChannel = vscode.window.createOutputChannel('Elm REPL');
+
+function getReplAndArguments(): [string, string, string[]] {
+  const config: vscode.WorkspaceConfiguration = vscode.workspace.getConfiguration('elm');
+  const dummyPath = path.join(vscode.workspace.rootPath, 'dummyfile');
+  const name: string = <string>config.get('makeOutput');
+  const repl018Command: string = 'elm-repl'
+  const compiler: string = <string>config.get('compiler');
+  const [cwd, elmVersion] = utils.detectProjectRootAndElmVersion(dummyPath, vscode.workspace.rootPath)
+  const args018 = [];
+  const args019 = ['repl'];
+  const args = utils.isElm019(elmVersion) ? args019 : args018;
+  const replCommand = utils.isElm019(elmVersion) ? compiler : repl018Command;
+
+  return [cwd, replCommand, args];
+}
 
 function startRepl(
   fileName: string,
@@ -14,9 +30,10 @@ function startRepl(
     return Promise.resolve(repl.stdin.write.bind(repl.stdin));
   } else {
     return new Promise(resolve => {
-      repl = execCmd('elm-repl', {
+      let [cwd, replCommand, args] = getReplAndArguments();
+      repl = utils.execCmd(replCommand, {
         fileName: fileName,
-        cmdArguments: [],
+        cmdArguments: args,
         showMessageOnError: true,
         onStart: () => resolve(repl.stdin.write.bind(repl.stdin)),
 
