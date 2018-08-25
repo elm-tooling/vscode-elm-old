@@ -258,6 +258,7 @@ The library is available under [MIT license](https://github.com/Krzysztof-Ciesla
 ## Maintainer(s)
 
 * Krzysztof Cieslak [@Krzysztof-Cieslak](https://github.com/Krzysztof-Cieslak)
+* Dave Thomas [@7sharp9](https://github.com/7sharp9)
 
 ## Past Maintainer(s)
 
