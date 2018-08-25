@@ -151,7 +151,7 @@ export function findProjAndElmVersion(dir: string): [string, string] {
 export function findProj(dir: string): string {
   if (fs.lstatSync(dir).isDirectory()) {
     const files = fs.readdirSync(dir);
-    const file = files.find((v, i) => v === 'elm-package.json');
+    const file = files.find((v, i) => v === 'elm-package.json' || v === 'elm.json');
     if (file !== undefined) {
       return dir + path.sep + file;
     }
