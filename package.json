@@ -74,7 +74,7 @@
         },
         "elm.makeCommand": {
           "type": "string",
-          "default": "elm",
+          "default": "elm make",
           "description": "Command to run when executing elm make, this is for versions of elm prior to 0.19."
         },
         "elm.compiler": {
