@@ -56,6 +56,7 @@ function send(editor: TextEditor, msg: string) {
   const // Multiline input has to have '\' at the end of each line
     inputMsg = msg.replace(/\n/g, '\\\n') + '\n';
 
+  replTerminal.sendText('\n', false); // workaround to avoid repl commands on the same line
   replTerminal.sendText(inputMsg, false);
 }
 
@@ -71,13 +72,11 @@ function sendFile(editor: vscode.TextEditor): void {
   send(editor, editor.document.getText());
 }
 
-let closeReplTerminalListener = function(terminal: vscode.Terminal) {
+vscode.window.onDidCloseTerminal((terminal) => {
   if (terminal.name === 'Elm repl') {
     replTerminal = undefined;
   }
-};
-
-vscode.window.onDidCloseTerminal(closeReplTerminalListener);
+});
 
 export function activateRepl(): vscode.Disposable[] {
   return [
