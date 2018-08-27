@@ -1,85 +1,62 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
-
 import * as utils from './elmUtils';
 import { TextEditor, window, workspace } from 'vscode';
 
-let repl = {} as utils.ExecutingCmd;
-let oc: vscode.OutputChannel = vscode.window.createOutputChannel('Elm REPL');
+let replTerminal: vscode.Terminal;
 
-function getReplAndArguments(): [string, string, string[]] {
+function getElmRepl(): string {
   const config: vscode.WorkspaceConfiguration = vscode.workspace.getConfiguration('elm');
   const dummyPath = path.join(vscode.workspace.rootPath, 'dummyfile');
-  const name: string = <string>config.get('makeOutput');
-  const repl018Command: string = 'elm-repl'
+  const repl018Command: string = 'elm-repl';
   const compiler: string = <string>config.get('compiler');
-  const [cwd, elmVersion] = utils.detectProjectRootAndElmVersion(dummyPath, vscode.workspace.rootPath)
-  const args018 = [];
-  const args019 = ['repl'];
-  const args = utils.isElm019(elmVersion) ? args019 : args018;
-  const replCommand = utils.isElm019(elmVersion) ? compiler : repl018Command;
-
-  return [cwd, replCommand, args];
+  const [cwd, elmVersion] = utils.detectProjectRootAndElmVersion(dummyPath, vscode.workspace.rootPath);
+  const replCommand = utils.isElm019(elmVersion) ? `${compiler} repl` : repl018Command;
+  return replCommand;
 }
 
-function startRepl(
-  fileName: string,
-  forceRestart = false,
-): Promise<(data: string) => void> {
-  if (repl.isRunning) {
-    return Promise.resolve(repl.stdin.write.bind(repl.stdin));
-  } else {
-    return new Promise(resolve => {
-      let [cwd, replCommand, args] = getReplAndArguments();
-      repl = utils.execCmd(replCommand, {
-        fileName: fileName,
-        cmdArguments: args,
-        showMessageOnError: true,
-        onStart: () => resolve(repl.stdin.write.bind(repl.stdin)),
+function isPowershell() {
+  const config: vscode.WorkspaceConfiguration = vscode.workspace.getConfiguration('elm');
+  const t: string = <string>config.get('terminal.integrated.shell.windows');
+  return t.toLowerCase().includes('powershell');
+}
 
-        // strip output text of leading '>'s and '|'s
-        onStdout: data => oc.append(data.replace(/^((>|\|)\s*)+/gm, '')),
 
-        onStderr: data => oc.append(data),
+function getReplLaunchCommands(replCommand: string): [string, string] {
+  if (utils.isWindows) {
+    if (isPowershell()) {
+      return [`cmd /c ${replCommand}`, 'clear'];
 
-        notFoundText: 'Install Elm from http://elm-lang.org/.',
-      });
+    } else {
+      return [`${replCommand}`, 'cls'];
+    }
+  } else { return [replCommand, 'clear']; }
+}
 
-      oc.show(vscode.ViewColumn.Three);
-    });
+function startRepl() {
+  try {
+    let replCommand = getElmRepl();
+    if (replTerminal !== undefined) { replTerminal.dispose(); }
+    replTerminal = window.createTerminal('Elm repl');
+    let [replLaunchCommand, clearCommand] = getReplLaunchCommands(replCommand);
+    replTerminal.sendText(clearCommand, true);
+    replTerminal.sendText(replLaunchCommand, true);
+    replTerminal.show(true);
+  } catch (error) {
+    vscode.window.showErrorMessage( 'Cannot start Elm REPL.');
   }
+
 }
 
-function stopRepl() {
-  if (repl.isRunning) {
-    repl.kill();
-    oc.clear();
-    oc.dispose();
-    vscode.window.showInformationMessage('Elm REPL stopped.');
-  } else {
-    vscode.window.showErrorMessage(
-      'Cannot stop Elm REPL. The REPL is not running.',
-    );
-  }
-}
 function send(editor: TextEditor, msg: string) {
   if (editor.document.languageId !== 'elm') {
     return;
   }
+  if (replTerminal === undefined) { startRepl(); }
+  const // Multiline input has to have '\' at the end of each line
+    inputMsg = msg.replace(/\n/g, '\\\n') + '\n';
 
-  startRepl(editor.document.fileName).then(writeToRepl => {
-    const // Multiline input has to have '\' at the end of each line
-      inputMsg = msg.replace(/\n/g, '\\\n') + '\n',
-      // Prettify input for display
-      displayMsg = '> ' + msg.replace(/\n/g, '\n| ') + '\n';
-
-    writeToRepl(inputMsg);
-    oc.append(displayMsg);
-
-    // when the output window is first shown it steals focus
-    // switch it back to the text document
-    window.showTextDocument(editor.document);
-  });
+  replTerminal.sendText(inputMsg, false);
 }
 
 function sendLine(editor: TextEditor) {
@@ -94,17 +71,21 @@ function sendFile(editor: vscode.TextEditor): void {
   send(editor, editor.document.getText());
 }
 
+let closeReplTerminalListener = function(terminal: vscode.Terminal) {
+  if (terminal.name === 'Elm repl') {
+    replTerminal = undefined;
+  }
+};
+
+vscode.window.onDidCloseTerminal(closeReplTerminalListener);
+
 export function activateRepl(): vscode.Disposable[] {
   return [
     vscode.commands.registerCommand('elm.replStart', () =>
-      startRepl(workspace.rootPath + '/x'),
+      startRepl(),
     ),
-    vscode.commands.registerCommand('elm.replStop', () => stopRepl()),
     vscode.commands.registerTextEditorCommand('elm.replSendLine', sendLine),
-    vscode.commands.registerTextEditorCommand(
-      'elm.replSendSelection',
-      sendSelection,
-    ),
+    vscode.commands.registerTextEditorCommand( 'elm.replSendSelection', sendSelection),
     vscode.commands.registerTextEditorCommand('elm.replSendFile', sendFile),
   ];
 }
