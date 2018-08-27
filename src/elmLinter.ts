@@ -59,7 +59,7 @@ function parseErrorsElm019(line) {
         details: problem.message
           .map(
             message =>
-              typeof message === 'string' ? message : message.string
+              typeof message === 'string' ? message : '#' + message.string + '#'
           )
           .join(''),
         region: problem.region,
