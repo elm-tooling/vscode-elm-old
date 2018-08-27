@@ -46,6 +46,59 @@ function elmMakeIssueToDiagnostic(issue: IElmIssue): vscode.Diagnostic {
   );
 }
 
+function parseErrorsElm019(errorObject) {
+  const returnLines = []
+
+  if (errorObject.type === 'compile-errors') {
+    errorObject.errors.forEach(error => {
+      const problems = error.problems.map(problem => ({
+        tag: 'error',
+        overview: problem.title,
+        subregion: '',
+        details: problem.message
+          .map(
+            message =>
+              typeof message === 'string' ? message : message.string
+          )
+          .join(''),
+        region: problem.region,
+        type: 'error',
+        file: error.path
+      }));
+
+      returnLines.push(...problems);
+    });
+  } else if (errorObject.type === 'error') {
+    const problem = {
+      tag: 'error',
+      overview: errorObject.title,
+      subregion: '',
+      details: errorObject.message
+        .map(
+          message =>
+            typeof message === 'string' ? message : message.string
+        )
+        .join(''),
+      region: {
+        start: {
+          line: 1,
+          column: 1
+        },
+        end: {
+          line: 1,
+          column: 1
+        }
+      },
+      type: 'error',
+      file: errorObject.path
+    };
+
+    returnLines.push(problem);
+  }
+
+  return returnLines
+}
+
 function checkForErrors(filename): Promise<IElmIssue[]> {
   return new Promise((resolve, reject) => {
     const config: vscode.WorkspaceConfiguration = vscode.workspace.getConfiguration(
@@ -71,66 +124,43 @@ function checkForErrors(filename): Promise<IElmIssue[]> {
     // output is actually optional
     // (fixed in https://github.com/Microsoft/vscode/commit/b4917afe9bdee0e9e67f4094e764f6a72a997c70,
     // but unreleased at this time)
-    const stderrlines = readline.createInterface({
-      input: make.stderr,
+    const errorLinesFromElmMake = readline.createInterface({
+      // elm 0.19 uses stderr, elm 0.18 uses stdout
+      input: utils.isElm019(elmVersion) ? make.stderr : make.stdout,
       output: undefined
     });
 
     const lines = [];
 
-    stderrlines.on('line', line => {
+    const elm018stderr: Buffer[] = [];
+
+    errorLinesFromElmMake.on('line', line => {
       const errorObject = JSON.parse(line);
-
-      if (errorObject.type === 'compile-errors') {
-        errorObject.errors.forEach(error => {
-          const problems = error.problems.map(problem => ({
-            tag: 'error',
-            overview: problem.title,
-            subregion: '',
-            details: problem.message
-              .map(
-                message =>
-                  typeof message === 'string' ? message : message.string
-              )
-              .join(''),
-            region: problem.region,
-            type: 'error',
-            file: error.path
-          }));
-
-          lines.push(...problems);
-        });
-      } else if (errorObject.type === 'error') {
-        const problem = {
-          tag: 'error',
-          overview: errorObject.title,
-          subregion: '',
-          details: errorObject.message
-            .map(
-              message =>
-                typeof message === 'string' ? message : message.string
-            )
-            .join(''),
-          region: {
-            start: {
-              line: 1,
-              column: 1
-            },
-            end: {
-              line: 1,
-              column: 1
-            }
-          },
-          type: 'error',
-          file: errorObject.path
-        };
-
-        lines.push(problem);
+      if (utils.isElm019(elmVersion)) {
+        const newLines = parseErrorsElm019(errorObject)
+        newLines.forEach(l => lines.push(l))
+      } else {
+        if (line.startsWith('Successfully generated')) {
+          // ignore compiler successes
+          return;
+        }
+        // elm make returns an array of issues
+        lines.push(...(<IElmIssue[]>errorObject))
       }
-    });
+    })
+
+    if (utils.isElm019(elmVersion) === false) {
+      // we listen to stderr for Elm 0.18
+      // as this is where a whole file issue would go
+      make.stderr.on('data', (data: Buffer) => {
+        if (data) {
+          elm018stderr.push(data)
+        }
+      })
+    }
 
     make.on('error', err => {
-      stderrlines.close();
+      errorLinesFromElmMake.close();
       if (err && err.code === 'ENOENT') {
         vscode.window.showInformationMessage(
           "The 'elm-make' compiler is not available.  Install Elm from http://elm-lang.org/."
@@ -142,8 +172,32 @@ function checkForErrors(filename): Promise<IElmIssue[]> {
     });
 
     make.on('close', (code, signal) => {
-      stderrlines.close();
-      resolve(lines);
+
+      errorLinesFromElmMake.close();
+
+      if (elm018stderr.length) {
+        let errorResult: IElmIssue = {
+          tag: 'error',
+          overview: '',
+          subregion: '',
+          details: elm018stderr.join(''),
+          region: {
+            start: {
+              line: 1,
+              column: 1,
+            },
+            end: {
+              line: 1,
+              column: 1,
+            },
+          },
+          type: 'error',
+          file: filename,
+        };
+        resolve([errorResult]);
+      } else {
+        resolve(lines);
+      }
     });
   });
 }
