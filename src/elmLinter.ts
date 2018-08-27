@@ -46,8 +46,9 @@ function elmMakeIssueToDiagnostic(issue: IElmIssue): vscode.Diagnostic {
   );
 }
 
-function parseErrorsElm019(errorObject) {
+function parseErrorsElm019(line) {
   const returnLines = []
+  const errorObject = JSON.parse(line);
 
   if (errorObject.type === 'compile-errors') {
     errorObject.errors.forEach(error => {
@@ -99,6 +100,15 @@ function parseErrorsElm019(errorObject) {
   return returnLines
 }
 
+function parseErrorsElm018(line) {
+  if (line.startsWith('Successfully generated')) {
+    // ignore compiler successes
+    return []
+  }
+  // elm make returns an array of issues
+  return (<IElmIssue[]>(JSON.parse(line)))
+}
+
 function checkForErrors(filename): Promise<IElmIssue[]> {
   return new Promise((resolve, reject) => {
     const config: vscode.WorkspaceConfiguration = vscode.workspace.getConfiguration(
@@ -135,17 +145,12 @@ function checkForErrors(filename): Promise<IElmIssue[]> {
     const elm018stderr: Buffer[] = [];
 
     errorLinesFromElmMake.on('line', line => {
-      const errorObject = JSON.parse(line);
       if (utils.isElm019(elmVersion)) {
-        const newLines = parseErrorsElm019(errorObject)
+        const newLines = parseErrorsElm019(line)
         newLines.forEach(l => lines.push(l))
       } else {
-        if (line.startsWith('Successfully generated')) {
-          // ignore compiler successes
-          return;
-        }
-        // elm make returns an array of issues
-        lines.push(...(<IElmIssue[]>errorObject))
+        const newLines = parseErrorsElm018(line)
+        newLines.forEach(l => lines.push(l))
       }
     })
 
