@@ -4,7 +4,7 @@ import * as vscode from 'vscode';
 
 import { IOracleResult, OracleAction } from './elmOracle';
 
-import { detectProjectRoot } from './elmUtils';
+import { detectProjectRoot, detectProjectRootAndElmVersion } from './elmUtils';
 
 interface Imports {
   module: string;
@@ -160,13 +160,16 @@ export function userProject(
   let imports: Imports[] = [];
   let results: IOracleResult[] = [];
 
-  const cwd = config['useWorkSpaceRootForElmRoot'] ? vscode.workspace.rootPath : detectProjectRoot(document.fileName) || vscode.workspace.rootPath
-
+  const [cwdTmp, elmVersion] = detectProjectRootAndElmVersion(document.fileName, vscode.workspace.rootPath);
+  const cwd = config['useWorkSpaceRootForElmRoot'] ? vscode.workspace.rootPath : cwdTmp;
   gCwd = cwd;
-  const elmPackageString: string = fs.readFileSync(
-    path.join(cwd, 'elm-package.json'),
-    'utf-8',
-  );
+  let elmPackageString: string;
+  if (elmVersion === '0.18') {
+    elmPackageString = fs.readFileSync(path.join(cwd, 'elm-package.json'), 'utf-8')
+  } else {
+    elmPackageString = fs.readFileSync(path.join(cwd, 'elm.json'), 'utf-8')
+  }
+
   const elmPackage = JSON.parse(elmPackageString);
   const srcDirs = elmPackage['source-directories']; // must use array notation for the key because of hyphen
   let allModules: Imports[] = [];
@@ -442,9 +445,9 @@ function localFunctions(
   let results: IOracleResult[] = [];
   let test = new RegExp(
     '^' +
-      (action === OracleAction.IsAutocomplete
-        ? currentWord.toLowerCase()
-        : currentWord + ' '),
+    (action === OracleAction.IsAutocomplete
+      ? currentWord.toLowerCase()
+      : currentWord + ' '),
   );
   let foundTypeAlias = false;
   let lookForTypeAlias = currentWord.substr(-1) === '.';
@@ -737,9 +740,9 @@ function localFunctions(
       if (
         toLowerOrHover(action, lines[i]).includes(
           'type alias ' +
-            (currentWord !== '[a-zA-Z]'
-              ? toLowerOrHover(action, currentWord)
-              : gOriginalWord.split('.')[1].trim()),
+          (currentWord !== '[a-zA-Z]'
+            ? toLowerOrHover(action, currentWord)
+            : gOriginalWord.split('.')[1].trim()),
         )
       ) {
         let j = 0;
