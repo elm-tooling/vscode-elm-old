@@ -16,9 +16,14 @@ function getElmRepl(): string {
 }
 
 function isPowershell() {
-  const config: vscode.WorkspaceConfiguration = vscode.workspace.getConfiguration('elm');
-  const t: string = <string>config.get('terminal.integrated.shell.windows');
-  return t.toLowerCase().includes('powershell');
+  try {
+    const config: vscode.WorkspaceConfiguration = vscode.workspace.getConfiguration('elm');
+    const t: string = <string>config.get('terminal.integrated.shell.windows');
+    return t.toLowerCase().includes('powershell');
+
+  } catch (error) {
+    return false;
+  }
 }
 
 
@@ -43,7 +48,7 @@ function startRepl() {
     replTerminal.sendText(replLaunchCommand, true);
     replTerminal.show(true);
   } catch (error) {
-    vscode.window.showErrorMessage( 'Cannot start Elm REPL.');
+    vscode.window.showErrorMessage('Cannot start Elm REPL. ' + error);
   }
 
 }
@@ -84,7 +89,7 @@ export function activateRepl(): vscode.Disposable[] {
       startRepl(),
     ),
     vscode.commands.registerTextEditorCommand('elm.replSendLine', sendLine),
-    vscode.commands.registerTextEditorCommand( 'elm.replSendSelection', sendSelection),
+    vscode.commands.registerTextEditorCommand('elm.replSendSelection', sendSelection),
     vscode.commands.registerTextEditorCommand('elm.replSendFile', sendFile),
   ];
 }
