@@ -1,3 +1,13 @@
+### 0.21.0 - 30.08.2018
+* Set elm-make as default makeCommand for 0.18 and earlier (by @jackfranklin)
+* Fix for Elm 0.19, find right project directory (by @norpan)
+* Fix linting for errors for Elm 0.18 (by @jackfranklin)
+* Changes REPL to use integrated terminal for interactivity (by @hakonrossebo)
+* Make compiler errors a little easier to read (by @norpan)
+* Separate example code for 0.18 and 0.19 (by @hakonrossebo)
+* Fixes to omit Elm Oracle for 0.19 and read elm.json (by @hakonrossebo)
+* Using terminal instead of output window to install packages for y/n (by @hakonrossebo)
+
 ### 0.20.0 - 24.08.2018
 * Snippets: Let expression indentation (elm-format) (by @andys8)
 * Add ability to configure elm-package locating. (by @jackfranklin)
