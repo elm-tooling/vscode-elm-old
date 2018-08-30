@@ -15,35 +15,13 @@ function getElmRepl(): string {
   return replCommand;
 }
 
-function isPowershell() {
-  try {
-    const config: vscode.WorkspaceConfiguration = vscode.workspace.getConfiguration('elm');
-    const t: string = <string>config.get('terminal.integrated.shell.windows');
-    return t.toLowerCase().includes('powershell');
-
-  } catch (error) {
-    return false;
-  }
-}
-
-
-function getReplLaunchCommands(replCommand: string): [string, string] {
-  if (utils.isWindows) {
-    if (isPowershell()) {
-      return [`cmd /c ${replCommand}`, 'clear'];
-
-    } else {
-      return [`${replCommand}`, 'cls'];
-    }
-  } else { return [replCommand, 'clear']; }
-}
 
 function startRepl() {
   try {
     let replCommand = getElmRepl();
     if (replTerminal !== undefined) { replTerminal.dispose(); }
     replTerminal = window.createTerminal('Elm repl');
-    let [replLaunchCommand, clearCommand] = getReplLaunchCommands(replCommand);
+    let [replLaunchCommand, clearCommand] = utils.getTerminalLaunchCommands(replCommand);
     replTerminal.sendText(clearCommand, true);
     replTerminal.sendText(replLaunchCommand, true);
     replTerminal.show(true);
