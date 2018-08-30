@@ -1,11 +1,9 @@
-import * as cp from 'child_process';
 import * as vscode from 'vscode';
 import * as path from 'path';
 import * as utils from './elmUtils';
 
 const request = require('request');
-
-let oc: vscode.OutputChannel = vscode.window.createOutputChannel('Elm Package');
+let packageTerminal: vscode.Terminal;
 
 function getInstallPackageCommand(packageName): string {
   const config: vscode.WorkspaceConfiguration = vscode.workspace.getConfiguration('elm');
@@ -44,7 +42,6 @@ function browsePackage(): Promise<void> {
           quickPickVersionOptions,
         )
         .then(selectedVersion => {
-          oc.show(vscode.ViewColumn.Three);
           let uri = selectedVersion
             ? vscode.Uri.parse(
               'https://package.elm-lang.org/packages/' +
@@ -95,15 +92,23 @@ function runInstall(): Thenable<void> {
     .then(items => vscode.window.showQuickPick(items, quickPickOptions))
     .then(value => {
       const packageName = value ? value.label : '';
-      oc.show(vscode.ViewColumn.Three);
-
-      let command = getInstallPackageCommand(packageName);
-      return utils.execCmd(command, {
-        onStdout: data => oc.append(data),
-        onStderr: data => oc.append(data),
-        showMessageOnError: true,
-      }).then(() => { });
+      return installPackageInTerminal(packageName)
     });
+}
+
+function installPackageInTerminal(packageToInstall: string) {
+  try {
+    let installPackageCommand = getInstallPackageCommand(packageToInstall);
+    if (packageTerminal !== undefined) { packageTerminal.dispose(); }
+    packageTerminal = vscode.window.createTerminal('Elm Package Install');
+    let [installPackageLaunchCommand, clearCommand] = utils.getTerminalLaunchCommands(installPackageCommand);
+    packageTerminal.sendText(clearCommand, true);
+    packageTerminal.sendText(installPackageLaunchCommand, true);
+    packageTerminal.show(false);
+  } catch (error) {
+    vscode.window.showErrorMessage('Cannot start Elm Package install. ' + error);
+  }
+
 }
 
 function getJSON(): Promise<any[]> {
@@ -129,6 +134,12 @@ function transformToQuickPickItems(packages: any[]): vscode.QuickPickItem[] {
     return { label: item, description: '', info: packages[item] };
   });
 }
+
+vscode.window.onDidCloseTerminal((terminal) => {
+  if (terminal.name === 'Elm Package Install') {
+    packageTerminal = undefined;
+  }
+});
 
 export function activatePackage(): vscode.Disposable[] {
   return [
