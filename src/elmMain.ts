@@ -20,6 +20,8 @@ import { ElmWorkspaceSymbolProvider } from './elmWorkspaceSymbols';
 import { configuration } from './elmConfiguration';
 
 const ELM_MODE: vscode.DocumentFilter = { language: 'elm', scheme: 'file' };
+const config: vscode.WorkspaceConfiguration = vscode.workspace.getConfiguration( 'elm');
+const disableLinter: boolean = <boolean>config.get('disableLinting');
 const elmAnalyseIssues: IElmIssue[] = [];
 const elmAnalyse = new ElmAnalyse(elmAnalyseIssues);
 // this method is called when your extension is activated
@@ -27,11 +29,13 @@ export function activate(ctx: vscode.ExtensionContext) {
   const elmFormatStatusBar = vscode.window.createStatusBarItem(
     vscode.StatusBarAlignment.Left,
   );
-  ctx.subscriptions.push(
-    vscode.workspace.onDidSaveTextDocument((document: vscode.TextDocument) => {
-      runLinter(document, elmAnalyse);
-    }),
-  );
+  if (!disableLinter) {
+    ctx.subscriptions.push(
+      vscode.workspace.onDidSaveTextDocument((document: vscode.TextDocument) => {
+        runLinter(document, elmAnalyse);
+      }),
+    );
+  }
   activateRepl().forEach((d: vscode.Disposable) => ctx.subscriptions.push(d));
   activateReactor().forEach((d: vscode.Disposable) =>
     ctx.subscriptions.push(d),

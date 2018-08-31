@@ -47,6 +47,11 @@
       "type": "object",
       "title": "Elm configuration",
       "properties": {
+        "elm.disableLinting": {
+          "type": "boolean",
+          "default": false,
+          "description": "Set this setting to true to disable linter if performance is degraded when another elm compiler is running."
+        },
         "elm.reactorHost": {
           "type": "string",
           "default": "127.0.0.1",
