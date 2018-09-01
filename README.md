@@ -251,7 +251,7 @@ Thank you for contributing!
 ## Contributing and copyright
 
 The project is hosted on [GitHub](https://github.com/Krzysztof-Cieslak/vscode-elm/) where you can [report issues](https://github.com/Krzysztof-Cieslak/vscode-elm/issues), fork
-the project and submit pull requests.
+the project and submit pull requests. Please read the [CONTRIBUTING](https://github.com/Krzysztof-Cieslak/vscode-elm/blob/master/CONTRIBUTING.md) document for more information.
 
 The library is available under [MIT license](https://github.com/Krzysztof-Cieslak/vscode-elm/blob/master/LICENSE.md), which allows modification and redistribution for both commercial and non-commercial purposes.
 
