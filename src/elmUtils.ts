@@ -53,8 +53,9 @@ export function execCmd
 
     const dummyPath = path.join(vscode.workspace.rootPath, 'dummyfile');
     const [cwdCurrent, elmVersion] = detectProjectRootAndElmVersion(fileName || dummyPath, workspace.rootPath);
+    const fullCommand = cmd + ' ' + (cmdArguments || []).join(' ');
     childProcess =
-      cp.exec(cmd + ' ' + (cmdArguments || []).join(' '), { cwd: cwdCurrent }, handleExit);
+      cp.exec(fullCommand, { cwd: cwdCurrent }, handleExit);
 
 
     childProcess.stdout.on('data', (data: Buffer) => {
