@@ -2,6 +2,8 @@ import * as cp from 'child_process';
 import * as path from 'path';
 import * as userProject from './elmUserProject';
 import * as vscode from 'vscode';
+import { askOracle } from './elmDelphi';
+import { isWindows } from './elmUtils';
 
 import { detectProjectRoot, pluginPath, detectProjectRootAndElmVersion } from './elmUtils';
 
@@ -72,6 +74,18 @@ export function GetOracleResults(
           }
         },
       );
+    } else if (elmVersion === '0.19') {
+      try {
+        const result: IOracleResult[] = [
+          ...askOracle(isWindows, cwd, fn, currentWord),
+          ...(config['userProjectIntellisense']
+            ? userProject.userProject(document, position, currentWord, action)
+            : []),
+        ];
+        resolve(result);
+      } catch (e) {
+        reject(e);
+      }
     } else {
       try {
         const result: IOracleResult[] = [
