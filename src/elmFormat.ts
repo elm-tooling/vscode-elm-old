@@ -80,7 +80,7 @@ function elmFormat(document: vscode.TextDocument) {
   const formatCommand: string = <string>config.get('formatCommand');
   const dummyPath = path.join(vscode.workspace.rootPath, 'dummyfile');
   const [_, elmVersion] = utils.detectProjectRootAndElmVersion(dummyPath, vscode.workspace.rootPath);
-  const args = utils.isElm019(elmVersion) ? ['--stdin', '--yes'] : ['--stdin', '--elm-version 0.18', '--yes'];
+  const args = utils.isElm019(elmVersion) ? ['--stdin', '--elm-version 0.19', '--yes'] : ['--stdin', '--elm-version 0.18', '--yes'];
   const options = {
     cmdArguments: args,
     notFoundText: 'Install Elm-format from https://github.com/avh4/elm-format',
