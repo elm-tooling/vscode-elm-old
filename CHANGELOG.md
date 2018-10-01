@@ -1,3 +1,9 @@
+### 0.22.0 - 01.10.2018
+* Fix a 0.18 elm-make configuration bug and support elm-format for 0.18 and 0.19 (by @hakonrossebo)
+* Setting and logic to disable linting (by @hakonrossebo)
+* Adds external package "oracle"-support for Elm 0.19 (by @r1sc)
+* Handle breaking change in elm-format (by @hakonrossebo)
+
 ### 0.21.0 - 30.08.2018
 * Set elm-make as default makeCommand for 0.18 and earlier (by @jackfranklin)
 * Fix for Elm 0.19, find right project directory (by @norpan)
