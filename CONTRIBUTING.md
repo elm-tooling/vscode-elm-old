@@ -117,7 +117,7 @@ in order to craft an excellent pull request:
 4. Install dependencies and make sure everything is building
 
   ```bash
-  yarn insall
+  yarn install
   yarn build
   ```
 
