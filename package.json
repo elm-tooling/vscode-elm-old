@@ -277,6 +277,16 @@
         "language": "elm",
         "path": "./snippets/elm.json"
       }
+    ],
+    "jsonValidation": [
+      {
+        "fileMatch": "elm.json",
+        "url": "./schemas/elm-package.schema.json"
+      },
+      {
+        "fileMatch": "elm-package.json",
+        "url": "./schemas/elm.schema.json"
+      }
     ]
   },
   "activationEvents": [
