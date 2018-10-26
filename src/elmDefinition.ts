@@ -3,113 +3,76 @@
 import * as vscode from 'vscode';
 
 import { ElmWorkspaceSymbolProvider } from './elmWorkspaceSymbols';
-import { SymbolInformation } from 'vscode';
-
-export function definitionLocation(
-  document: vscode.TextDocument,
-  position: vscode.Position,
-  workspaceSymbolProvider: ElmWorkspaceSymbolProvider,
-): Thenable<SymbolInformation> {
-  let wordRange = document.getWordRangeAtPosition(position);
-  let lineText = document.lineAt(position.line).text;
-  let word = wordRange ? document.getText(wordRange) : '';
-  let imports: { [key: string]: string[] } = document.getText().split('\n')
-    .filter(x => x.startsWith('import '))
-    .map(x => x.match(/import ([^\s]+)(?: as [^\s]+)?(?: exposing (\(.+\)))?/))
-    .filter(x => x)
-    .reduce((acc, matches) => {
-      const importedMembers = matches[2] || '()';
-      acc[matches[1]] = importedMembers === '(..)'
-        ? ['*'] : importedMembers.split(/[(),]/).map(x => x.trim()).filter(x => x !== '');
-      return acc;
-    }, {});
-
-  // also check keywords, in-string etc.
-  if (!wordRange || lineText.startsWith('--') || word.match(/^\d+.?\d+$/)) {
-    return Promise.resolve(null);
-  }
-
-  let lastWordPart = word.substring(word.lastIndexOf('.') + 1);
-  let wordContainerName = word.substring(0, word.lastIndexOf('.'));
-
-  return workspaceSymbolProvider.provideWorkspaceSymbols(lastWordPart, null).then(
-    symbols => {
-      if (symbols == null) {
-        return Promise.resolve(null);
-      }
-      let matchingSymbols = symbols
-        .filter(s => s.name === lastWordPart)
-        .map(s => {
-          const importedMembers = imports[s.containerName] || [];
-
-          return {
-            matchesExactly: wordContainerName && wordContainerName !== '' && s.containerName === wordContainerName,
-            inThisDocument: s.location.uri === document.uri,
-            matchesImportedName: importedMembers.indexOf(s.name) >= 0,
-            possibleMatch: importedMembers.indexOf('*') >= 0,
-            definition: s,
-          };
-        });
-
-      function* findMatch () {
-        yield matchingSymbols.find(m => m.matchesExactly);
-
-        yield matchingSymbols.find(m => m.inThisDocument);
-
-        yield matchingSymbols.find(m => m.matchesImportedName);
-
-        yield matchingSymbols.find(m => m.possibleMatch);
-
-        yield matchingSymbols[0];
-      }
-
-      for (let match of findMatch()) {
-        if (match) {
-          return match.definition;
-        }
-      }
-
-      return Promise.resolve(null);
-    },
-    err => {
-      return Promise.resolve(null);
-    },
-  );
-}
+import { ModuleParser, ImportStatement } from 'elm-module-parser';
 
 export class ElmDefinitionProvider implements vscode.DefinitionProvider {
   public constructor(
     private languagemode: vscode.DocumentFilter,
     private workspaceSymbolProvider: ElmWorkspaceSymbolProvider,
-  ) {}
+  ) { }
 
-  public provideDefinition(
+  public async provideDefinition(
     document: vscode.TextDocument,
     position: vscode.Position,
     token: vscode.CancellationToken,
-  ): Thenable<vscode.Location> {
-    return definitionLocation(
-      document,
-      position,
-      this.workspaceSymbolProvider,
-    ).then(
-      definitionInfo => {
-        if (definitionInfo == null || definitionInfo.location == null) {
-          return null;
+  ): Promise<vscode.Location> {
+    let wordRange = document.getWordRangeAtPosition(position);
+    let lineText = document.lineAt(position.line).text;
+    let word = wordRange ? document.getText(wordRange) : '';
+
+    if (!wordRange || lineText.startsWith('--') || word.match(/^\d+.?\d+$/)) {
+      return null;
+    }
+
+    try {
+      const parsedModule = ModuleParser(document.getText());
+
+      let symbolName = word.substring(word.lastIndexOf('.') + 1);
+      let moduleAlias = word.substring(0, word.lastIndexOf('.'));
+
+      const exactMatchingImport: ImportStatement = parsedModule.imports.find(i => {
+        if (moduleAlias === '') {
+          const matchedExposing = i.exposing.find(e => {
+            switch (e.type) {
+              case 'all':
+                return false;
+              default:
+                return e.name === symbolName;
+            }
+          });
+
+          return matchedExposing != null;
+        } else {
+          return i.alias === moduleAlias && i.module === moduleAlias;
         }
-        let definitionResource = definitionInfo.location.uri;
-        let pos = new vscode.Position(
-          definitionInfo.location.range.start.line,
-          0,
-        );
-        return new vscode.Location(definitionResource, pos);
-      },
-      err => {
-        if (err) {
-          console.log(err);
-        }
-        return Promise.resolve(null);
-      },
-    );
+      });
+
+      const moduleToSearch = exactMatchingImport != null
+        ? exactMatchingImport.module
+        : parsedModule.name;
+
+      const query = `${moduleToSearch}:${symbolName}`;
+
+      const exactMatch = await this.workspaceSymbolProvider.provideWorkspaceSymbols(query, token);
+
+      if (exactMatch.length > 0) {
+        return exactMatch[0].location;
+      } else if (moduleAlias === '') {
+        const allImported = parsedModule.imports.filter(i => i.exposing.find(e => e.type === 'all'));
+
+        // This could find non-exposed symbols
+        const fuzzyMatches = await Promise.all(allImported.map(i => {
+          return this.workspaceSymbolProvider.provideWorkspaceSymbols(`${i.module}:${symbolName}`, token);
+        }));
+
+        const firstFuzzy = fuzzyMatches.reduce((acc, x) => acc.concat(x), [])[0];
+
+        return firstFuzzy != null ? firstFuzzy.location : null;
+      } else {
+        return null;
+      }
+    } catch (error) {
+      return null;
+    }
   }
 }

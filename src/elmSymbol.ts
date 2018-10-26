@@ -1,25 +1,57 @@
 import * as vscode from 'vscode';
 
 import { Range, SymbolInformation, SymbolKind, TextDocument } from 'vscode';
+import { ModuleParser, Module, ImportStatement } from 'elm-module-parser';
 
 export class ElmSymbolProvider implements vscode.DocumentSymbolProvider {
   provideDocumentSymbols = (doc: TextDocument, _) =>
     Promise.resolve(processDocument(doc));
 }
 
-export function processDocument(doc: TextDocument) {
+export function processDocument(doc: TextDocument): vscode.SymbolInformation[] {
   const docRange = doc.validateRange(
     new Range(0, 0, Number.MAX_SAFE_INTEGER, Number.MAX_SAFE_INTEGER),
   );
-  const symbols = getSymbolsForRange(docRange, /^(?=\S)/m, 0, rootProcessor());
-  const moduleName = symbols.filter(x => x.kind === SymbolKind.Module).map(x => {
-    return x.name;
-  })[0];
 
-  return symbols.map(s => {
-    s.containerName = moduleName;
-    return s;
-  });
+  try {
+    const parsedModule = ModuleParser(doc.getText());
+
+    const symbols = getSymbolsForRange(docRange, /^(?=\S)/m, 0, rootProcessor());
+
+    const moduleTypes = parsedModule.types.map(t => {
+      if (t.type === 'custom-type') {
+        const constructorDefn = new SymbolInformation(
+          t.name, vscode.SymbolKind.Class, parsedModule.name,
+          new vscode.Location(doc.uri, new vscode.Position(t.location.line - 1, 0)),
+        );
+
+        return t.constructors.map(ctor => {
+          return new SymbolInformation(
+            ctor.name, vscode.SymbolKind.Class, parsedModule.name,
+            new vscode.Location(doc.uri, new vscode.Position(ctor.location.line - 1, 0)),
+          );
+        }).concat(constructorDefn);
+      } else {
+        return [new SymbolInformation(
+          t.name, vscode.SymbolKind.Class, parsedModule.name,
+          new vscode.Location(doc.uri, new vscode.Position(t.location.line - 1, 0)),
+        )];
+      }
+    }).reduce((acc: SymbolInformation[], c: SymbolInformation[]): SymbolInformation[] => acc.concat(c), []);
+
+    const moduleFunctions = parsedModule.functions.map(x => {
+      return new SymbolInformation(
+        x.name, vscode.SymbolKind.Function, parsedModule.name, new vscode.Location(doc.uri, doc.positionAt(x.location.offset)),
+      );
+    });
+
+    const allSymbols = moduleTypes.concat(moduleFunctions);
+
+    return allSymbols;
+  } catch (error) {
+    console.log(error);
+    return [];
+  }
 
   // -- Helper functions -- //
 
@@ -91,7 +123,7 @@ export function processDocument(doc: TextDocument) {
    *  with the given kind
    */
   function defaultProcessor(kind: SymbolKind): RangeProcessor {
-    return function([range, text]: [Range, string]): SymbolInformation[] {
+    return function ([range, text]: [Range, string]): SymbolInformation[] {
       const // this RegExp could be improved
         nameMatch = text.match(/^(([\w']+)|\(.*?\))\s*/),
         name = nameMatch && nameMatch[0];
@@ -135,7 +167,7 @@ export function processDocument(doc: TextDocument) {
       ['', defaultProcessor(SymbolKind.Variable)],
     ];
 
-    return function([range, text]) {
+    return function ([range, text]) {
       for (let [prefix, processor] of types) {
         if (text.startsWith(prefix)) {
           return processor([range, text.substr(prefix.length).trim()]);

@@ -313,6 +313,7 @@
   "dependencies": {
     "@types/mocha": "^2.2.32",
     "@types/node": "^6.0.50",
+    "elm-module-parser": "0.0.5",
     "elm-oracle": "^0.2.0",
     "mocha": "^2.3.3",
     "prettier": "^1.5.3",

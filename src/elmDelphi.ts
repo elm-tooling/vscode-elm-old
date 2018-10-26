@@ -40,8 +40,8 @@ declare global {
   }
 }
 
-Array.prototype.flatMap = function <T, V>(predicate: (value: T) => V[]) {
-  return [].concat.apply([], this.map(predicate));
+Array.prototype.flatMap = function <T, V>(mapper: (value: T) => V[]) {
+  return [].concat.apply([], this.map(mapper));
 };
 
 
