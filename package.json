@@ -298,9 +298,9 @@
   ],
   "main": "./out/src/elmMain",
   "scripts": {
-    "vscode:prepublish": "tsc -p ./",
+    "vscode:prepublish": "npm run build",
     "build": "tsc -p ./",
-    "compile": "tsc -watch -p ./",
+    "watch": "tsc -watch -p ./",
     "lint": "tslint \"src/**/*.ts\" && prettier \"{src,__{tests,mocks}__}/**/*.ts\"  --single-quote --trailing-comma all --list-different",
     "test": "node ./node_modules/vscode/bin/test",
     "postinstall": "node ./node_modules/vscode/bin/install",
