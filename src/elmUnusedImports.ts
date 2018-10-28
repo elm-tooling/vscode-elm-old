@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 import { ModuleParser, Module, ImportStatement } from 'elm-module-parser';
 import { getGlobalModuleResolver } from './elmModuleResolver';
 
-let unusedImportDiagnostics: vscode.DiagnosticCollection;
+let unusedImportDiagnostics: vscode.DiagnosticCollection = null;
 
 export function activateUnusedImportsDiagnostics() {
   if (unusedImportDiagnostics != null) {
@@ -35,8 +35,13 @@ export function activateUnusedImportsDiagnostics() {
 }
 
 export async function detectUnusedImports(document: vscode.TextDocument): Promise<vscode.Diagnostic[]> {
+  const parsedModule: Module = await getGlobalModuleResolver().moduleFromPath(document.fileName);
+
+  if (parsedModule == null) {
+    return [];
+  }
+
   const moduleText = document.getText();
-  const parsedModule = ModuleParser(moduleText);
 
   const lastImport = parsedModule.imports[parsedModule.imports.length - 1];
   const nextNewline = (offset: number) => moduleText.indexOf('\n', offset);
@@ -148,7 +153,7 @@ async function importAllDiagnostics(
     return [];
   }
 
-  const importedModule: Module = await getGlobalModuleResolver().loadModule(importDeclaration.module);
+  const importedModule: Module = await getGlobalModuleResolver().moduleFromName(importDeclaration.module);
 
   // Since we can't load the module we don't want to say anything about it.
   if (importedModule === null) {

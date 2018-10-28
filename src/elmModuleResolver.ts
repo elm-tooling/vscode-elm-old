@@ -5,13 +5,9 @@ import { ModuleParser, Module } from 'elm-module-parser';
 
 export class ElmModuleResolver {
   private sourceDirs = null;
-  private cache = {};
+  private cache: { [modulePath: string]: { parsed: Module, moduleName: string, modulePath: string } } = {};
 
-  public async loadModule(moduleName: string): Promise<Module> {
-    if (this.cache[moduleName] != null) {
-      return this.cache[moduleName];
-    }
-
+  public async moduleFromName(moduleName: string): Promise<Module | null> {
     if (this.sourceDirs == null) {
       this.sourceDirs = await this.getSourceDirs();
     }
@@ -19,28 +15,21 @@ export class ElmModuleResolver {
     const possiblePaths = this.moduleNameToPaths(moduleName);
 
     for (const modulePath of possiblePaths) {
-      const textDocument = await this.openTextDocumentOrNull(modulePath);
+      const module = this.moduleFromPath(modulePath);
 
-      if (textDocument != null) {
-        try {
-          const parsedModule = ModuleParser(textDocument.getText());
-
-          this.cache[modulePath] = {
-            modulePath: modulePath,
-            moduleName: moduleName,
-            parsed: parsedModule,
-          };
-          return parsedModule;
-        } catch (error) {
-          return null;
-        }
+      if (module != null) {
+        return module;
       }
     }
 
     return null;
   }
 
-  public async moduleFromPath(modulePath: string): Promise<Module> {
+  public async moduleFromPath(modulePath: string): Promise<Module | null> {
+    if (this.cache[modulePath]) {
+      return this.cache[modulePath].parsed;
+    }
+
     const textDocument = await this.openTextDocumentOrNull(modulePath);
 
     if (textDocument != null) {
@@ -73,7 +62,7 @@ export class ElmModuleResolver {
     return this;
   }
 
-  private async openTextDocumentOrNull(documentPath: string): Promise<vscode.TextDocument> {
+  private async openTextDocumentOrNull(documentPath: string): Promise<vscode.TextDocument | null> {
     try {
       return await vscode.workspace.openTextDocument(documentPath);
     } catch (error) {
