@@ -19,6 +19,7 @@ import { ElmSymbolProvider } from './elmSymbol';
 import { ElmWorkspaceSymbolProvider } from './elmWorkspaceSymbols';
 import { configuration } from './elmConfiguration';
 import { getGlobalModuleResolver } from './elmModuleResolver';
+import { activateUnusedImportsDiagnostics } from './elmUnusedImports';
 
 const ELM_MODE: vscode.DocumentFilter = { language: 'elm', scheme: 'file' };
 const config: vscode.WorkspaceConfiguration = vscode.workspace.getConfiguration('elm');
@@ -49,6 +50,8 @@ export function activate(ctx: vscode.ExtensionContext) {
       }),
     );
   }
+
+  activateUnusedImportsDiagnostics();
 
   activateRepl().forEach((d: vscode.Disposable) => ctx.subscriptions.push(d));
   activateReactor().forEach((d: vscode.Disposable) =>

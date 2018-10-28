@@ -2,6 +2,38 @@ import * as vscode from 'vscode';
 import { ModuleParser, Module, ImportStatement } from 'elm-module-parser';
 import { getGlobalModuleResolver } from './elmModuleResolver';
 
+let unusedImportDiagnostics: vscode.DiagnosticCollection;
+
+export function activateUnusedImportsDiagnostics() {
+  if (unusedImportDiagnostics != null) {
+    return;
+  }
+
+  unusedImportDiagnostics = vscode.languages.createDiagnosticCollection('elm');
+
+  const isEnabled = (): boolean => vscode.workspace.getConfiguration('elm').get('enableUnusedImports', true);
+
+  vscode.workspace.onDidChangeConfiguration(() => {
+    if (!isEnabled()) {
+      unusedImportDiagnostics.clear();
+    }
+  });
+
+  vscode.workspace.onDidSaveTextDocument((document: vscode.TextDocument) => {
+    if (!isEnabled()) {
+      return;
+    }
+
+    detectUnusedImports(document)
+      .then(unusedImports => {
+        unusedImportDiagnostics.set(document.uri, unusedImports);
+      })
+      .catch(() => {
+        unusedImportDiagnostics.set(document.uri, undefined);
+      });
+  });
+}
+
 export async function detectUnusedImports(document: vscode.TextDocument): Promise<vscode.Diagnostic[]> {
   const moduleText = document.getText();
   const parsedModule = ModuleParser(moduleText);

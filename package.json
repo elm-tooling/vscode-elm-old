@@ -52,6 +52,11 @@
           "default": false,
           "description": "Set this setting to true to disable linter if performance is degraded when another elm compiler is running."
         },
+        "elm.enableUnusedImports": {
+          "type": "boolean",
+          "default": true,
+          "description": "Set this to true to enable detecting unused imports."
+        },
         "elm.reactorHost": {
           "type": "string",
           "default": "127.0.0.1",

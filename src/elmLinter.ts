@@ -3,7 +3,6 @@ import * as readline from 'readline';
 import * as utils from './elmUtils';
 import * as vscode from 'vscode';
 import { ElmAnalyse } from './elmAnalyse';
-import { detectUnusedImports } from './elmUnusedImports';
 
 export interface IElmIssueRegion {
   start: { line: number; column: number };
@@ -209,8 +208,6 @@ function checkForErrors(filename): Promise<IElmIssue[]> {
 }
 
 let compileErrors: vscode.DiagnosticCollection;
-let unusedImportDiagnostics: vscode.DiagnosticCollection;
-
 export function runLinter(
   document: vscode.TextDocument,
   elmAnalyse: ElmAnalyse,
@@ -226,20 +223,6 @@ export function runLinter(
   } else {
     compileErrors.clear();
   }
-
-  if (unusedImportDiagnostics == null) {
-    unusedImportDiagnostics = vscode.languages.createDiagnosticCollection('elm');
-  }
-
-  detectUnusedImports(document)
-    .then(unusedImports => {
-      if (unusedImports.length > 0) {
-        unusedImportDiagnostics.set(document.uri, unusedImports);
-      }
-    })
-    .catch(() => {
-      unusedImportDiagnostics.set(document.uri, undefined);
-    });
 
   checkForErrors(uri.fsPath)
     .then((compilerErrors: IElmIssue[]) => {
