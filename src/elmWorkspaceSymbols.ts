@@ -1,29 +1,31 @@
 import * as vscode from 'vscode';
-
 import { TextDocument, SymbolInformation } from 'vscode';
-import { processDocument } from './elmSymbol';
+import { extractDocumentSymbols } from './elmSymbol';
+import { getGlobalModuleResolver } from './elmModuleResolver';
 
-const config = vscode.workspace.getConfiguration('elm');
+export interface ModuleSymbols {
+  modulePath: string;
+  moduleName: string;
+  symbols: vscode.SymbolInformation[];
+}
 
 export class ElmWorkspaceSymbolProvider
   implements vscode.WorkspaceSymbolProvider {
 
-  private symbolsByContainer: { [key: string]: vscode.SymbolInformation[] };
-  private symbolsByUri: { [uri: string]: vscode.SymbolInformation[] };
-  private symbolsByName: { [symbolName: string]: vscode.SymbolInformation[] };
+  private symbolsByModule: { [moduleName: string]: ModuleSymbols };
+  private symbolsByPath: { [modulePath: string]: ModuleSymbols };
   private workspaceIndexTime: Date;
 
   public constructor(private languagemode: vscode.DocumentFilter) {
-    this.symbolsByContainer = {};
-    this.symbolsByUri = {};
-    this.symbolsByName = {};
+    this.symbolsByModule = {};
+    this.symbolsByPath = {};
   }
 
-  public async update(document: TextDocument) {
+  public async update(document: TextDocument): Promise<void> {
     await this.indexDocument(document);
   }
 
-  public async provideWorkspaceSymbols(query: string, token: vscode.CancellationToken): Promise<vscode.SymbolInformation[]> {
+  public async provideWorkspaceSymbols(query: string, cancelToken: vscode.CancellationToken): Promise<vscode.SymbolInformation[]> {
     const [sourceModule, symbolName] = query.split(':', 2);
 
     if (symbolName == null) {
@@ -38,28 +40,30 @@ export class ElmWorkspaceSymbolProvider
       await this.indexWorkspace();
     }
 
-    const matchingSymbols: SymbolInformation[] = Object.keys(this.symbolsByName).reduce((acc: SymbolInformation[], k: string) => {
-      if (k.startsWith(symbol)) {
-        return acc.concat(this.symbolsByName[k]);
-      } else {
-        return acc;
-      }
-    }, []);
+    // When searching entire workspace use a lenient search
+    const matchingSymbols = Object.keys(this.symbolsByPath).map((modulePath: string) => {
+      const cached = this.symbolsByPath[modulePath];
+      return cached.symbols.filter(s => s.name.startsWith(symbol));
+    }).reduce((acc, x) => acc.concat(x), []);
 
     return matchingSymbols;
   }
 
   private async searchModuleSymbols(moduleName: string, symbol: string): Promise<SymbolInformation[]> {
-    const containerSymbols = this.symbolsByContainer[moduleName];
+    const moduleSymbols = this.symbolsByModule[moduleName];
 
-    if (containerSymbols == null) {
+    if (moduleSymbols == null) {
       await this.indexModule(moduleName);
     }
 
-    return (this.symbolsByContainer[moduleName] || []).filter(s => s.name === symbol);
+    // When searching by module use exact match
+    return this.symbolsByModule[moduleName] == null
+      ? []
+      : this.symbolsByModule[moduleName].symbols.filter(s => s.name === symbol);
   }
 
-  private async indexWorkspace() {
+  private async indexWorkspace(): Promise<void> {
+    const config = vscode.workspace.getConfiguration('elm');
     const maxFiles = config['maxWorkspaceFilesUsedBySymbols'];
     const excludePattern = config['workspaceFilesExcludePatternUsedBySymbols'];
     const workspaceFiles = await vscode.workspace.findFiles('**/*.elm', excludePattern, maxFiles);
@@ -84,13 +88,31 @@ export class ElmWorkspaceSymbolProvider
     }
   }
 
-  private async indexDocument(document: TextDocument) {
-    const updatedSymbols = await processDocument(document);
+  private async indexDocument(document: TextDocument): Promise<void> {
+    const documentPath = document.fileName;
+    getGlobalModuleResolver().invalidatePath(documentPath);
 
-    updatedSymbols.forEach(s => {
-      this.symbolsByContainer[s.containerName] = (this.symbolsByContainer[s.containerName] || []).concat(s);
-      this.symbolsByUri[s.location.uri.toString()] = (this.symbolsByContainer[s.location.uri.toString()] || []).concat(s);
-      this.symbolsByName[s.name] = (this.symbolsByName[s.name] || []).concat(s);
-    });
+    // Clean up existing index entries for this document
+    const existingSymbols = this.symbolsByPath[documentPath];
+
+    if (existingSymbols != null) {
+      delete this.symbolsByModule[existingSymbols.moduleName];
+    }
+
+    delete this.symbolsByPath[documentPath];
+
+    const newSymbols = await extractDocumentSymbols(document);
+
+    if (newSymbols.length > 0) {
+      const moduleName = newSymbols[0].containerName;
+
+      this.symbolsByPath[documentPath] = {
+        symbols: newSymbols,
+        modulePath: documentPath,
+        moduleName: moduleName,
+      };
+
+      this.symbolsByModule[moduleName] = this.symbolsByPath[documentPath];
+    }
   }
 }
