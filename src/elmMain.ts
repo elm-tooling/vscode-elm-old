@@ -18,9 +18,10 @@ import { ElmHoverProvider } from './elmInfo';
 import { ElmSymbolProvider } from './elmSymbol';
 import { ElmWorkspaceSymbolProvider } from './elmWorkspaceSymbols';
 import { configuration } from './elmConfiguration';
+import { getGlobalModuleResolver } from './elmModuleResolver';
 
 const ELM_MODE: vscode.DocumentFilter = { language: 'elm', scheme: 'file' };
-const config: vscode.WorkspaceConfiguration = vscode.workspace.getConfiguration( 'elm');
+const config: vscode.WorkspaceConfiguration = vscode.workspace.getConfiguration('elm');
 const disableLinter: boolean = <boolean>config.get('disableLinting');
 const elmAnalyseIssues: IElmIssue[] = [];
 const elmAnalyse = new ElmAnalyse(elmAnalyseIssues);
@@ -29,6 +30,18 @@ export function activate(ctx: vscode.ExtensionContext) {
   const elmFormatStatusBar = vscode.window.createStatusBarItem(
     vscode.StatusBarAlignment.Left,
   );
+
+  vscode.workspace.onDidSaveTextDocument((document: vscode.TextDocument) => {
+    if (
+      document === vscode.window.activeTextEditor.document &&
+      document.languageId === ELM_MODE.language &&
+      document.uri.scheme === ELM_MODE.scheme
+    ) {
+      getGlobalModuleResolver().invalidatePath(document.fileName);
+      workspaceProvider.update(document);
+    }
+  });
+
   if (!disableLinter) {
     ctx.subscriptions.push(
       vscode.workspace.onDidSaveTextDocument((document: vscode.TextDocument) => {
@@ -36,6 +49,7 @@ export function activate(ctx: vscode.ExtensionContext) {
       }),
     );
   }
+
   activateRepl().forEach((d: vscode.Disposable) => ctx.subscriptions.push(d));
   activateReactor().forEach((d: vscode.Disposable) =>
     ctx.subscriptions.push(d),
@@ -100,16 +114,6 @@ export function activate(ctx: vscode.ExtensionContext) {
   ctx.subscriptions.push(
     vscode.languages.registerWorkspaceSymbolProvider(workspaceProvider),
   );
-
-  vscode.workspace.onDidSaveTextDocument((document: vscode.TextDocument) => {
-    if (
-      document === vscode.window.activeTextEditor.document &&
-      document.languageId === ELM_MODE.language &&
-      document.uri.scheme === ELM_MODE.scheme
-    ) {
-      workspaceProvider.update(document);
-    }
-  });
 }
 
 export function deactivate() {

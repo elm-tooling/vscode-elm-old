@@ -4,6 +4,7 @@ import * as vscode from 'vscode';
 
 import { ElmWorkspaceSymbolProvider } from './elmWorkspaceSymbols';
 import { ModuleParser, ImportStatement } from 'elm-module-parser';
+import { getGlobalModuleResolver } from './elmModuleResolver';
 
 export class ElmDefinitionProvider implements vscode.DefinitionProvider {
   public constructor(
@@ -25,7 +26,7 @@ export class ElmDefinitionProvider implements vscode.DefinitionProvider {
     }
 
     try {
-      const parsedModule = ModuleParser(document.getText());
+      const parsedModule = await getGlobalModuleResolver().moduleFromPath(document.fileName);
 
       let symbolName = word.substring(word.lastIndexOf('.') + 1);
       let moduleAlias = word.substring(0, word.lastIndexOf('.'));

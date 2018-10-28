@@ -1,88 +1,6 @@
 import * as vscode from 'vscode';
-import * as path from 'path';
-import * as fs from 'fs';
-import { ModuleParser, Module } from 'elm-module-parser';
-
-class ModuleResolver {
-  private sourceDirs = null;
-  private cache = {};
-
-  public async loadModule(moduleName: string): Promise<Module> {
-    if (this.cache[moduleName] != null) {
-      return this.cache[moduleName];
-    }
-
-    if (this.sourceDirs == null) {
-      this.sourceDirs = await this.getSourceDirs();
-    }
-
-    const moduleNameAsPath = moduleName.replace(/[.]/g, path.sep);
-
-    for (const d of this.sourceDirs) {
-      const textDocument = await this.openTextDocumentOrNull(path.join(d, `${moduleNameAsPath}.elm`));
-
-      if (textDocument != null) {
-        try {
-          const parsedModule = ModuleParser(textDocument.getText());
-          this.cache[moduleName] = parsedModule;
-          return parsedModule;
-        } catch (error) {
-          return null;
-        }
-      }
-    }
-
-    return null;
-  }
-
-  private async openTextDocumentOrNull(documentPath: string): Promise<vscode.TextDocument> {
-    try {
-      return await vscode.workspace.openTextDocument(documentPath);
-    } catch (error) {
-      return null;
-    }
-  }
-
-  private async getSourceDirs(): Promise<string[]> {
-    // vscode.workspace.getConfiguration('elm').workspaceConfig['useWorkSpaceRootForElmRoot']
-
-    const workingDir = vscode.workspace.rootPath;
-
-    const readFile = (fileName: string): Promise<string> => {
-      return new Promise((resolve, reject) => {
-        fs.readFile(fileName, (err, data) => {
-          if (err) {
-            return reject(err);
-          } else {
-            return resolve(data.toString('utf-8'));
-          }
-        });
-      });
-    };
-
-    const loadElmProjectOrNull = async (projectFilePath: string): Promise<any> => {
-      try {
-        return JSON.parse(await readFile(projectFilePath));
-      } catch (error) {
-        return null;
-      }
-    };
-
-    const elm18Package = path.join(workingDir, 'elm-package.json');
-    const elm19Package = path.join(workingDir, 'elm.json');
-
-    const elmProject = await loadElmProjectOrNull(elm19Package) || await loadElmProjectOrNull(elm18Package);
-
-    if (elmProject == null) {
-      return [workingDir];
-    } else {
-      const sourceDirs: string[] = elmProject['source-directories'];
-      return sourceDirs.map(d => path.join(workingDir, d));
-    }
-  }
-}
-
-const moduleResolver = new ModuleResolver();
+import { ModuleParser, Module, ImportStatement } from 'elm-module-parser';
+import { getGlobalModuleResolver } from './elmModuleResolver';
 
 export async function detectUnusedImports(document: vscode.TextDocument): Promise<vscode.Diagnostic[]> {
   const moduleText = document.getText();
@@ -91,7 +9,7 @@ export async function detectUnusedImports(document: vscode.TextDocument): Promis
   const lastImport = parsedModule.imports[parsedModule.imports.length - 1];
   const nextNewline = (offset: number) => moduleText.indexOf('\n', offset);
   const nextNewLineAfterImports = nextNewline(lastImport.location.offset);
-  let textAfterImports = moduleText.substr(nextNewLineAfterImports);
+  const textAfterImports = moduleText.substr(nextNewLineAfterImports);
 
   // This is used to lazily execute the regex over the text to find a suitable match
   function* matchesAfterImports(matcherRegex: string): IterableIterator<RegExpExecArray> {
@@ -103,149 +21,178 @@ export async function detectUnusedImports(document: vscode.TextDocument): Promis
     }
   }
 
-  const escapeDots = (value: string) => {
-    return value.replace(/[.]/g, '[.]');
-  };
-
-  const unusedImportDiagnostics = await Promise.all(parsedModule.imports.map(async (importDeclaration): Promise<vscode.Diagnostic[]> => {
+  const diagnosticsByImport = await Promise.all(parsedModule.imports.map(async (importDeclaration): Promise<vscode.Diagnostic[]> => {
     const importRange = new vscode.Range(
       document.positionAt(importDeclaration.location.offset),
       document.positionAt(importDeclaration.location.offset));
 
-    const importDiag = (message: string) => {
+    const makeDiag = (message: string) => {
       return new vscode.Diagnostic(importRange, message, vscode.DiagnosticSeverity.Information);
     };
 
-    /* No imports specified. Using fully qualified module or alias.
-     *
-     * import List.Extra
-     * List.Extra.last [ 1, 2, 3 ]
-     *
-     * import List.Extra as LE
-     * LE.last [ 1, 2, 3]
-     *
-     */
     const requiresQualifiedName = importDeclaration.exposing.length === 0;
 
     if (requiresQualifiedName) {
-      const matchesIterable = matchesAfterImports(
-        `[^.\\w](${escapeDots(importDeclaration.alias || importDeclaration.module)}[.]\\w)`);
-
-      // force full evaluation of iterable
-      const matches = [...matchesIterable];
-
-      if (matches.length > 0) {
-        return [];
-      }
-
-      return [
-        importDiag(`${importDeclaration.module} is not used.`),
-      ];
+      return qualifiedNameRequiredDiagnostics(importDeclaration, matchesAfterImports, makeDiag);
     }
 
-    if (importDeclaration.alias != null) {
-      const aliasMatchesIterable = matchesAfterImports(
-        `[^.\\w](${importDeclaration.alias})[.]`);
-      const aliasMatches = [...aliasMatchesIterable];
+    const aliasDiag = aliasDiagnostics(importDeclaration, matchesAfterImports, makeDiag);
 
-      if (aliasMatches.length > 0) {
-        return [];
-      }
+    const pickedImportDiag = await pickedImportsDiagnostics(importDeclaration, matchesAfterImports, makeDiag);
 
-      return [
-        importDiag(`Alias ${importDeclaration.alias} is not used.`),
-      ];
-    }
+    const importsAllDiag = await importAllDiagnostics(importDeclaration, matchesAfterImports, makeDiag);
 
-    /* Imports specific functions or Types
-     *
-     * import Modules.Api exposing (makeThingRequest, GetThingResult(..), ThatThing)
-     * case result of
-     * OkResult thing ->
-     * ...
-     *
-     * foo : Int -> ThatThing
-     * foo a = makeThingRequest a
-     */
-    const pickedImports = importDeclaration.exposing.find(e => e.type !== 'all') != null;
+    return aliasDiag.concat(pickedImportDiag).concat(importsAllDiag);
+  }));
 
-    if (pickedImports) {
-      return importDeclaration.exposing.map(pickedImport => {
-        if (pickedImport.type === 'all') {
-          return null;
-        } else if (pickedImport.type === 'function' || pickedImport.type === 'constructor' || pickedImport.type === 'type') {
-          const nameMatchesIterable = matchesAfterImports(pickedImport.name);
+  return diagnosticsByImport.reduce((acc, x) => acc.concat(x), []);
+}
+
+/** No imports specified.Using fully qualified module or alias.
+ *
+ * import List.Extra
+ * List.Extra.last[1, 2, 3]
+ *
+ * import List.Extra as LE
+ * LE.last[1, 2, 3]
+ *
+ */
+function qualifiedNameRequiredDiagnostics(
+  importDeclaration: ImportStatement,
+  matcher: (regex: string) => IterableIterator<RegExpExecArray>,
+  makeDiagnostic: (message: string) => vscode.Diagnostic,
+): vscode.Diagnostic[] {
+  const identifierToSearch = importDeclaration.alias || importDeclaration.module;
+
+  const matchesIterable = matcher(
+    `[^.\\w](${escapeDots(identifierToSearch)}[.]\\w)`);
+
+  for (const m of matchesIterable) {
+    // test if the match is legitimate
+    return [];
+  }
+
+  return [makeDiagnostic(`${identifierToSearch} is not used.`)];
+}
+
+/**
+ * import List.Extra as LE
+ * LE.last[1, 2, 3]
+ *
+ */
+function aliasDiagnostics(
+  importDeclaration: ImportStatement,
+  matcher: (regex: string) => IterableIterator<RegExpExecArray>,
+  makeDiagnostic: (message: string) => vscode.Diagnostic,
+): vscode.Diagnostic[] {
+  if (importDeclaration.alias == null) {
+    return [];
+  }
+
+  const aliasMatchesIterable = matcher(
+    `[^.\\w](${importDeclaration.alias})[.]`);
+
+  for (const m of aliasMatchesIterable) {
+    // test if the match is legitimate
+    return [];
+  }
+
+  return [makeDiagnostic(`Alias ${importDeclaration.alias} is not used.`)];
+}
+
+/** Imports all from module.
+ *
+ * import List.Extra exposing (..)
+ * last [ 1, 2, 3 ]
+ */
+async function importAllDiagnostics(
+  importDeclaration: ImportStatement,
+  matcher: (regex: string) => IterableIterator<RegExpExecArray>,
+  makeDiagnostic: (message: string) => vscode.Diagnostic,
+): Promise<vscode.Diagnostic[]> {
+  const importsAll = importDeclaration.exposing.find(e => e.type === 'all') != null;
+
+  if (!importsAll) {
+    return [];
+  }
+
+  const importedModule: Module = await getGlobalModuleResolver().loadModule(importDeclaration.module);
+
+  // Since we can't load the module we don't want to say anything about it.
+  if (importedModule === null) {
+    return [];
+  }
+
+  const anyImportedNameIsUsed = (): boolean => {
+    for (const exposed of importedModule.exposing) {
+      if (exposed.type === 'all') {
+        // If all things are exposed then do ANY names appear in this modules?
+        for (let n of iterateModuleNames(importedModule)) {
+          const nameMatchesIterable = matcher(n);
           const nameMatches = [...nameMatchesIterable];
 
           if (nameMatches.length > 0) {
-            return null;
+            return true;
           }
-
-          return importDiag(`${pickedImport.name} is not used.`);
-        } else {
-          const _exhaustiveCheck: never = pickedImport;
         }
-      }).filter(x => x != null);
+
+        return false;
+      } else if (exposed.type === 'constructor' || exposed.type === 'function' || exposed.type === 'type') {
+        const nameMatchesIterable = matcher(exposed.name);
+        const nameMatches = [...nameMatchesIterable];
+        return nameMatches.length > 0;
+      } else {
+        const _exhaustiveCheck: never = exposed;
+      }
     }
 
-    /* Imports all from module.
-     *
-     * import List.Extra exposing (..)
-     * last [ 1, 2, 3 ]
-     */
-    const importsAll = importDeclaration.exposing.find(e => e.type === 'all') != null;
+    return false;
+  };
 
-    if (importsAll) {
-      const getImportsAllDiagnostics = async (): Promise<vscode.Diagnostic[]> => {
-        const importedModule: Module = await moduleResolver.loadModule(importDeclaration.module);
+  if (!anyImportedNameIsUsed()) {
+    return [makeDiagnostic(`${importDeclaration.module} is not used.`)];
+  }
 
-        // Since we can't load the module we don't want to say anything about it.
-        if (importedModule === null) {
-          return [];
-        }
+  return [];
+}
 
-        const anyImportedNameIsUsed = (): boolean => {
-          for (const exposed of importedModule.exposing) {
-            if (exposed.type === 'all') {
-              // If all things are exposed then do ANY names appear in this modules?
-              for (let n of iterateModuleNames(importedModule)) {
-                const nameMatchesIterable = matchesAfterImports(n);
-                const nameMatches = [...nameMatchesIterable];
+/**Imports specific functions or types
+ *
+ * import Modules.Api exposing (makeThingRequest, GetThingResult(..), ThatThing)
+ * case result of
+ * OkResult thing ->
+ * ...
+ *
+ * foo : Int -> ThatThing
+ * foo a = makeThingRequest a
+ */
+async function pickedImportsDiagnostics(
+  importDeclaration: ImportStatement,
+  matcher: (regex: string) => IterableIterator<RegExpExecArray>,
+  makeDiagnostic: (message: string) => vscode.Diagnostic,
+): Promise<vscode.Diagnostic[]> {
+  for (const pickedImport of importDeclaration.exposing) {
+    if (pickedImport.type === 'all') {
+      continue;
+    } else if (pickedImport.type === 'function' || pickedImport.type === 'constructor' || pickedImport.type === 'type') {
+      const nameMatchesIterable = matcher(pickedImport.name);
 
-                if (nameMatches.length > 0) {
-                  return true;
-                }
-              }
+      let matchFound = false;
+      for (const n of nameMatchesIterable) {
+        // TODO: verify the match is correct
+        matchFound = true;
+        break;
+      }
 
-              return false;
-            } else if (exposed.type === 'constructor' || exposed.type === 'function' || exposed.type === 'type') {
-              const nameMatchesIterable = matchesAfterImports(exposed.name);
-              const nameMatches = [...nameMatchesIterable];
-              return nameMatches.length > 0;
-            } else {
-              const _exhaustiveCheck: never = exposed;
-            }
-          }
-
-          return false;
-        };
-
-        if (anyImportedNameIsUsed()) {
-          return [];
-        }
-
-        return [
-          importDiag(`${importDeclaration.module} is not used.`),
-        ];
-      };
-
-      return getImportsAllDiagnostics();
+      if (!matchFound) {
+        return [makeDiagnostic(`${pickedImport.name} is not used.`)];
+      }
+    } else {
+      const _exhaustiveCheck: never = pickedImport;
     }
+  }
 
-    return [];
-  }));
-
-  return unusedImportDiagnostics.reduce((acc, x) => acc.concat(x), []);
+  return [];
 }
 
 function* iterateModuleNames(module: Module) {
@@ -266,4 +213,8 @@ function* iterateModuleNames(module: Module) {
       const _exhaustiveCheck: never = t;
     }
   }
+}
+
+function escapeDots(value: string) {
+  return value.replace(/[.]/g, '[.]');
 }

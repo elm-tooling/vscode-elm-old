@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 
 import { SymbolInformation, TextDocument } from 'vscode';
 import { ModuleParser } from 'elm-module-parser';
+import { getGlobalModuleResolver } from './elmModuleResolver';
 
 export class ElmSymbolProvider implements vscode.DocumentSymbolProvider {
   public async provideDocumentSymbols(doc: TextDocument, _) {
@@ -9,9 +10,11 @@ export class ElmSymbolProvider implements vscode.DocumentSymbolProvider {
   }
 }
 
-export function processDocument(doc: TextDocument): vscode.SymbolInformation[] {
+export async function processDocument(doc: TextDocument): Promise<vscode.SymbolInformation[]> {
   try {
-    const parsedModule = ModuleParser(doc.getText());
+    const parsedModule = await getGlobalModuleResolver()
+      .invalidatePath(doc.fileName)
+      .moduleFromPath(doc.fileName);
 
     const moduleTypes = parsedModule.types.map(t => {
       if (t.type === 'custom-type') {
