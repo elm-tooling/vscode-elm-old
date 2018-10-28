@@ -91,8 +91,20 @@ export async function detectUnusedImports(document: vscode.TextDocument): Promis
   const lastImport = parsedModule.imports[parsedModule.imports.length - 1];
   const nextNewline = (offset: number) => moduleText.indexOf('\n', offset);
   const nextNewLineAfterImports = nextNewline(lastImport.location.offset);
-  const nameAppearsAfterImports = (name: string): boolean => {
-    return moduleText.includes(name, nextNewLineAfterImports);
+  let textAfterImports = moduleText.substr(nextNewLineAfterImports);
+
+  // This is used to lazily execute the regex over the text to find a suitable match
+  function* matchesAfterImports(matcherRegex: string): IterableIterator<RegExpExecArray> {
+    const matcher = new RegExp(matcherRegex, 'g');
+
+    let match: RegExpExecArray = null;
+    while (match = matcher.exec(textAfterImports)) {
+      yield match;
+    }
+  }
+
+  const escapeDots = (value: string) => {
+    return value.replace(/[.]/g, '[.]');
   };
 
   const unusedImportDiagnostics = await Promise.all(parsedModule.imports.map(async (importDeclaration): Promise<vscode.Diagnostic[]> => {
@@ -111,11 +123,18 @@ export async function detectUnusedImports(document: vscode.TextDocument): Promis
      *
      * import List.Extra as LE
      * LE.last [ 1, 2, 3]
+     *
      */
     const requiresQualifiedName = importDeclaration.exposing.length === 0;
 
     if (requiresQualifiedName) {
-      if (nameAppearsAfterImports(`${importDeclaration.alias || importDeclaration.module}.`)) {
+      const matchesIterable = matchesAfterImports(
+        `[^.\\w](${escapeDots(importDeclaration.alias || importDeclaration.module)}[.]\\w)`);
+
+      // force full evaluation of iterable
+      const matches = [...matchesIterable];
+
+      if (matches.length > 0) {
         return [];
       }
 
@@ -125,7 +144,11 @@ export async function detectUnusedImports(document: vscode.TextDocument): Promis
     }
 
     if (importDeclaration.alias != null) {
-      if (nameAppearsAfterImports(`${importDeclaration.alias}.`)) {
+      const aliasMatchesIterable = matchesAfterImports(
+        `[^.\\w](${importDeclaration.alias})[.]`);
+      const aliasMatches = [...aliasMatchesIterable];
+
+      if (aliasMatches.length > 0) {
         return [];
       }
 
@@ -151,7 +174,10 @@ export async function detectUnusedImports(document: vscode.TextDocument): Promis
         if (pickedImport.type === 'all') {
           return null;
         } else if (pickedImport.type === 'function' || pickedImport.type === 'constructor' || pickedImport.type === 'type') {
-          if (nameAppearsAfterImports(pickedImport.name)) {
+          const nameMatchesIterable = matchesAfterImports(pickedImport.name);
+          const nameMatches = [...nameMatchesIterable];
+
+          if (nameMatches.length > 0) {
             return null;
           }
 
@@ -183,14 +209,19 @@ export async function detectUnusedImports(document: vscode.TextDocument): Promis
             if (exposed.type === 'all') {
               // If all things are exposed then do ANY names appear in this modules?
               for (let n of iterateModuleNames(importedModule)) {
-                if (nameAppearsAfterImports(n)) {
+                const nameMatchesIterable = matchesAfterImports(n);
+                const nameMatches = [...nameMatchesIterable];
+
+                if (nameMatches.length > 0) {
                   return true;
                 }
               }
 
               return false;
             } else if (exposed.type === 'constructor' || exposed.type === 'function' || exposed.type === 'type') {
-              return nameAppearsAfterImports(exposed.name);
+              const nameMatchesIterable = matchesAfterImports(exposed.name);
+              const nameMatches = [...nameMatchesIterable];
+              return nameMatches.length > 0;
             } else {
               const _exhaustiveCheck: never = exposed;
             }
