@@ -22,19 +22,19 @@ export async function extractDocumentSymbols(doc: TextDocument): Promise<vscode.
       if (t.type === 'custom-type') {
         const constructorDefn = new SymbolInformation(
           t.name, vscode.SymbolKind.Class, parsedModule.name,
-          new vscode.Location(doc.uri, new vscode.Position(t.location.line - 1, 0)),
+          new vscode.Location(doc.uri, doc.positionAt(t.location.start.offset)),
         );
 
         return t.constructors.map(ctor => {
           return new SymbolInformation(
             ctor.name, vscode.SymbolKind.Class, parsedModule.name,
-            new vscode.Location(doc.uri, new vscode.Position(ctor.location.line - 1, 0)),
+            new vscode.Location(doc.uri, doc.positionAt(ctor.location.start.offset)),
           );
         }).concat(constructorDefn);
       } else if (t.type === 'type-alias') {
         const typeAliasSymbol = new SymbolInformation(
           t.name, vscode.SymbolKind.Class, parsedModule.name,
-          new vscode.Location(doc.uri, new vscode.Position(t.location.line - 1, 0)),
+          new vscode.Location(doc.uri, doc.positionAt(t.location.start.offset)),
         );
 
         return [typeAliasSymbol];
@@ -44,16 +44,16 @@ export async function extractDocumentSymbols(doc: TextDocument): Promise<vscode.
       }
     }).reduce((acc: SymbolInformation[], c: SymbolInformation[]): SymbolInformation[] => acc.concat(c), []);
 
-    const moduleFunctions = parsedModule.functions.map(f => {
+    const moduleFunctions = parsedModule.function_declarations.map(f => {
       return new SymbolInformation(
         f.name, vscode.SymbolKind.Function, parsedModule.name,
-        new vscode.Location(doc.uri, new vscode.Position(f.location.line - 1, 0)),
+        new vscode.Location(doc.uri, doc.positionAt(f.location.start.offset)),
       );
     });
 
     const moduleDefn = new SymbolInformation(
       parsedModule.name, vscode.SymbolKind.Module, parsedModule.name,
-      new vscode.Location(doc.uri, new vscode.Position(0, 0)),
+      new vscode.Location(doc.uri, doc.positionAt(parsedModule.location.start.offset)),
     );
 
     const allSymbols = moduleTypes.concat(moduleFunctions).concat(moduleDefn);

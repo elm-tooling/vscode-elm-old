@@ -45,8 +45,8 @@ export async function detectUnusedImports(document: vscode.TextDocument): Promis
 
   const lastImport = parsedModule.imports[parsedModule.imports.length - 1];
   const nextNewline = (offset: number) => moduleText.indexOf('\n', offset);
-  const nextNewLineAfterImports = nextNewline(lastImport.location.offset);
-  const textAfterImports = moduleText.substr(nextNewLineAfterImports);
+  const offsetAfterImports = nextNewline(lastImport.location.end.offset);
+  const textAfterImports = moduleText.substr(offsetAfterImports);
 
   // This is used to lazily execute the regex over the text to find a suitable match
   function* matchesAfterImports(matcherRegex: string): IterableIterator<RegExpExecArray> {
@@ -60,8 +60,8 @@ export async function detectUnusedImports(document: vscode.TextDocument): Promis
 
   const diagnosticsByImport = await Promise.all(parsedModule.imports.map(async (importDeclaration): Promise<vscode.Diagnostic[]> => {
     const importRange = new vscode.Range(
-      document.positionAt(importDeclaration.location.offset),
-      document.positionAt(importDeclaration.location.offset));
+      document.positionAt(importDeclaration.location.start.offset),
+      document.positionAt(importDeclaration.location.end.offset));
 
     const makeDiag = (message: string) => {
       return new vscode.Diagnostic(importRange, message, vscode.DiagnosticSeverity.Information);
@@ -147,9 +147,7 @@ async function importAllDiagnostics(
   matcher: (regex: string) => IterableIterator<RegExpExecArray>,
   makeDiagnostic: (message: string) => vscode.Diagnostic,
 ): Promise<vscode.Diagnostic[]> {
-  const importsAll = importDeclaration.exposing.find(e => e.type === 'all') != null;
-
-  if (!importsAll) {
+  if (!importDeclaration.exposes_all) {
     return [];
   }
 
@@ -161,20 +159,22 @@ async function importAllDiagnostics(
   }
 
   const anyImportedNameIsUsed = (): boolean => {
-    for (const exposed of importedModule.exposing) {
-      if (exposed.type === 'all') {
-        // If all things are exposed then do ANY names appear in this modules?
-        for (let n of iterateModuleNames(importedModule)) {
-          const nameMatchesIterable = matcher(n);
-          const nameMatches = [...nameMatchesIterable];
+    if (importedModule.exposes_all) {
+      // If all things are exposed then do ANY names appear in this modules?
+      for (let n of iterateModuleNames(importedModule)) {
+        const nameMatchesIterable = matcher(n);
+        const nameMatches = [...nameMatchesIterable];
 
-          if (nameMatches.length > 0) {
-            return true;
-          }
+        if (nameMatches.length > 0) {
+          return true;
         }
+      }
 
-        return false;
-      } else if (exposed.type === 'constructor' || exposed.type === 'function' || exposed.type === 'type') {
+      return false;
+    }
+
+    for (const exposed of importedModule.exposing) {
+      if (exposed.type === 'constructor' || exposed.type === 'function' || exposed.type === 'type') {
         const nameMatchesIterable = matcher(exposed.name);
         const nameMatches = [...nameMatchesIterable];
         return nameMatches.length > 0;
@@ -209,9 +209,7 @@ async function pickedImportsDiagnostics(
   makeDiagnostic: (message: string) => vscode.Diagnostic,
 ): Promise<vscode.Diagnostic[]> {
   for (const pickedImport of importDeclaration.exposing) {
-    if (pickedImport.type === 'all') {
-      continue;
-    } else if (pickedImport.type === 'function' || pickedImport.type === 'constructor' || pickedImport.type === 'type') {
+    if (pickedImport.type === 'function' || pickedImport.type === 'constructor' || pickedImport.type === 'type') {
       const nameMatchesIterable = matcher(pickedImport.name);
 
       let matchFound = false;
@@ -233,7 +231,7 @@ async function pickedImportsDiagnostics(
 }
 
 function* iterateModuleNames(module: Module) {
-  for (let f of module.functions) {
+  for (let f of module.function_declarations) {
     yield f.name;
   }
 

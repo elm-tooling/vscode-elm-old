@@ -33,14 +33,7 @@ export class ElmDefinitionProvider implements vscode.DefinitionProvider {
 
       const exactMatchingImport: ImportStatement = parsedModule.imports.find(i => {
         if (moduleAlias === '') {
-          const matchedExposing = i.exposing.find(e => {
-            switch (e.type) {
-              case 'all':
-                return false;
-              default:
-                return e.name === symbolName;
-            }
-          });
+          const matchedExposing = i.exposing.find(e => e.name === symbolName);
 
           return matchedExposing != null;
         } else {
@@ -59,7 +52,7 @@ export class ElmDefinitionProvider implements vscode.DefinitionProvider {
       if (exactMatch.length > 0) {
         return exactMatch[0].location;
       } else if (moduleAlias === '') {
-        const allImported = parsedModule.imports.filter(i => i.exposing.find(e => e.type === 'all'));
+        const allImported = parsedModule.imports.filter(i => i.exposes_all);
 
         // This could find non-exposed symbols
         const fuzzyMatches = await Promise.all(allImported.map(i => {
