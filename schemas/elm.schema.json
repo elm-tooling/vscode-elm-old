@@ -19,11 +19,6 @@
     "packageSpecificProperties": {
       "type": "object",
       "properties": {
-        "type": {
-          "description": "Specifies if your project will be a package or an application",
-          "type": "string",
-          "enum": ["package"]
-        },
         "name": {
           "description": "The name of your package.",
           "type": "string",
@@ -64,16 +59,12 @@
           "description": "A list of elm dependencies that your package uses only for testing.",
           "$ref": "#/definitions/rangeDependency"
         }
-      }
+      },
+      "required": [ "name", "license", "summary", "version", "elm-version", "exposed-modules","dependencies", "test-dependencies" ]
     },
     "applicationSpecificProperties": {
       "type": "object",
       "properties": {
-        "type": {
-          "description": "Specifies if your project will be a package or an application",
-          "type": "string",
-          "enum": ["application"]
-        },
         "source-directories": {
           "description": "A list of directories that will be used to build your project.",
           "type": "array",
@@ -97,7 +88,8 @@
             "indirect": {
               "$ref": "#/definitions/exactDependency"
             }
-          }
+          },
+          "required": [ "direct", "indirect" ]
         },
         "test-dependencies": {
           "description": "A list of elm dependencies that your project uses only for testing.",
@@ -109,13 +101,42 @@
             "indirect": {
               "$ref": "#/definitions/exactDependency"
             }
-          }
+          },
+          "required": [ "direct", "indirect" ]
         }
+      },
+      "required": [ "source-directories", "elm-version","dependencies", "test-dependencies" ]
+    }
+  },
+  "properties": {
+    "type": {
+      "description": "Specifies if your project will be a package or an application",
+      "type": "string",
+      "enum": ["application", "package"]
+    }
+  },
+  "if": {
+    "properties": {
+      "type": {
+        "enum": ["package"]
       }
     }
   },
-  "oneOf": [
-    { "$ref": "#/definitions/applicationSpecificProperties" },
-    { "$ref": "#/definitions/packageSpecificProperties" }
-  ]
+  "then": {
+    "$ref": "#/definitions/packageSpecificProperties"
+  },
+  "else": {
+    "if": {
+      "properties": {
+        "type": {
+          "enum": ["application"]
+        }
+      }
+    },
+    "then": {
+      "$ref": "#/definitions/applicationSpecificProperties"
+    },
+    "else": {}
+  },
+  "required": ["type"]
 }
