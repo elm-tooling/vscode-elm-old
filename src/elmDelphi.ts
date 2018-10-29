@@ -50,21 +50,26 @@ function readFile(filePath: string) {
 }
 
 function parseImports(elmCode: string) {
-  let regex = /^import\s+([\w\.]+)(?:\s+as\s+(\w+))?(?:\s+exposing\s+\(((?:[\w\.]+(?:,\s*)?)+)\))?$/gm;
-  let imports = [];
+  return elmCode
+    .split('\n')
+    .filter(x => x.startsWith('import '))
+    .map(x => x.match(/import ([^\s]+)(?: as ([^\s]+))?(?: exposing (\(.+\)))?/))
+    .filter(x => x != null)
+    .map(matches => {
+      const importedMembers = matches[3];
+      const exposed = importedMembers === undefined
+        ? null
+        : importedMembers
+          .split(/[(),]/)
+          .map(x => x.trim())
+          .filter(x => x !== '');
 
-  let myArray;
-  while ((myArray = regex.exec(elmCode)) !== null) {
-    const moduleName = myArray[1];
-    const alias = myArray[2];
-    const exposing = myArray[3];
-    imports.push({
-      moduleName: moduleName,
-      alias: alias || moduleName,
-      exposed: exposing === undefined ? null : exposing.split(',').map(str => str.trim()),
+      return {
+        moduleName: matches[1],
+        alias: matches[2] || matches[1],
+        exposed: exposed,
+      };
     });
-  }
-  return imports;
 }
 
 function getAllDependenciesFromElmJson(elmPath: string) {

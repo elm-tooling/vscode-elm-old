@@ -20,7 +20,7 @@ export function definitionLocation(
     .reduce((acc, matches) => {
       const importedMembers = matches[2] || '()';
       acc[matches[1]] = importedMembers === '(..)'
-        ? ['*'] : importedMembers.split(/[(),]/).map(x => x.trim()).filter(x => x === '');
+        ? ['*'] : importedMembers.split(/[(),]/).map(x => x.trim()).filter(x => x !== '');
       return acc;
     }, {});
 
