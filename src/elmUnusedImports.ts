@@ -28,7 +28,7 @@ export function activateUnusedImportsDiagnostics() {
       .then(unusedImports => {
         unusedImportDiagnostics.set(document.uri, unusedImports);
       })
-      .catch(() => {
+      .catch(error => {
         unusedImportDiagnostics.set(document.uri, undefined);
       });
   });
@@ -156,7 +156,7 @@ async function importAllDiagnostics(
   const importedModule: Module = await getGlobalModuleResolver().moduleFromName(importDeclaration.module);
 
   // Since we can't load the module we don't want to say anything about it.
-  if (importedModule === null) {
+  if (importedModule == null) {
     return [];
   }
 
