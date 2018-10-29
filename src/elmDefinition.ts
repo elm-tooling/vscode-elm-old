@@ -43,7 +43,7 @@ export class ElmDefinitionProvider implements vscode.DefinitionProvider {
 
           return matchedExposing != null;
         } else {
-          return i.alias === moduleAlias && i.module === moduleAlias;
+          return i.alias === moduleAlias || i.module === moduleAlias;
         }
       });
 
