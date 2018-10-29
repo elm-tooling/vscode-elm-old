@@ -281,11 +281,11 @@
     "jsonValidation": [
       {
         "fileMatch": "elm.json",
-        "url": "./schemas/elm-package.schema.json"
+        "url": "./schemas/elm.schema.json"
       },
       {
         "fileMatch": "elm-package.json",
-        "url": "./schemas/elm.schema.json"
+        "url": "./schemas/elm-package.schema.json"
       }
     ]
   },
@@ -304,7 +304,8 @@
     "onCommand:elm.browsePackage",
     "onCommand:elm.analyseStart",
     "onCommand:elm.analyseStop",
-    "onCommand:elm.clean"
+    "onCommand:elm.clean",
+    "onLanguage:json"
   ],
   "main": "./out/src/elmMain",
   "scripts": {
@@ -318,12 +319,13 @@
   },
   "devDependencies": {
     "typescript": "^2.4.0",
-    "vscode": "1.1.0"
+    "vscode": "1.1.21"
   },
   "dependencies": {
     "@types/mocha": "^2.2.32",
     "@types/node": "^6.0.50",
     "elm-oracle": "^0.2.0",
+    "jsonc-parser": "^2.0.2",
     "mocha": "^2.3.3",
     "prettier": "^1.5.3",
     "request": "^2.69.0",
