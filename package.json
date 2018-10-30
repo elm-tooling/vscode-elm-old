@@ -87,6 +87,16 @@
           "default": "elm",
           "description": "Command to run when executing elm compiler and its sub commands like make, repl etc, this is for versions of elm 0.19+"
         },
+        "elm.elmTestCompiler": {
+          "type": "string",
+          "default": "elm-test",
+          "description": "Command to run when executing elm make on test files, for Elm 0.19 using elm-test 0.19.0-beta11 or later."
+        },
+        "elm.elmTestFileMatcher": {
+          "type": "string",
+          "default": "tests/",
+          "description": "A string to match against your test files, for Elm 0.19. Only useful if you don't put your tests into tests/."
+        },
         "elm.makeSpecialFile": {
           "type": "string",
           "default": "",
