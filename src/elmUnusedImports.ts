@@ -59,9 +59,7 @@ export async function detectUnusedImports(document: vscode.TextDocument): Promis
   }
 
   const diagnosticsByImport = await Promise.all(parsedModule.imports.map(async (importDeclaration): Promise<vscode.Diagnostic[]> => {
-    const importRange = new vscode.Range(
-      document.positionAt(importDeclaration.location.start.offset),
-      document.positionAt(importDeclaration.location.end.offset));
+    const importRange = locationToRange(importDeclaration.location);
 
     const makeDiag = (message: string, range?: vscode.Range) => {
       return new vscode.Diagnostic(range || importRange, message, vscode.DiagnosticSeverity.Information);
@@ -85,7 +83,9 @@ export async function detectUnusedImports(document: vscode.TextDocument): Promis
   return diagnosticsByImport.reduce((acc, x) => acc.concat(x), []);
 }
 
-/** No imports specified.Using fully qualified module or alias.
+/**No items exposed from referenced module.
+ *
+ * Requires alias or fully qualified module name usage.
  *
  * import List.Extra
  * List.Extra.last[1, 2, 3]
