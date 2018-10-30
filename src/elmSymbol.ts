@@ -12,9 +12,11 @@ export function processDocument(doc: TextDocument) {
     new Range(0, 0, Number.MAX_SAFE_INTEGER, Number.MAX_SAFE_INTEGER),
   );
   const symbols = getSymbolsForRange(docRange, /^(?=\S)/m, 0, rootProcessor());
-  const moduleName = symbols.filter(x => x.kind === SymbolKind.Module).map(x => {
-    return x.name;
-  })[0];
+  const moduleName = symbols
+    .filter(x => x.kind === SymbolKind.Module)
+    .map(x => {
+      return x.name;
+    })[0];
 
   return symbols.map(s => {
     s.containerName = moduleName;
@@ -113,7 +115,14 @@ export function processDocument(doc: TextDocument) {
   function moduleProcessor([range, text]) {
     const matches = text.match(/^[A-Z][a-zA-Z0-9_.]*/);
     if (matches[0]) {
-      return [new SymbolInformation(matches[0], SymbolKind.Module, new Range(range.start, docRange.end), doc.uri)];
+      return [
+        new SymbolInformation(
+          matches[0],
+          SymbolKind.Module,
+          new Range(range.start, docRange.end),
+          doc.uri,
+        ),
+      ];
     } else {
       return [];
     }

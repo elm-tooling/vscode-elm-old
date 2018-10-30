@@ -6,9 +6,14 @@ const request = require('request');
 let packageTerminal: vscode.Terminal;
 
 function getInstallPackageCommand(packageName): string {
-  const config: vscode.WorkspaceConfiguration = vscode.workspace.getConfiguration('elm');
+  const config: vscode.WorkspaceConfiguration = vscode.workspace.getConfiguration(
+    'elm',
+  );
   const dummyPath = path.join(vscode.workspace.rootPath, 'dummyfile');
-  const [_, elmVersion] = utils.detectProjectRootAndElmVersion(dummyPath, vscode.workspace.rootPath)
+  const [_, elmVersion] = utils.detectProjectRootAndElmVersion(
+    dummyPath,
+    vscode.workspace.rootPath,
+  );
   const args018 = 'elm-package install ' + packageName + ' --yes';
   const args019 = 'elm install ' + packageName;
   const args = utils.isElm019(elmVersion) ? args019 : args018;
@@ -25,7 +30,6 @@ function browsePackage(): Promise<void> {
     matchOnDescription: false,
     placeHolder: 'Choose a version, or press <esc> to browse the latest',
   };
-
 
   return getJSON()
     .then(transformToPackageQuickPickItems)
@@ -44,25 +48,25 @@ function browsePackage(): Promise<void> {
         .then(selectedVersion => {
           let uri = selectedVersion
             ? vscode.Uri.parse(
-              'https://package.elm-lang.org/packages/' +
-              selectedPackage.label +
-              '/' +
-              selectedVersion.label,
-            )
+                'https://package.elm-lang.org/packages/' +
+                  selectedPackage.label +
+                  '/' +
+                  selectedVersion.label,
+              )
             : vscode.Uri.parse(
-              'https://package.elm-lang.org/packages/' +
-              selectedPackage.label +
-              '/latest',
-            );
+                'https://package.elm-lang.org/packages/' +
+                  selectedPackage.label +
+                  '/latest',
+              );
           vscode.commands.executeCommand('vscode.open', uri);
-        }).then(() => { });
+        })
+        .then(() => {});
     });
 }
 
 interface ElmPackageQuickPickItem extends vscode.QuickPickItem {
   info: any;
 }
-
 
 function transformToPackageQuickPickItems(
   packages: any[],
@@ -92,23 +96,29 @@ function runInstall(): Thenable<void> {
     .then(items => vscode.window.showQuickPick(items, quickPickOptions))
     .then(value => {
       const packageName = value ? value.label : '';
-      return installPackageInTerminal(packageName)
+      return installPackageInTerminal(packageName);
     });
 }
 
 function installPackageInTerminal(packageToInstall: string) {
   try {
     let installPackageCommand = getInstallPackageCommand(packageToInstall);
-    if (packageTerminal !== undefined) { packageTerminal.dispose(); }
+    if (packageTerminal !== undefined) {
+      packageTerminal.dispose();
+    }
     packageTerminal = vscode.window.createTerminal('Elm Package Install');
-    let [installPackageLaunchCommand, clearCommand] = utils.getTerminalLaunchCommands(installPackageCommand);
+    let [
+      installPackageLaunchCommand,
+      clearCommand,
+    ] = utils.getTerminalLaunchCommands(installPackageCommand);
     packageTerminal.sendText(clearCommand, true);
     packageTerminal.sendText(installPackageLaunchCommand, true);
     packageTerminal.show(false);
   } catch (error) {
-    vscode.window.showErrorMessage('Cannot start Elm Package install. ' + error);
+    vscode.window.showErrorMessage(
+      'Cannot start Elm Package install. ' + error,
+    );
   }
-
 }
 
 function getJSON(): Promise<any[]> {
@@ -135,7 +145,7 @@ function transformToQuickPickItems(packages: any[]): vscode.QuickPickItem[] {
   });
 }
 
-vscode.window.onDidCloseTerminal((terminal) => {
+vscode.window.onDidCloseTerminal(terminal => {
   if (terminal.name === 'Elm Package Install') {
     packageTerminal = undefined;
   }

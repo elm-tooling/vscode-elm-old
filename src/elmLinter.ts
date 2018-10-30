@@ -4,6 +4,7 @@ import * as path from 'path';
 import * as utils from './elmUtils';
 import * as vscode from 'vscode';
 import * as elmTest from './elmTest';
+
 import { ElmAnalyse } from './elmAnalyse';
 
 export interface IElmIssueRegion {
@@ -49,7 +50,7 @@ function elmMakeIssueToDiagnostic(issue: IElmIssue): vscode.Diagnostic {
 }
 
 function parseErrorsElm019(line) {
-  const returnLines = []
+  const returnLines = [];
   const errorObject = JSON.parse(line);
 
   if (errorObject.type === 'compile-errors') {
@@ -61,12 +62,14 @@ function parseErrorsElm019(line) {
         details: problem.message
           .map(
             message =>
-              typeof message === 'string' ? message : '#' + message.string + '#'
+              typeof message === 'string'
+                ? message
+                : '#' + message.string + '#',
           )
           .join(''),
         region: problem.region,
         type: 'error',
-        file: error.path
+        file: error.path,
       }));
 
       returnLines.push(...problems);
@@ -78,37 +81,36 @@ function parseErrorsElm019(line) {
       subregion: '',
       details: errorObject.message
         .map(
-          message =>
-            typeof message === 'string' ? message : message.string
+          message => (typeof message === 'string' ? message : message.string),
         )
         .join(''),
       region: {
         start: {
           line: 1,
-          column: 1
+          column: 1,
         },
         end: {
           line: 1,
-          column: 1
-        }
+          column: 1,
+        },
       },
       type: 'error',
-      file: errorObject.path
+      file: errorObject.path,
     };
 
     returnLines.push(problem);
   }
 
-  return returnLines
+  return returnLines;
 }
 
 function parseErrorsElm018(line) {
   if (line.startsWith('Successfully generated')) {
     // ignore compiler successes
-    return []
+    return [];
   }
   // elm make returns an array of issues
-  return (<IElmIssue[]>(JSON.parse(line)))
+  return <IElmIssue[]>JSON.parse(line);
 }
 
 function checkForErrors(filename): Promise<IElmIssue[]> {
@@ -118,10 +120,14 @@ function checkForErrors(filename): Promise<IElmIssue[]> {
     );
     const make018Command: string = <string>config.get('makeCommand');
     const compiler: string = <string>config.get('compiler');
-    const [cwd, elmVersion] = utils.detectProjectRootAndElmVersion(filename, vscode.workspace.rootPath)
+    const elmTestCompiler: string = <string>config.get('elmTestCompiler');
+    const [cwd, elmVersion] = utils.detectProjectRootAndElmVersion(
+      filename,
+      vscode.workspace.rootPath,
+    );
     let make;
     if (utils.isWindows) {
-      filename = "\"" + filename + "\""
+      filename = '"' + filename + '"';
     }
 
     const isTestFile = elmTest.fileIsTestFile(filename);
@@ -153,7 +159,7 @@ function checkForErrors(filename): Promise<IElmIssue[]> {
     const errorLinesFromElmMake = readline.createInterface({
       // elm 0.19 uses stderr, elm 0.18 uses stdout
       input: utils.isElm019(elmVersion) ? make.stderr : make.stdout,
-      output: undefined
+      output: undefined,
     });
 
     const lines = [];
@@ -162,29 +168,29 @@ function checkForErrors(filename): Promise<IElmIssue[]> {
 
     errorLinesFromElmMake.on('line', line => {
       if (utils.isElm019(elmVersion)) {
-        const newLines = parseErrorsElm019(line)
-        newLines.forEach(l => lines.push(l))
+        const newLines = parseErrorsElm019(line);
+        newLines.forEach(l => lines.push(l));
       } else {
-        const newLines = parseErrorsElm018(line)
-        newLines.forEach(l => lines.push(l))
+        const newLines = parseErrorsElm018(line);
+        newLines.forEach(l => lines.push(l));
       }
-    })
+    });
 
     if (utils.isElm019(elmVersion) === false) {
       // we listen to stderr for Elm 0.18
       // as this is where a whole file issue would go
       make.stderr.on('data', (data: Buffer) => {
         if (data) {
-          elm018stderr.push(data)
+          elm018stderr.push(data);
         }
-      })
+      });
     }
 
     make.on('error', err => {
       errorLinesFromElmMake.close();
       if (err && err.code === 'ENOENT') {
         vscode.window.showInformationMessage(
-          "The 'elm-make' compiler is not available.  Install Elm from http://elm-lang.org/."
+          "The 'elm-make' compiler is not available.  Install Elm from http://elm-lang.org/.",
         );
         resolve([]);
       } else {
@@ -193,7 +199,6 @@ function checkForErrors(filename): Promise<IElmIssue[]> {
     });
 
     make.on('close', (code, signal) => {
-
       errorLinesFromElmMake.close();
 
       if (elm018stderr.length) {
