@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { ModuleParser, Module, ImportStatement } from 'elm-module-parser';
+import { ModuleParser, Module, ImportStatement, CustomTypeDeclaration, Exposed, Location } from 'elm-module-parser';
 import { getGlobalModuleResolver } from './elmModuleResolver';
 
 let unusedImportDiagnostics: vscode.DiagnosticCollection = null;
@@ -63,11 +63,11 @@ export async function detectUnusedImports(document: vscode.TextDocument): Promis
       document.positionAt(importDeclaration.location.start.offset),
       document.positionAt(importDeclaration.location.end.offset));
 
-    const makeDiag = (message: string) => {
-      return new vscode.Diagnostic(importRange, message, vscode.DiagnosticSeverity.Information);
+    const makeDiag = (message: string, range?: vscode.Range) => {
+      return new vscode.Diagnostic(range || importRange, message, vscode.DiagnosticSeverity.Information);
     };
 
-    const requiresQualifiedName = importDeclaration.exposing.length === 0;
+    const requiresQualifiedName = !importDeclaration.exposes_all && importDeclaration.exposing.length === 0;
 
     if (requiresQualifiedName) {
       return qualifiedNameRequiredDiagnostics(importDeclaration, matchesAfterImports, makeDiag);
@@ -162,10 +162,7 @@ async function importAllDiagnostics(
     if (importedModule.exposes_all) {
       // If all things are exposed then do ANY names appear in this modules?
       for (let n of iterateModuleNames(importedModule)) {
-        const nameMatchesIterable = matcher(n);
-        const nameMatches = [...nameMatchesIterable];
-
-        if (nameMatches.length > 0) {
+        if (nameMatchExists([n], matcher)) {
           return true;
         }
       }
@@ -174,10 +171,23 @@ async function importAllDiagnostics(
     }
 
     for (const exposed of importedModule.exposing) {
-      if (exposed.type === 'constructor' || exposed.type === 'function' || exposed.type === 'type') {
-        const nameMatchesIterable = matcher(exposed.name);
-        const nameMatches = [...nameMatchesIterable];
-        return nameMatches.length > 0;
+      if (exposed.type === 'function' || exposed.type === 'type') {
+        if (nameMatchExists([exposed.name], matcher)) {
+          return true;
+        }
+      } else if (exposed.type === 'constructor') {
+        const referencedCustomType =
+          importedModule.types.find(x => x.type === 'custom-type' && x.name === exposed.name) as CustomTypeDeclaration;
+
+        if (referencedCustomType == null) {
+          continue;
+        }
+
+        const constructorNames = referencedCustomType.constructors.map(c => c.name);
+
+        if (nameMatchExists(constructorNames, matcher)) {
+          return true;
+        }
       } else {
         const _exhaustiveCheck: never = exposed;
       }
@@ -196,38 +206,54 @@ async function importAllDiagnostics(
 /**Imports specific functions or types
  *
  * import Modules.Api exposing (makeThingRequest, GetThingResult(..), ThatThing)
- * case result of
- * OkResult thing ->
- * ...
  *
- * foo : Int -> ThatThing
- * foo a = makeThingRequest a
  */
 async function pickedImportsDiagnostics(
   importDeclaration: ImportStatement,
   matcher: (regex: string) => IterableIterator<RegExpExecArray>,
-  makeDiagnostic: (message: string) => vscode.Diagnostic,
+  makeDiagnostic: (message: string, range: vscode.Range) => vscode.Diagnostic,
 ): Promise<vscode.Diagnostic[]> {
-  for (const pickedImport of importDeclaration.exposing) {
-    if (pickedImport.type === 'function' || pickedImport.type === 'constructor' || pickedImport.type === 'type') {
-      const nameMatchesIterable = matcher(pickedImport.name);
-
-      let matchFound = false;
-      for (const n of nameMatchesIterable) {
-        // TODO: verify the match is correct
-        matchFound = true;
-        break;
+  const results = await Promise.all(importDeclaration.exposing.map(async pickedImport => {
+    if (pickedImport.type === 'function' || pickedImport.type === 'type') {
+      if (nameMatchExists([pickedImport.name], matcher)) {
+        return null;
       }
 
-      if (!matchFound) {
-        return [makeDiagnostic(`${pickedImport.name} is not used.`)];
+      const message = `Exposed ${pickedImport.type} ${pickedImport.name} from module ${importDeclaration.module} is not used.`;
+
+      return makeDiagnostic(message, locationToRange(pickedImport.location));
+    } else if (pickedImport.type === 'constructor') {
+      const referencedModule = await getGlobalModuleResolver().moduleFromName(importDeclaration.module);
+
+      // Can't check what we can't load.
+      if (referencedModule == null) {
+        return null;
       }
+
+      const referencedCustomType =
+        referencedModule.types.find(x => x.type === 'custom-type' && x.name === pickedImport.name) as CustomTypeDeclaration;
+
+      // Don't bother checking if it's exposed from the other module because it will manifest itself as a compile error.
+      if (referencedCustomType == null) {
+        return null;
+      }
+
+      const constructorNames = referencedCustomType.constructors.map(c => c.name);
+
+      if (nameMatchExists(constructorNames, matcher)) {
+        return null;
+      }
+
+      const message = `No constructors for ${pickedImport.name} from ${importDeclaration.module} are being used.`;
+
+      return makeDiagnostic(message, locationToRange(pickedImport.location));
     } else {
       const _exhaustiveCheck: never = pickedImport;
+      return null;
     }
-  }
+  }));
 
-  return [];
+  return results.filter(x => x != null);
 }
 
 function* iterateModuleNames(module: Module) {
@@ -252,4 +278,25 @@ function* iterateModuleNames(module: Module) {
 
 function escapeDots(value: string) {
   return value.replace(/[.]/g, '[.]');
+}
+
+function nameMatchExists(names: string[], matcher: (regex: string) => IterableIterator<RegExpExecArray>) {
+  const matchIterator = matcher(`.\\b(${names.join('|')})\\b[\\s\\S]?`);
+
+  for (const [match] of matchIterator) {
+    if (match.startsWith('.') || match.endsWith('.')) {
+      continue;
+    }
+
+    return true;
+  }
+
+  return false;
+}
+
+function locationToRange(location: Location): vscode.Range {
+  return new vscode.Range(
+    location.start.line - 1, location.start.column - 1,
+    location.end.line - 1, location.end.column - 1,
+  );
 }

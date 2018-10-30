@@ -112,7 +112,7 @@ export class ElmModuleResolver {
       return [];
     }
 
-    const moduleNameAsPath = moduleName.replace(/[.]/g, path.sep);
+    const moduleNameAsPath = `${moduleName.replace(/[.]/g, path.sep)}.elm`;
 
     return this.sourceDirs.map(d => path.join(d, moduleNameAsPath));
   }
