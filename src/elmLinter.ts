@@ -1,7 +1,9 @@
 import * as cp from 'child_process';
 import * as readline from 'readline';
+import * as path from 'path';
 import * as utils from './elmUtils';
 import * as vscode from 'vscode';
+import * as elmTest from './elmTest';
 import { ElmAnalyse } from './elmAnalyse';
 
 export interface IElmIssueRegion {
@@ -121,10 +123,24 @@ function checkForErrors(filename): Promise<IElmIssue[]> {
     if (utils.isWindows) {
       filename = "\"" + filename + "\""
     }
+
+    const isTestFile = elmTest.fileIsTestFile(filename);
+
     const args018 = [filename, '--report', 'json', '--output', '/dev/null'];
-    const args019 = ['make', filename, '--report', 'json', '--output', '/dev/null'];
+    const args019 = [
+      'make',
+      filename,
+      '--report',
+      'json',
+      '--output',
+      '/dev/null',
+    ];
     const args = utils.isElm019(elmVersion) ? args019 : args018;
-    const makeCommand = utils.isElm019(elmVersion) ? compiler : make018Command;
+    const makeCommand = utils.isElm019(elmVersion)
+      ? isTestFile
+        ? elmTestCompiler
+        : compiler
+      : make018Command;
 
     if (utils.isWindows) {
       make = cp.exec(makeCommand + ' ' + args.join(' '), { cwd: cwd });

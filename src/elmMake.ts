@@ -1,6 +1,7 @@
 import * as cp from 'child_process';
 import * as path from 'path';
 import * as utils from './elmUtils';
+import * as elmTest from './elmTest';
 import * as vscode from 'vscode';
 
 let make: cp.ChildProcess;
@@ -11,7 +12,8 @@ function getMakeAndArguments(file, warn: boolean): [string, string, string[]] {
   const name: string = <string>config.get('makeOutput');
   const make018Command: string = <string>config.get('makeCommand');
   const compiler: string = <string>config.get('compiler');
-  const [cwd, elmVersion] = utils.detectProjectRootAndElmVersion(file, vscode.workspace.rootPath)
+  const elmTestCompiler: string = <string>config.get('elmTestCompiler');
+  const [cwd, elmVersion] = utils.detectProjectRootAndElmVersion(
   const specialFile: string = <string>config.get('makeSpecialFile');
   if (specialFile.length > 0) {
     file = path.resolve(cwd, specialFile);
@@ -23,9 +25,16 @@ function getMakeAndArguments(file, warn: boolean): [string, string, string[]] {
   if (warn) {
     args018.push('--warn');
   }
+
+  const isTestFile = elmTest.fileIsTestFile(file);
+
   const args019 = ['make', file, '--output=' + name];
   const args = utils.isElm019(elmVersion) ? args019 : args018;
-  const makeCommand = utils.isElm019(elmVersion) ? compiler : make018Command;
+  const makeCommand = utils.isElm019(elmVersion)
+    ? isTestFile
+      ? elmTestCompiler
+      : compiler
+    : make018Command;
 
   return [cwd, makeCommand, args];
 }
