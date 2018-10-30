@@ -3,7 +3,7 @@
 import * as vscode from 'vscode';
 
 import { ElmWorkspaceSymbolProvider } from './elmWorkspaceSymbols';
-import { ModuleParser, ImportStatement } from 'elm-module-parser';
+import { ImportStatement } from 'elm-module-parser';
 import { getGlobalModuleResolver } from './elmModuleResolver';
 
 export class ElmDefinitionProvider implements vscode.DefinitionProvider {
