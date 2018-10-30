@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { ModuleParser, Module, ImportStatement, CustomTypeDeclaration, Exposed, Location } from 'elm-module-parser';
+import { Module, ImportStatement, CustomTypeDeclaration, Location } from 'elm-module-parser';
 import { getGlobalModuleResolver } from './elmModuleResolver';
 
 let unusedImportDiagnostics: vscode.DiagnosticCollection = null;
@@ -281,7 +281,7 @@ function escapeDots(value: string) {
 }
 
 function nameMatchExists(names: string[], matcher: (regex: string) => IterableIterator<RegExpExecArray>) {
-  const matchIterator = matcher(`.\\b(${names.join('|')})\\b[\\s\\S]?`);
+  const matchIterator = matcher(`.\\b(${names.map(escapeDots).join('|')})\\b[\\s\\S]?`);
 
   for (const [match] of matchIterator) {
     if (match.startsWith('.') || match.endsWith('.')) {
