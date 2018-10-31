@@ -17,19 +17,18 @@ export class ElmDefinitionProvider implements vscode.DefinitionProvider {
     position: vscode.Position,
     token: vscode.CancellationToken,
   ): Promise<vscode.Location> {
-    let wordRange = document.getWordRangeAtPosition(position);
-    let lineText = document.lineAt(position.line).text;
-    let word = wordRange ? document.getText(wordRange) : '';
+    const wordRange = document.getWordRangeAtPosition(position);
 
-    if (!wordRange || lineText.startsWith('--') || word.match(/^\d+.?\d+$/)) {
+    if (wordRange == null) {
       return null;
     }
 
     try {
       const parsedModule = await getGlobalModuleResolver().moduleFromPath(document.fileName);
 
-      let symbolName = word.substring(word.lastIndexOf('.') + 1);
-      let moduleAlias = word.substring(0, word.lastIndexOf('.'));
+      const word = document.getText(wordRange);
+      const symbolName = word.substring(word.lastIndexOf('.') + 1);
+      const moduleAlias = word.substring(0, word.lastIndexOf('.'));
 
       const exactMatchingImport: ImportStatement = parsedModule.imports.find(i => {
         if (moduleAlias === '') {

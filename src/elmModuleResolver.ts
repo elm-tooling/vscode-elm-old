@@ -15,7 +15,7 @@ export class ElmModuleResolver {
     const possiblePaths = this.moduleNameToPaths(moduleName);
 
     for (const modulePath of possiblePaths) {
-      const module = this.moduleFromPath(modulePath);
+      const module = await this.moduleFromPath(modulePath);
 
       if (module != null) {
         return module;
@@ -123,3 +123,4 @@ const globalModuleResolver = new ElmModuleResolver();
 export function getGlobalModuleResolver(): ElmModuleResolver {
   return globalModuleResolver;
 }
+
