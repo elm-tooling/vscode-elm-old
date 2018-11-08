@@ -19,7 +19,7 @@ export function activateUnusedImportsDiagnostics() {
     }
   });
 
-  vscode.workspace.onDidSaveTextDocument((document: vscode.TextDocument) => {
+  const checkUnusedImportsIfEnabled = (document: vscode.TextDocument) => {
     if (!isEnabled()) {
       return;
     }
@@ -31,7 +31,11 @@ export function activateUnusedImportsDiagnostics() {
       .catch(error => {
         unusedImportDiagnostics.set(document.uri, undefined);
       });
-  });
+  };
+
+  vscode.workspace.onDidOpenTextDocument(checkUnusedImportsIfEnabled);
+
+  vscode.workspace.onDidSaveTextDocument(checkUnusedImportsIfEnabled);
 }
 
 export async function detectUnusedImports(document: vscode.TextDocument): Promise<vscode.Diagnostic[]> {
@@ -62,16 +66,33 @@ export async function detectUnusedImports(document: vscode.TextDocument): Promis
     const importRange = locationToRange(importDeclaration.location);
 
     const makeDiag = (message: string, range?: vscode.Range) => {
-      return new vscode.Diagnostic(range || importRange, message, vscode.DiagnosticSeverity.Information);
+      return new vscode.Diagnostic(range || importRange, `Elm Unused Imports: ${message}`, vscode.DiagnosticSeverity.Information);
+    };
+
+    const makeDiagHighlight = (message: string, highlightRegex: RegExp) => {
+      const importText = document.getText(importRange);
+      const matches = importText.match(highlightRegex);
+
+      if (matches != null) {
+        const matchStart = importDeclaration.location.start.offset + matches.index;
+        const matchEnd = matchStart + matches[0].length;
+
+        return new vscode.Diagnostic(new vscode.Range(
+          document.positionAt(matchStart),
+          document.positionAt(matchEnd),
+        ), message, vscode.DiagnosticSeverity.Information);
+      }
+
+      return null;
     };
 
     const requiresQualifiedName = !importDeclaration.exposes_all && importDeclaration.exposing.length === 0;
 
     if (requiresQualifiedName) {
-      return qualifiedNameRequiredDiagnostics(importDeclaration, matchesAfterImports, makeDiag);
+      return qualifiedNameDiagnostics(importDeclaration, matchesAfterImports, makeDiag);
     }
 
-    const aliasDiag = aliasDiagnostics(importDeclaration, matchesAfterImports, makeDiag);
+    const aliasDiag = aliasDiagnostics(importDeclaration, matchesAfterImports, makeDiagHighlight);
 
     const pickedImportDiag = await pickedImportsDiagnostics(importDeclaration, matchesAfterImports, makeDiag);
 
@@ -94,7 +115,7 @@ export async function detectUnusedImports(document: vscode.TextDocument): Promis
  * LE.last[1, 2, 3]
  *
  */
-function qualifiedNameRequiredDiagnostics(
+function qualifiedNameDiagnostics(
   importDeclaration: ImportStatement,
   matcher: (regex: string) => IterableIterator<RegExpExecArray>,
   makeDiagnostic: (message: string) => vscode.Diagnostic,
@@ -109,7 +130,7 @@ function qualifiedNameRequiredDiagnostics(
     return [];
   }
 
-  return [makeDiagnostic(`${identifierToSearch} is not used.`)];
+  return [makeDiagnostic(`${importDeclaration.module} is not used.`)];
 }
 
 /**
@@ -120,7 +141,7 @@ function qualifiedNameRequiredDiagnostics(
 function aliasDiagnostics(
   importDeclaration: ImportStatement,
   matcher: (regex: string) => IterableIterator<RegExpExecArray>,
-  makeDiagnostic: (message: string) => vscode.Diagnostic,
+  makeDiagnostic: (message: string, highlightRegex: RegExp) => vscode.Diagnostic,
 ): vscode.Diagnostic[] {
   if (importDeclaration.alias == null) {
     return [];
@@ -134,7 +155,7 @@ function aliasDiagnostics(
     return [];
   }
 
-  return [makeDiagnostic(`Alias ${importDeclaration.alias} is not used.`)];
+  return [makeDiagnostic(`Alias ${importDeclaration.alias} is not used.`, new RegExp(`\\sas ${importDeclaration.alias}`))];
 }
 
 /** Imports all from module.
@@ -238,13 +259,13 @@ async function pickedImportsDiagnostics(
         return null;
       }
 
-      const constructorNames = referencedCustomType.constructors.map(c => c.name);
+      const constructorNames = referencedCustomType.constructors.map(c => c.name).concat([referencedCustomType.name]);
 
       if (nameMatchExists(constructorNames, matcher)) {
         return null;
       }
 
-      const message = `No constructors for ${pickedImport.name} from ${importDeclaration.module} are being used.`;
+      const message = `Custom type ${pickedImport.name} from ${importDeclaration.module} is not used.`;
 
       return makeDiagnostic(message, locationToRange(pickedImport.location));
     } else {
@@ -253,7 +274,16 @@ async function pickedImportsDiagnostics(
     }
   }));
 
-  return results.filter(x => x != null);
+  const diagnostics = results.filter(x => x != null);
+
+  if (importDeclaration.exposing.length > 0 && importDeclaration.exposing.length === diagnostics.length) {
+    // Perhaps the module isn't being used at all
+    const qualifiedNameDiagnostic = qualifiedNameDiagnostics(importDeclaration, matcher, (msg) => makeDiagnostic(msg, null));
+
+    return diagnostics.concat(qualifiedNameDiagnostic);
+  }
+
+  return diagnostics;
 }
 
 function* iterateModuleNames(module: Module) {
