@@ -21,8 +21,8 @@ interface ElmJsonDependencies {
 
 interface ElmJson {
   dependencies: {
-    direct: ElmJsonDependencies,
-    indirect: ElmJsonDependencies,
+    direct: ElmJsonDependencies;
+    indirect: ElmJsonDependencies;
   };
 }
 
@@ -40,10 +40,9 @@ declare global {
   }
 }
 
-Array.prototype.flatMap = function <T, V>(mapper: (value: T) => V[]) {
+Array.prototype.flatMap = function<T, V>(mapper: (value: T) => V[]) {
   return [].concat.apply([], this.map(mapper));
 };
-
 
 function readFile(filePath: string) {
   return fs.readFileSync(filePath, { encoding: 'UTF-8', flag: 'r' }) as string;
@@ -53,16 +52,19 @@ function parseImports(elmCode: string) {
   return elmCode
     .split('\n')
     .filter(x => x.startsWith('import '))
-    .map(x => x.match(/import ([^\s]+)(?: as ([^\s]+))?(?: exposing (\(.+\)))?/))
+    .map(x =>
+      x.match(/import ([^\s]+)(?: as ([^\s]+))?(?: exposing (\(.+\)))?/),
+    )
     .filter(x => x != null)
     .map(matches => {
       const importedMembers = matches[3];
-      const exposed = importedMembers === undefined
-        ? null
-        : importedMembers
-          .split(/[(),]/)
-          .map(x => x.trim())
-          .filter(x => x !== '');
+      const exposed =
+        importedMembers === undefined
+          ? null
+          : importedMembers
+              .split(/[(),]/)
+              .map(x => x.trim())
+              .filter(x => x !== '');
 
       return {
         moduleName: matches[1],
@@ -78,11 +80,19 @@ function getAllDependenciesFromElmJson(elmPath: string) {
   return elmJson.dependencies.direct;
 }
 
-function loadDocsForDependencies(packageFolderPath: string, dependencies: ElmJsonDependencies) {
+function loadDocsForDependencies(
+  packageFolderPath: string,
+  dependencies: ElmJsonDependencies,
+) {
   let allDocs: ElmDocModule[] = [];
   for (const dependencyKey of Object.keys(dependencies)) {
     const version = dependencies[dependencyKey];
-    const docPath = path.join(packageFolderPath, dependencyKey, version, 'documentation.json');
+    const docPath = path.join(
+      packageFolderPath,
+      dependencyKey,
+      version,
+      'documentation.json',
+    );
     const moduleDocs = JSON.parse(readFile(docPath)) as ElmDocModule[];
     allDocs = allDocs.concat(moduleDocs);
   }
@@ -101,28 +111,32 @@ function classifyQuery(query: string) {
   throw 'Illegal query: ' + query;
 }
 
-function searchByModuleName(docs: ElmDocModule[], moduleName: string, name: string): ElmOracleCompatibleResult[] {
-  return docs
-    .filter(doc => doc.name === moduleName)
-    .flatMap(doc => {
-      return doc
-        .values
-        .filter(v => v.name.startsWith(name))
-        .map(v => {
-          return {
-            name: v.name,
-            fullName: moduleName + '.' + v.name,
-            href: 'http://elm-lang.org',
-            signature: v.type,
-            comment: v.comment,
-          };
-        });
+function searchByModuleName(
+  docs: ElmDocModule[],
+  moduleName: string,
+  name: string,
+): ElmOracleCompatibleResult[] {
+  return docs.filter(doc => doc.name === moduleName).flatMap(doc => {
+    return doc.values.filter(v => v.name.startsWith(name)).map(v => {
+      return {
+        name: v.name,
+        fullName: moduleName + '.' + v.name,
+        href: 'http://elm-lang.org',
+        signature: v.type,
+        comment: v.comment,
+      };
     });
+  });
 }
 
 // --- Program proper ---
 
-export function askOracle(windowsOS: boolean, projectPath: string, elmFilename: string, query: string) {
+export function askOracle(
+  windowsOS: boolean,
+  projectPath: string,
+  elmFilename: string,
+  query: string,
+) {
   const elmCode =
     `import Basics exposing (..)
 import List exposing (List, (::))
@@ -147,7 +161,9 @@ import Platform.Sub as Sub exposing ( Sub )
     throw 'Cannot find elm.json in project path';
   }
 
-  const elmRoot = windowsOS ? path.join(process.env.appdata, 'elm') : path.join(os.homedir(), '.elm');
+  const elmRoot = windowsOS
+    ? path.join(process.env.appdata, 'elm')
+    : path.join(os.homedir(), '.elm');
   const packageFolderPath = path.join(elmRoot, '0.19.0/package');
 
   const dependencies = getAllDependenciesFromElmJson(projectPath);
@@ -157,16 +173,27 @@ import Platform.Sub as Sub exposing ( Sub )
   if (classifiedQuery.module) {
     const refImport = imports.find(imp => imp.alias === classifiedQuery.module);
     if (refImport !== undefined) {
-      result = searchByModuleName(docs, refImport.moduleName, classifiedQuery.name);
+      result = searchByModuleName(
+        docs,
+        refImport.moduleName,
+        classifiedQuery.name,
+      );
     }
   } else {
-    const modulesToSearch =
-      imports
-        .filter(x => x.exposed === null ? false : x.exposed.some(e => e === '..' || e.startsWith(classifiedQuery.name)))
-        .map(x => x.moduleName);
+    const modulesToSearch = imports
+      .filter(
+        x =>
+          x.exposed === null
+            ? false
+            : x.exposed.some(
+                e => e === '..' || e.startsWith(classifiedQuery.name),
+              ),
+      )
+      .map(x => x.moduleName);
 
-    result = modulesToSearch
-      .flatMap(moduleName => searchByModuleName(docs, moduleName, classifiedQuery.name));
+    result = modulesToSearch.flatMap(moduleName =>
+      searchByModuleName(docs, moduleName, classifiedQuery.name),
+    );
   }
   return result;
 }

@@ -9,17 +9,28 @@ let reactor: cp.ChildProcess;
 let oc: vscode.OutputChannel = vscode.window.createOutputChannel('Elm Reactor');
 let statusBarStopButton: vscode.StatusBarItem;
 
-function getReactorAndArguments(host: string, port: string, subdir: string): [string, string, string[]] {
-  const config: vscode.WorkspaceConfiguration = vscode.workspace.getConfiguration('elm');
+function getReactorAndArguments(
+  host: string,
+  port: string,
+  subdir: string,
+): [string, string, string[]] {
+  const config: vscode.WorkspaceConfiguration = vscode.workspace.getConfiguration(
+    'elm',
+  );
   const dummyPath = path.join(vscode.workspace.rootPath, 'dummyfile');
-  const reactor018Command: string = 'elm-reactor'
+  const reactor018Command: string = 'elm-reactor';
   const compiler: string = <string>config.get('compiler');
-  const [cwd, elmVersion] = utils.detectProjectRootAndElmVersion(dummyPath, vscode.workspace.rootPath)
+  const [cwd, elmVersion] = utils.detectProjectRootAndElmVersion(
+    dummyPath,
+    vscode.workspace.rootPath,
+  );
   const args018 = ['-a=' + host, 'p=' + port];
   const args019 = ['reactor', '--port=' + port];
   const cwdWithSubdir = path.join(cwd, subdir);
   const args = utils.isElm019(elmVersion) ? args019 : args018;
-  const reactorCommand = utils.isElm019(elmVersion) ? compiler : reactor018Command;
+  const reactorCommand = utils.isElm019(elmVersion)
+    ? compiler
+    : reactor018Command;
 
   return [cwdWithSubdir, reactorCommand, args];
 }
@@ -34,7 +45,11 @@ function startReactor(): void {
     const host: string = <string>config.get('reactorHost');
     const port: string = <string>config.get('reactorPort');
     const subdir: string = <string>config.get('reactorSubdir');
-    const [cwd, reactorCommand, args] = getReactorAndArguments(host, port, subdir);
+    const [cwd, reactorCommand, args] = getReactorAndArguments(
+      host,
+      port,
+      subdir,
+    );
 
     if (isWindows) {
       reactor = cp.exec(reactorCommand + ' ' + args.join(' '), { cwd: cwd });

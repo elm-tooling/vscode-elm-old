@@ -160,14 +160,22 @@ export function userProject(
   let imports: Imports[] = [];
   let results: IOracleResult[] = [];
 
-  const [cwdTmp, elmVersion] = detectProjectRootAndElmVersion(document.fileName, vscode.workspace.rootPath);
-  const cwd = config['useWorkSpaceRootForElmRoot'] ? vscode.workspace.rootPath : cwdTmp;
+  const [cwdTmp, elmVersion] = detectProjectRootAndElmVersion(
+    document.fileName,
+    vscode.workspace.rootPath,
+  );
+  const cwd = config['useWorkSpaceRootForElmRoot']
+    ? vscode.workspace.rootPath
+    : cwdTmp;
   gCwd = cwd;
   let elmPackageString: string;
   if (elmVersion === '0.18') {
-    elmPackageString = fs.readFileSync(path.join(cwd, 'elm-package.json'), 'utf-8')
+    elmPackageString = fs.readFileSync(
+      path.join(cwd, 'elm-package.json'),
+      'utf-8',
+    );
   } else {
-    elmPackageString = fs.readFileSync(path.join(cwd, 'elm.json'), 'utf-8')
+    elmPackageString = fs.readFileSync(path.join(cwd, 'elm.json'), 'utf-8');
   }
 
   const elmPackage = JSON.parse(elmPackageString);
@@ -445,9 +453,9 @@ function localFunctions(
   let results: IOracleResult[] = [];
   let test = new RegExp(
     '^' +
-    (action === OracleAction.IsAutocomplete
-      ? currentWord.toLowerCase()
-      : currentWord + ' '),
+      (action === OracleAction.IsAutocomplete
+        ? currentWord.toLowerCase()
+        : currentWord + ' '),
   );
   let foundTypeAlias = false;
   let lookForTypeAlias = currentWord.substr(-1) === '.';
@@ -594,13 +602,17 @@ function localFunctions(
         results.push({
           name: (functionDefinition !== ''
             ? functionDefinition
-            : typeSignature.split(':')[0])
+            : typeSignature.split(':')[0]
+          )
             .split(splitOnSpace)[0]
             .trim(),
           fullName:
             functionDefinition !== ''
               ? functionDefinition
-              : typeSignature.split(':')[0].split(splitOnSpace)[0].trim(),
+              : typeSignature
+                  .split(':')[0]
+                  .split(splitOnSpace)[0]
+                  .trim(),
           signature: typeSignature !== '' ? typeSignature : functionDefinition,
           href: filename,
           kind: vscode.CompletionItemKind.Function,
@@ -697,7 +709,10 @@ function localFunctions(
               .trim()
               .split(splitOnSpace)[0]
               .trim(),
-            signature: item.replace('|', '').replace('=', '').trim(),
+            signature: item
+              .replace('|', '')
+              .replace('=', '')
+              .trim(),
             href: filename,
             kind: vscode.CompletionItemKind.Enum,
             comment:
@@ -740,9 +755,9 @@ function localFunctions(
       if (
         toLowerOrHover(action, lines[i]).includes(
           'type alias ' +
-          (currentWord !== '[a-zA-Z]'
-            ? toLowerOrHover(action, currentWord)
-            : gOriginalWord.split('.')[1].trim()),
+            (currentWord !== '[a-zA-Z]'
+              ? toLowerOrHover(action, currentWord)
+              : gOriginalWord.split('.')[1].trim()),
         )
       ) {
         let j = 0;

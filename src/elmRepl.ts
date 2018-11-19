@@ -6,38 +6,49 @@ import { TextEditor, window, workspace } from 'vscode';
 let replTerminal: vscode.Terminal;
 
 function getElmRepl(): string {
-  const config: vscode.WorkspaceConfiguration = vscode.workspace.getConfiguration('elm');
+  const config: vscode.WorkspaceConfiguration = vscode.workspace.getConfiguration(
+    'elm',
+  );
   const dummyPath = path.join(vscode.workspace.rootPath, 'dummyfile');
   const repl018Command: string = 'elm-repl';
   const compiler: string = <string>config.get('compiler');
-  const [cwd, elmVersion] = utils.detectProjectRootAndElmVersion(dummyPath, vscode.workspace.rootPath);
-  const replCommand = utils.isElm019(elmVersion) ? `${compiler} repl` : repl018Command;
+  const [cwd, elmVersion] = utils.detectProjectRootAndElmVersion(
+    dummyPath,
+    vscode.workspace.rootPath,
+  );
+  const replCommand = utils.isElm019(elmVersion)
+    ? `${compiler} repl`
+    : repl018Command;
   return replCommand;
 }
-
 
 function startRepl() {
   try {
     let replCommand = getElmRepl();
-    if (replTerminal !== undefined) { replTerminal.dispose(); }
+    if (replTerminal !== undefined) {
+      replTerminal.dispose();
+    }
     replTerminal = window.createTerminal('Elm repl');
-    let [replLaunchCommand, clearCommand] = utils.getTerminalLaunchCommands(replCommand);
+    let [replLaunchCommand, clearCommand] = utils.getTerminalLaunchCommands(
+      replCommand,
+    );
     replTerminal.sendText(clearCommand, true);
     replTerminal.sendText(replLaunchCommand, true);
     replTerminal.show(true);
   } catch (error) {
     vscode.window.showErrorMessage('Cannot start Elm REPL. ' + error);
   }
-
 }
 
 function send(editor: TextEditor, msg: string) {
   if (editor.document.languageId !== 'elm') {
     return;
   }
-  if (replTerminal === undefined) { startRepl(); }
+  if (replTerminal === undefined) {
+    startRepl();
+  }
   const // Multiline input has to have '\' at the end of each line
-    inputMsg = msg.replace(/\n/g, '\\\n') + '\n';
+  inputMsg = msg.replace(/\n/g, '\\\n') + '\n';
 
   replTerminal.sendText('\n', false); // workaround to avoid repl commands on the same line
   replTerminal.sendText(inputMsg, false);
@@ -55,7 +66,7 @@ function sendFile(editor: vscode.TextEditor): void {
   send(editor, editor.document.getText());
 }
 
-vscode.window.onDidCloseTerminal((terminal) => {
+vscode.window.onDidCloseTerminal(terminal => {
   if (terminal.name === 'Elm repl') {
     replTerminal = undefined;
   }
@@ -63,11 +74,12 @@ vscode.window.onDidCloseTerminal((terminal) => {
 
 export function activateRepl(): vscode.Disposable[] {
   return [
-    vscode.commands.registerCommand('elm.replStart', () =>
-      startRepl(),
-    ),
+    vscode.commands.registerCommand('elm.replStart', () => startRepl()),
     vscode.commands.registerTextEditorCommand('elm.replSendLine', sendLine),
-    vscode.commands.registerTextEditorCommand('elm.replSendSelection', sendSelection),
+    vscode.commands.registerTextEditorCommand(
+      'elm.replSendSelection',
+      sendSelection,
+    ),
     vscode.commands.registerTextEditorCommand('elm.replSendFile', sendFile),
   ];
 }

@@ -79,8 +79,13 @@ function elmFormat(document: vscode.TextDocument) {
   );
   const formatCommand: string = <string>config.get('formatCommand');
   const dummyPath = path.join(vscode.workspace.rootPath, 'dummyfile');
-  const [_, elmVersion] = utils.detectProjectRootAndElmVersion(dummyPath, vscode.workspace.rootPath);
-  const args = utils.isElm019(elmVersion) ? ['--stdin', '--elm-version 0.19', '--yes'] : ['--stdin', '--elm-version 0.18', '--yes'];
+  const [_, elmVersion] = utils.detectProjectRootAndElmVersion(
+    dummyPath,
+    vscode.workspace.rootPath,
+  );
+  const args = utils.isElm019(elmVersion)
+    ? ['--stdin', '--elm-version 0.19', '--yes']
+    : ['--stdin', '--elm-version 0.18', '--yes'];
   const options = {
     cmdArguments: args,
     notFoundText: 'Install Elm-format from https://github.com/avh4/elm-format',
@@ -94,18 +99,18 @@ function elmFormat(document: vscode.TextDocument) {
 }
 
 function clearStatus(statusBarItem: StatusBarItem) {
-  return function () {
+  return function() {
     statusBarItem.text = '';
     statusBarItem.hide();
   };
 }
 
 function statusBarMessage(statusBarItem: StatusBarItem) {
-  return function (err) {
+  return function(err) {
     const message = (<string>err.message).includes('SYNTAX PROBLEM')
       ? 'Running elm-format failed. Check the file for syntax errors.'
       : 'Running elm-format failed. Install from ' +
-      "https://github.com/avh4/elm-format and make sure it's on your path";
+        "https://github.com/avh4/elm-format and make sure it's on your path";
     let editor = vscode.window.activeTextEditor;
     if (editor) {
       statusBarItem.text = message;
