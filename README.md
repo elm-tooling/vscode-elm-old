@@ -31,11 +31,13 @@ Run `npm install --save-dev elm`
 Then, in `.vscode/settings.json`, add the following:
 
 ```
+"elm.compiler": "./node_modules/.bin/elm",
 "elm.makeCommand": "./node_modules/.bin/elm-make"
 ```
 
 For Windows
 ```
+"elm.compiler": ".\\node_modules\\.bin\\elm",
 "elm.makeCommand": ".\\node_modules\\.bin\\elm-make"
 ```
 
