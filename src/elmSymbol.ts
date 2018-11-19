@@ -4,7 +4,7 @@ import { parseElmModule } from 'elm-module-parser';
 import * as _ from 'lodash';
 
 export class ElmSymbolProvider implements vscode.DocumentSymbolProvider {
-  public async provideDocumentSymbols(doc: TextDocument) {
+  public async provideDocumentSymbols(doc: TextDocument): Promise<vscode.SymbolInformation[]> {
     return processDocument(doc);
   }
 }
@@ -65,6 +65,18 @@ export function processDocument(doc: TextDocument): vscode.SymbolInformation[] {
         new vscode.Location(
           doc.uri,
           doc.positionAt(f.location.start.offset),
+        ),
+      );
+    });
+
+    const modulePorts = parsedModule.ports.map(p => {
+      return new SymbolInformation(
+        p.name,
+        vscode.SymbolKind.Interface,
+        parsedModule.name,
+        new vscode.Location(
+          doc.uri,
+          doc.positionAt(p.location.start.offset),
         ),
       );
     });
