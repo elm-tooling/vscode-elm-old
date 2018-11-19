@@ -1,3 +1,9 @@
+### 0.23.0 - 19.11.2018
+* corrected a spelling error (by @WEBhicham)
+* Replace inefficient regex to locate imports with simpler regex (by @rgson)
+* Add json schema support for Elm's config files (by @stephenreddek)
+* Add support for running tests for Elm 0.19 (by @jackfranklin)
+
 ### 0.22.0 - 01.10.2018
 * Fix a 0.18 elm-make configuration bug and support elm-format for 0.18 and 0.19 (by @hakonrossebo)
 * Setting and logic to disable linting (by @hakonrossebo)

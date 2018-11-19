@@ -62,7 +62,7 @@ export function processDocument(doc: TextDocument): vscode.SymbolInformation[] {
           c: SymbolInformation[],
         ): SymbolInformation[] => acc.concat(c),
         [],
-      );
+    );
 
     const moduleFunctions = parsedModule.functions.map(f => {
       return new SymbolInformation(

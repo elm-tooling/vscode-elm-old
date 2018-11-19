@@ -1,7 +1,10 @@
 import * as cp from 'child_process';
 import * as readline from 'readline';
+import * as path from 'path';
 import * as utils from './elmUtils';
 import * as vscode from 'vscode';
+import * as elmTest from './elmTest';
+
 import { ElmAnalyse } from './elmAnalyse';
 
 export interface IElmIssueRegion {
@@ -62,7 +65,7 @@ function parseErrorsElm019(line) {
               typeof message === 'string'
                 ? message
                 : '#' + message.string + '#',
-          )
+        )
           .join(''),
         region: problem.region,
         type: 'error',
@@ -79,7 +82,7 @@ function parseErrorsElm019(line) {
       details: errorObject.message
         .map(
           message => (typeof message === 'string' ? message : message.string),
-        )
+      )
         .join(''),
       region: {
         start: {
@@ -117,6 +120,7 @@ function checkForErrors(filename): Promise<IElmIssue[]> {
     );
     const make018Command: string = <string>config.get('makeCommand');
     const compiler: string = <string>config.get('compiler');
+    const elmTestCompiler: string = <string>config.get('elmTestCompiler');
     const [cwd, elmVersion] = utils.detectProjectRootAndElmVersion(
       filename,
       vscode.workspace.rootPath,
@@ -125,6 +129,9 @@ function checkForErrors(filename): Promise<IElmIssue[]> {
     if (utils.isWindows) {
       filename = '"' + filename + '"';
     }
+
+    const isTestFile = elmTest.fileIsTestFile(filename);
+
     const args018 = [filename, '--report', 'json', '--output', '/dev/null'];
     const args019 = [
       'make',
@@ -135,7 +142,11 @@ function checkForErrors(filename): Promise<IElmIssue[]> {
       '/dev/null',
     ];
     const args = utils.isElm019(elmVersion) ? args019 : args018;
-    const makeCommand = utils.isElm019(elmVersion) ? compiler : make018Command;
+    const makeCommand = utils.isElm019(elmVersion)
+      ? isTestFile
+        ? elmTestCompiler
+        : compiler
+      : make018Command;
 
     if (utils.isWindows) {
       make = cp.exec(makeCommand + ' ' + args.join(' '), { cwd: cwd });

@@ -9,7 +9,7 @@ export class ElmDefinitionProvider implements vscode.DefinitionProvider {
   public constructor(
     private languagemode: vscode.DocumentFilter,
     private workspaceSymbolProvider: ElmWorkspaceSymbolProvider,
-  ) {}
+  ) { }
 
   public async provideDefinition(
     document: vscode.TextDocument,
