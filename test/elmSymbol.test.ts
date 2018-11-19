@@ -17,7 +17,7 @@ suite("elmSymbol", () => {
     const expectedSymbols: SymbolInformation[] = []
 
     return workspace.openTextDocument(filePath)
-      .then(doc => symbolProvider.provideDocumentSymbols(doc, null))
+      .then(doc => symbolProvider.provideDocumentSymbols(doc))
       .then(actualSymbols => assert.deepEqual(actualSymbols, expectedSymbols));
   });
 
@@ -45,7 +45,7 @@ suite("elmSymbol", () => {
     ]
 
     return workspace.openTextDocument(filePath)
-      .then(doc => symbolProvider.provideDocumentSymbols(doc, null))
+      .then(doc => symbolProvider.provideDocumentSymbols(doc))
       .then(async actualSymbols => {
         let as = await actualSymbols
         assert.equal(as.length, expectedSymbols.length,
@@ -55,5 +55,5 @@ suite("elmSymbol", () => {
           assert.deepEqual(ac, ex, `Symbol mismatch: ${ac.name}-${ex.name}`)
         })
       });
-	});
+  });
 });

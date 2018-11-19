@@ -264,9 +264,9 @@ export function runLinter(
         }
       });
       // Turn split arrays into diagnostics and associate them with correct files in VS
-      splitCompilerErrors.forEach((issue: IElmIssue[], path: string) => {
+      splitCompilerErrors.forEach((issue: IElmIssue[], issuePath: string) => {
         compileErrors.set(
-          vscode.Uri.file(path),
+          vscode.Uri.file(issuePath),
           issue.map(error => elmMakeIssueToDiagnostic(error)),
         );
       });
@@ -284,9 +284,9 @@ export function runLinter(
         splitCompilerErrors.set(issue.file, [issue]);
       }
       splitCompilerErrors.forEach(
-        (analyserIssue: IElmIssue[], path: string) => {
+        (analyserIssue: IElmIssue[], issuePath: string) => {
           compileErrors.set(
-            vscode.Uri.file(path),
+            vscode.Uri.file(issuePath),
             analyserIssue.map(error => elmMakeIssueToDiagnostic(error)),
           );
         },

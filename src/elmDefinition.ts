@@ -1,9 +1,9 @@
 'use strict';
 
 import * as vscode from 'vscode';
-
 import { ElmWorkspaceSymbolProvider } from './elmWorkspaceSymbols';
-import { ModuleParser, ImportStatement } from 'elm-module-parser';
+import { parseElmModule, ModuleImport } from 'elm-module-parser';
+import * as _ from 'lodash';
 
 export class ElmDefinitionProvider implements vscode.DefinitionProvider {
   public constructor(
@@ -25,21 +25,16 @@ export class ElmDefinitionProvider implements vscode.DefinitionProvider {
     }
 
     try {
-      const parsedModule = ModuleParser(document.getText());
+      const parsedModule = parseElmModule(document.getText());
 
       let symbolName = word.substring(word.lastIndexOf('.') + 1);
       let moduleAlias = word.substring(0, word.lastIndexOf('.'));
 
-      const exactMatchingImport: ImportStatement = parsedModule.imports.find(
+      const exactMatchingImport: ModuleImport = parsedModule.imports.find(
         i => {
           if (moduleAlias === '') {
             const matchedExposing = i.exposing.find(e => {
-              switch (e.type) {
-                case 'all':
-                  return false;
-                default:
-                  return e.name === symbolName;
-              }
+              return e.name === symbolName;
             });
 
             return matchedExposing != null;
@@ -64,9 +59,9 @@ export class ElmDefinitionProvider implements vscode.DefinitionProvider {
       if (exactMatch.length > 0) {
         return exactMatch[0].location;
       } else if (moduleAlias === '') {
-        const allImported = parsedModule.imports.filter(i =>
-          i.exposing.find(e => e.type === 'all'),
-        );
+        const allImported = parsedModule.imports.filter(i => {
+          return i.exposes_all || i.exposing.find(e => e.type === 'constructor');
+        });
 
         // This could find non-exposed symbols
         const fuzzyMatches = await Promise.all(
@@ -78,10 +73,7 @@ export class ElmDefinitionProvider implements vscode.DefinitionProvider {
           }),
         );
 
-        const firstFuzzy = fuzzyMatches.reduce(
-          (acc, x) => acc.concat(x),
-          [],
-        )[0];
+        const firstFuzzy = _.flatMap(fuzzyMatches, m => m)[0];
 
         return firstFuzzy != null ? firstFuzzy.location : null;
       } else {
