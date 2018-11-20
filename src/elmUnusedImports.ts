@@ -90,11 +90,15 @@ export async function detectUnusedImports(
         const importRange = locationToRange(importDeclaration.location);
 
         const makeDiag = (message: string, range?: vscode.Range) => {
-          return new vscode.Diagnostic(
+          const diagnostic = new vscode.Diagnostic(
             range || importRange,
             `Elm Unused Imports: ${message}`,
-            vscode.DiagnosticSeverity.Information,
+            vscode.DiagnosticSeverity.Hint,
           );
+
+          diagnostic.tags = [vscode.DiagnosticTag.Unnecessary];
+
+          return diagnostic;
         };
 
         const makeDiagHighlight = (message: string, highlightRegex: RegExp) => {

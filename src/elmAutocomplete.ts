@@ -30,10 +30,8 @@ export class ElmCompletionProvider implements vscode.CompletionItemProvider {
           if (currentWord.substr(-1) === '.') {
             let fullNameSplit = v.fullName.trim().split('.');
             let lastWordFullName = fullNameSplit[fullNameSplit.length - 1];
-            ci.textEdit = {
-              range: new vscode.Range(position, position),
-              newText: lastWordFullName,
-            };
+            ci.insertText = lastWordFullName;
+            ci.range = new vscode.Range(position, position);
           }
 
           return ci;
