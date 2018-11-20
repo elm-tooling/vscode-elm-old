@@ -10,7 +10,7 @@ export class ElmDefinitionProvider implements vscode.DefinitionProvider {
   public constructor(
     private languagemode: vscode.DocumentFilter,
     private workspaceSymbolProvider: ElmWorkspaceSymbolProvider,
-  ) { }
+  ) {}
 
   public async provideDefinition(
     document: vscode.TextDocument,
@@ -24,29 +24,37 @@ export class ElmDefinitionProvider implements vscode.DefinitionProvider {
     }
 
     try {
-      const parsedModule = await getGlobalModuleResolver().moduleFromPath(document.fileName);
+      const parsedModule = await getGlobalModuleResolver().moduleFromPath(
+        document.fileName,
+      );
 
       const word = document.getText(wordRange);
       const symbolName = word.substring(word.lastIndexOf('.') + 1);
       const moduleAlias = word.substring(0, word.lastIndexOf('.'));
 
-      const exactMatchingImport: ImportStatement = parsedModule.imports.find(i => {
-        if (moduleAlias === '') {
-          const matchedExposing = i.exposing.find(e => e.name === symbolName);
+      const exactMatchingImport: ImportStatement = parsedModule.imports.find(
+        i => {
+          if (moduleAlias === '') {
+            const matchedExposing = i.exposing.find(e => e.name === symbolName);
 
-          return matchedExposing != null;
-        } else {
-          return i.alias === moduleAlias || i.module === moduleAlias;
-        }
-      });
+            return matchedExposing != null;
+          } else {
+            return i.alias === moduleAlias || i.module === moduleAlias;
+          }
+        },
+      );
 
-      const moduleToSearch = exactMatchingImport != null
-        ? exactMatchingImport.module
-        : parsedModule.name;
+      const moduleToSearch =
+        exactMatchingImport != null
+          ? exactMatchingImport.module
+          : parsedModule.name;
 
       const query = `${moduleToSearch}:${symbolName}`;
 
-      const exactMatch = await this.workspaceSymbolProvider.provideWorkspaceSymbols(query, token);
+      const exactMatch = await this.workspaceSymbolProvider.provideWorkspaceSymbols(
+        query,
+        token,
+      );
 
       if (exactMatch.length > 0) {
         return exactMatch[0].location;
@@ -54,11 +62,19 @@ export class ElmDefinitionProvider implements vscode.DefinitionProvider {
         const allImported = parsedModule.imports.filter(i => i.exposes_all);
 
         // This could find non-exposed symbols
-        const fuzzyMatches = await Promise.all(allImported.map(i => {
-          return this.workspaceSymbolProvider.provideWorkspaceSymbols(`${i.module}:${symbolName}`, token);
-        }));
+        const fuzzyMatches = await Promise.all(
+          allImported.map(i => {
+            return this.workspaceSymbolProvider.provideWorkspaceSymbols(
+              `${i.module}:${symbolName}`,
+              token,
+            );
+          }),
+        );
 
-        const firstFuzzy = fuzzyMatches.reduce((acc, x) => acc.concat(x), [])[0];
+        const firstFuzzy = fuzzyMatches.reduce(
+          (acc, x) => acc.concat(x),
+          [],
+        )[0];
 
         return firstFuzzy != null ? firstFuzzy.location : null;
       } else {

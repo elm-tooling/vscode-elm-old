@@ -17,12 +17,15 @@ enum ElmAnalyseServerState {
 interface IElmAnalyseMessage {
   type: string;
   file: string;
-  data: IElmAnalyseMessageData
+  data: IElmAnalyseMessageData;
 }
 
 interface IElmAnalyseMessageData {
-  description: string,
-  properties: { range: number[] } | { range1: number[], range2: number[] } | { ranges: number[][] }
+  description: string;
+  properties:
+    | { range: number[] }
+    | { range1: number[]; range2: number[] }
+    | { ranges: number[][] };
 }
 
 interface IElmAnalyseMessageParseResult {
@@ -100,19 +103,29 @@ export class ElmAnalyse {
           this.elmAnalyseIssues = [];
           const state = JSON.parse(stateJson);
           const messages: IElmAnalyseMessage[] = state.messages;
-          var failedMessages =
-            messages.map(message =>
-              this.parseMessage(cwd, message)
-            ).filter(result => !result.success);
+          var failedMessages = messages
+            .map(message => this.parseMessage(cwd, message))
+            .filter(result => !result.success);
           if (failedMessages.length > 0) {
-            var items = failedMessages.map(result => 'Type: \'' + result.messageType + '\' - ' + result.reason);
-            var messageText = items.length + ' of ' + messages.length + ' messages from Elm-analyse could not be parsed. Check if you are running at least elm-analyse 0.14.2 or higher and has been configured correctly.';
-            vscode.window.showErrorMessage(messageText, 'Show details'
-            ).then(item => {
-              if (item === 'Show details') {
-                vscode.window.showErrorMessage(messageText + "\n\nFollowing messages could not be parsed:\n" + items.join("\n"));
-              }
-            });
+            var items = failedMessages.map(
+              result => "Type: '" + result.messageType + "' - " + result.reason,
+            );
+            var messageText =
+              items.length +
+              ' of ' +
+              messages.length +
+              ' messages from Elm-analyse could not be parsed. Check if you are running at least elm-analyse 0.14.2 or higher and has been configured correctly.';
+            vscode.window
+              .showErrorMessage(messageText, 'Show details')
+              .then(item => {
+                if (item === 'Show details') {
+                  vscode.window.showErrorMessage(
+                    messageText +
+                      '\n\nFollowing messages could not be parsed:\n' +
+                      items.join('\n'),
+                  );
+                }
+              });
           }
           this.unprocessedMessage = true;
         } catch (e) {
@@ -133,10 +146,17 @@ export class ElmAnalyse {
     }
   }
 
-  private parseMessage(cwd: string, message: IElmAnalyseMessage): IElmAnalyseMessageParseResult {
+  private parseMessage(
+    cwd: string,
+    message: IElmAnalyseMessage,
+  ): IElmAnalyseMessageParseResult {
     function generateError(reason: string): IElmAnalyseMessageParseResult {
-      return { success: false, reason: reason, messageType: message.type || null }
-    };
+      return {
+        success: false,
+        reason: reason,
+        messageType: message.type || null,
+      };
+    }
     function generateMissingError(path: string): IElmAnalyseMessageParseResult {
       return generateError(path + ' is missing');
     }
@@ -162,8 +182,13 @@ export class ElmAnalyse {
         return generateMissingError('message.data.properties');
       }
 
-      const messageInfoFileRegions = this.parseMessageInfoFileRanges(message.data).map(this.convertRangeToRegion);
-      const description = this.correctRangeWithinDescription(messageInfoFileRegions, message.data.description);
+      const messageInfoFileRegions = this.parseMessageInfoFileRanges(
+        message.data,
+      ).map(this.convertRangeToRegion);
+      const description = this.correctRangeWithinDescription(
+        messageInfoFileRegions,
+        message.data.description,
+      );
       messageInfoFileRegions.forEach(messageInfoFileRegion => {
         const issue: IElmIssue = {
           tag: 'analyser',
@@ -188,13 +213,17 @@ export class ElmAnalyse {
     var messageInfoProperties = <any>messageInfoData.properties;
     if (messageInfoProperties.hasOwnProperty('range')) {
       messageInfoFileRanges = [messageInfoProperties.range];
-    } else if (messageInfoProperties.hasOwnProperty('range1') && messageInfoProperties.hasOwnProperty('range2')) {
-      messageInfoFileRanges = [messageInfoProperties.range1, messageInfoProperties.range2];
-    }
-    else if (messageInfoProperties.hasOwnProperty('ranges')) {
+    } else if (
+      messageInfoProperties.hasOwnProperty('range1') &&
+      messageInfoProperties.hasOwnProperty('range2')
+    ) {
+      messageInfoFileRanges = [
+        messageInfoProperties.range1,
+        messageInfoProperties.range2,
+      ];
+    } else if (messageInfoProperties.hasOwnProperty('ranges')) {
       messageInfoFileRanges = messageInfoProperties.ranges;
-    }
-    else {
+    } else {
       messageInfoFileRanges = [[0, 0, 0, 0]];
     }
     return messageInfoFileRanges;
@@ -213,17 +242,28 @@ export class ElmAnalyse {
     };
   }
 
-  private correctRangeWithinDescription(originalRegions: IElmIssueRegion[], originalDescription: string): string {
+  private correctRangeWithinDescription(
+    originalRegions: IElmIssueRegion[],
+    originalDescription: string,
+  ): string {
     function formatRegion(region: IElmIssueRegion): string {
-      return `((${region.start.line},${region.start.column}),(${region.end.line},${region.end.column}))`;
+      return `((${region.start.line},${region.start.column}),(${
+        region.end.line
+      },${region.end.column}))`;
     }
 
-    return originalRegions.reduce((currentDescription, originalRegion): string => {
-      const correctedRegion = this.correctRegion(originalRegion);
-      const originalRegionText = formatRegion(originalRegion);
-      const correctedRegionText = formatRegion(correctedRegion);
-      return currentDescription.replace(originalRegionText, correctedRegionText);
-    }, originalDescription);
+    return originalRegions.reduce(
+      (currentDescription, originalRegion): string => {
+        const correctedRegion = this.correctRegion(originalRegion);
+        const originalRegionText = formatRegion(originalRegion);
+        const correctedRegionText = formatRegion(correctedRegion);
+        return currentDescription.replace(
+          originalRegionText,
+          correctedRegionText,
+        );
+      },
+      originalDescription,
+    );
   }
 
   private correctRegion(region: IElmIssueRegion): IElmIssueRegion {

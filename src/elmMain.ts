@@ -22,7 +22,9 @@ import { getGlobalModuleResolver } from './elmModuleResolver';
 import { activateUnusedImportsDiagnostics } from './elmUnusedImports';
 
 const ELM_MODE: vscode.DocumentFilter = { language: 'elm', scheme: 'file' };
-const config: vscode.WorkspaceConfiguration = vscode.workspace.getConfiguration('elm');
+const config: vscode.WorkspaceConfiguration = vscode.workspace.getConfiguration(
+  'elm',
+);
 const disableLinter: boolean = <boolean>config.get('disableLinting');
 const elmAnalyseIssues: IElmIssue[] = [];
 const elmAnalyse = new ElmAnalyse(elmAnalyseIssues);
@@ -45,9 +47,11 @@ export function activate(ctx: vscode.ExtensionContext) {
 
   if (!disableLinter) {
     ctx.subscriptions.push(
-      vscode.workspace.onDidSaveTextDocument((document: vscode.TextDocument) => {
-        runLinter(document, elmAnalyse);
-      }),
+      vscode.workspace.onDidSaveTextDocument(
+        (document: vscode.TextDocument) => {
+          runLinter(document, elmAnalyse);
+        },
+      ),
     );
   }
 

@@ -42,21 +42,32 @@ export interface ExecutingCmd
 }
 
 /** Executes a command. Shows an error message if the command isn't found */
-export function execCmd
-  (cmd: string, options: ExecCmdOptions = {}): ExecutingCmd {
-
-  const { fileName, onStart, onStdout, onStderr, onExit, cmdArguments } = options;
-  let childProcess, firstResponse = true, wasKilledbyUs = false;
+export function execCmd(
+  cmd: string,
+  options: ExecCmdOptions = {},
+): ExecutingCmd {
+  const {
+    fileName,
+    onStart,
+    onStdout,
+    onStderr,
+    onExit,
+    cmdArguments,
+  } = options;
+  let childProcess,
+    firstResponse = true,
+    wasKilledbyUs = false;
 
   const executingCmd: any = new Promise((resolve, reject) => {
     let cmdArguments = options ? options.cmdArguments : [];
 
     const dummyPath = path.join(vscode.workspace.rootPath, 'dummyfile');
-    const [cwdCurrent, elmVersion] = detectProjectRootAndElmVersion(fileName || dummyPath, workspace.rootPath);
+    const [cwdCurrent, elmVersion] = detectProjectRootAndElmVersion(
+      fileName || dummyPath,
+      workspace.rootPath,
+    );
     const fullCommand = cmd + ' ' + (cmdArguments || []).join(' ');
-    childProcess =
-      cp.exec(fullCommand, { cwd: cwdCurrent }, handleExit);
-
+    childProcess = cp.exec(fullCommand, { cwd: cwdCurrent }, handleExit);
 
     childProcess.stdout.on('data', (data: Buffer) => {
       if (firstResponse && onStart) {
@@ -152,7 +163,9 @@ export function findProjAndElmVersion(dir: string): [string, string] {
 export function findProj(dir: string): string {
   if (fs.lstatSync(dir).isDirectory()) {
     const files = fs.readdirSync(dir);
-    const file = files.find((v, i) => v === 'elm-package.json' || v === 'elm.json');
+    const file = files.find(
+      (v, i) => v === 'elm-package.json' || v === 'elm.json',
+    );
     if (file !== undefined) {
       return dir + path.sep + file;
     }
@@ -168,7 +181,10 @@ export function findProj(dir: string): string {
   }
 }
 
-export function detectProjectRootAndElmVersion(fileName: string, workspaceRootPath: string): [string, string] {
+export function detectProjectRootAndElmVersion(
+  fileName: string,
+  workspaceRootPath: string,
+): [string, string] {
   const proj = findProjAndElmVersion(path.dirname(fileName));
   if (proj[0] !== '') {
     return [path.dirname(proj[0]), proj[1]];
@@ -185,7 +201,7 @@ export function detectProjectRoot(fileName: string): string {
 }
 
 export function isElm019(elmVersion: string): boolean {
-  return elmVersion === '0.19' ? true : false
+  return elmVersion === '0.19' ? true : false;
 }
 
 export function getIndicesOf(searchStr: string, str: string): number[] {
@@ -200,13 +216,13 @@ export function getIndicesOf(searchStr: string, str: string): number[] {
   return indices;
 }
 
-
 function isPowershell() {
   try {
-    const config: vscode.WorkspaceConfiguration = vscode.workspace.getConfiguration('elm');
+    const config: vscode.WorkspaceConfiguration = vscode.workspace.getConfiguration(
+      'elm',
+    );
     const t: string = <string>config.get('terminal.integrated.shell.windows');
     return t.toLowerCase().includes('powershell');
-
   } catch (error) {
     return false;
   }
@@ -216,11 +232,12 @@ export function getTerminalLaunchCommands(command: string): [string, string] {
   if (isWindows) {
     if (isPowershell()) {
       return [`cmd /c ${command}`, 'clear'];
-
     } else {
       return [`${command}`, 'cls'];
     }
-  } else { return [command, 'clear']; }
+  } else {
+    return [command, 'clear'];
+  }
 }
 
 export const pluginPath = vscode.extensions.getExtension('sbrink.elm')

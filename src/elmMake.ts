@@ -7,17 +7,22 @@ let make: cp.ChildProcess;
 let oc: vscode.OutputChannel = vscode.window.createOutputChannel('Elm Make');
 
 function getMakeAndArguments(file, warn: boolean): [string, string, string[]] {
-  const config: vscode.WorkspaceConfiguration = vscode.workspace.getConfiguration('elm');
+  const config: vscode.WorkspaceConfiguration = vscode.workspace.getConfiguration(
+    'elm',
+  );
   const name: string = <string>config.get('makeOutput');
   const make018Command: string = <string>config.get('makeCommand');
   const compiler: string = <string>config.get('compiler');
-  const [cwd, elmVersion] = utils.detectProjectRootAndElmVersion(file, vscode.workspace.rootPath)
+  const [cwd, elmVersion] = utils.detectProjectRootAndElmVersion(
+    file,
+    vscode.workspace.rootPath,
+  );
   const specialFile: string = <string>config.get('makeSpecialFile');
   if (specialFile.length > 0) {
     file = path.resolve(cwd, specialFile);
   }
   if (utils.isWindows) {
-    file = "\"" + file + "\""
+    file = '"' + file + '"';
   }
   const args018 = [file, '--yes', '--output=' + name];
   if (warn) {
@@ -39,9 +44,9 @@ function execMake(editor: vscode.TextEditor, warn: boolean): void {
       make.kill();
       oc.clear();
     }
-    let file = editor.document.fileName;    
+    let file = editor.document.fileName;
     let [cwd, makeCommand, args] = getMakeAndArguments(file, warn);
-    
+
     if (utils.isWindows) {
       make = cp.exec(makeCommand + ' ' + args.join(' '), { cwd: cwd });
     } else {

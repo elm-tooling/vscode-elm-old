@@ -5,7 +5,11 @@ import * as vscode from 'vscode';
 import { askOracle } from './elmDelphi';
 import { isWindows } from './elmUtils';
 
-import { detectProjectRoot, pluginPath, detectProjectRootAndElmVersion } from './elmUtils';
+import {
+  detectProjectRoot,
+  pluginPath,
+  detectProjectRootAndElmVersion,
+} from './elmUtils';
 
 export interface IOracleResult {
   name: string;
@@ -42,7 +46,11 @@ export function GetOracleResults(
   return new Promise((resolve: Function, reject: Function) => {
     let p: cp.ChildProcess;
     let filename: string = document.fileName;
-    let [cwd, elmVersion] = detectProjectRootAndElmVersion(document.fileName, vscode.workspace.rootPath) || vscode.workspace.rootPath;
+    let [cwd, elmVersion] =
+      detectProjectRootAndElmVersion(
+        document.fileName,
+        vscode.workspace.rootPath,
+      ) || vscode.workspace.rootPath;
     let fn = path.relative(cwd, filename);
     let wordAtPosition = document.getWordRangeAtPosition(position);
     if (!wordAtPosition) {
@@ -51,7 +59,6 @@ export function GetOracleResults(
     let currentWord: string = document.getText(wordAtPosition);
 
     if (elmVersion === '0.18') {
-
       p = cp.execFile(
         'node',
         [oraclePath, fn, currentWord],
@@ -65,7 +72,12 @@ export function GetOracleResults(
             const result: IOracleResult[] = [
               ...JSON.parse(stdout),
               ...(config['userProjectIntellisense']
-                ? userProject.userProject(document, position, currentWord, action)
+                ? userProject.userProject(
+                    document,
+                    position,
+                    currentWord,
+                    action,
+                  )
                 : []),
             ];
             resolve(result);

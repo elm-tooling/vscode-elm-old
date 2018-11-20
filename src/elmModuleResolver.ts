@@ -5,7 +5,13 @@ import { ModuleParser, Module } from 'elm-module-parser';
 
 export class ElmModuleResolver {
   private sourceDirs = null;
-  private cache: { [modulePath: string]: { parsed: Module, moduleName: string, modulePath: string } } = {};
+  private cache: {
+    [modulePath: string]: {
+      parsed: Module;
+      moduleName: string;
+      modulePath: string;
+    };
+  } = {};
 
   public async moduleFromName(moduleName: string): Promise<Module | null> {
     if (this.sourceDirs == null) {
@@ -62,7 +68,9 @@ export class ElmModuleResolver {
     return this;
   }
 
-  private async openTextDocumentOrNull(documentPath: string): Promise<vscode.TextDocument | null> {
+  private async openTextDocumentOrNull(
+    documentPath: string,
+  ): Promise<vscode.TextDocument | null> {
     try {
       return await vscode.workspace.openTextDocument(documentPath);
     } catch (error) {
@@ -86,7 +94,9 @@ export class ElmModuleResolver {
       });
     };
 
-    const loadElmProjectOrNull = async (projectFilePath: string): Promise<any> => {
+    const loadElmProjectOrNull = async (
+      projectFilePath: string,
+    ): Promise<any> => {
       try {
         return JSON.parse(await readFile(projectFilePath));
       } catch (error) {
@@ -97,7 +107,9 @@ export class ElmModuleResolver {
     const elm18Package = path.join(workingDir, 'elm-package.json');
     const elm19Package = path.join(workingDir, 'elm.json');
 
-    const elmProject = await loadElmProjectOrNull(elm19Package) || await loadElmProjectOrNull(elm18Package);
+    const elmProject =
+      (await loadElmProjectOrNull(elm19Package)) ||
+      (await loadElmProjectOrNull(elm18Package));
 
     if (elmProject == null) {
       return [workingDir];
@@ -123,4 +135,3 @@ const globalModuleResolver = new ElmModuleResolver();
 export function getGlobalModuleResolver(): ElmModuleResolver {
   return globalModuleResolver;
 }
-

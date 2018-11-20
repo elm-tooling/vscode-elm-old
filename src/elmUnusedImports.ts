@@ -1,5 +1,10 @@
 import * as vscode from 'vscode';
-import { Module, ImportStatement, CustomTypeDeclaration, Location } from 'elm-module-parser';
+import {
+  Module,
+  ImportStatement,
+  CustomTypeDeclaration,
+  Location,
+} from 'elm-module-parser';
 import { getGlobalModuleResolver } from './elmModuleResolver';
 
 let unusedImportDiagnostics: vscode.DiagnosticCollection = null;
@@ -11,7 +16,8 @@ export function activateUnusedImportsDiagnostics() {
 
   unusedImportDiagnostics = vscode.languages.createDiagnosticCollection('elm');
 
-  const isEnabled = (): boolean => vscode.workspace.getConfiguration('elm').get('enableUnusedImports', true);
+  const isEnabled = (): boolean =>
+    vscode.workspace.getConfiguration('elm').get('enableUnusedImports', true);
 
   vscode.workspace.onDidChangeConfiguration(() => {
     if (!isEnabled()) {
@@ -38,8 +44,12 @@ export function activateUnusedImportsDiagnostics() {
   vscode.workspace.onDidSaveTextDocument(checkUnusedImportsIfEnabled);
 }
 
-export async function detectUnusedImports(document: vscode.TextDocument): Promise<vscode.Diagnostic[]> {
-  const parsedModule: Module = await getGlobalModuleResolver().moduleFromPath(document.fileName);
+export async function detectUnusedImports(
+  document: vscode.TextDocument,
+): Promise<vscode.Diagnostic[]> {
+  const parsedModule: Module = await getGlobalModuleResolver().moduleFromPath(
+    document.fileName,
+  );
 
   if (parsedModule == null) {
     return [];
@@ -53,53 +63,86 @@ export async function detectUnusedImports(document: vscode.TextDocument): Promis
   const textAfterImports = moduleText.substr(offsetAfterImports);
 
   // This is used to lazily execute the regex over the text to find a suitable match
-  function* matchesAfterImports(matcherRegex: string): IterableIterator<RegExpExecArray> {
+  function* matchesAfterImports(
+    matcherRegex: string,
+  ): IterableIterator<RegExpExecArray> {
     const matcher = new RegExp(matcherRegex, 'g');
 
     let match: RegExpExecArray = null;
-    while (match = matcher.exec(textAfterImports)) {
+    while ((match = matcher.exec(textAfterImports))) {
       yield match;
     }
   }
 
-  const diagnosticsByImport = await Promise.all(parsedModule.imports.map(async (importDeclaration): Promise<vscode.Diagnostic[]> => {
-    const importRange = locationToRange(importDeclaration.location);
+  const diagnosticsByImport = await Promise.all(
+    parsedModule.imports.map(
+      async (importDeclaration): Promise<vscode.Diagnostic[]> => {
+        const importRange = locationToRange(importDeclaration.location);
 
-    const makeDiag = (message: string, range?: vscode.Range) => {
-      return new vscode.Diagnostic(range || importRange, `Elm Unused Imports: ${message}`, vscode.DiagnosticSeverity.Information);
-    };
+        const makeDiag = (message: string, range?: vscode.Range) => {
+          return new vscode.Diagnostic(
+            range || importRange,
+            `Elm Unused Imports: ${message}`,
+            vscode.DiagnosticSeverity.Information,
+          );
+        };
 
-    const makeDiagHighlight = (message: string, highlightRegex: RegExp) => {
-      const importText = document.getText(importRange);
-      const matches = importText.match(highlightRegex);
+        const makeDiagHighlight = (message: string, highlightRegex: RegExp) => {
+          const importText = document.getText(importRange);
+          const matches = importText.match(highlightRegex);
 
-      if (matches != null) {
-        const matchStart = importDeclaration.location.start.offset + matches.index;
-        const matchEnd = matchStart + matches[0].length;
+          if (matches != null) {
+            const matchStart =
+              importDeclaration.location.start.offset + matches.index;
+            const matchEnd = matchStart + matches[0].length;
 
-        return new vscode.Diagnostic(new vscode.Range(
-          document.positionAt(matchStart),
-          document.positionAt(matchEnd),
-        ), message, vscode.DiagnosticSeverity.Information);
-      }
+            return new vscode.Diagnostic(
+              new vscode.Range(
+                document.positionAt(matchStart),
+                document.positionAt(matchEnd),
+              ),
+              message,
+              vscode.DiagnosticSeverity.Information,
+            );
+          }
 
-      return null;
-    };
+          return null;
+        };
 
-    const requiresQualifiedName = !importDeclaration.exposes_all && importDeclaration.exposing.length === 0;
+        const requiresQualifiedName =
+          !importDeclaration.exposes_all &&
+          importDeclaration.exposing.length === 0;
 
-    if (requiresQualifiedName) {
-      return qualifiedNameDiagnostics(importDeclaration, matchesAfterImports, makeDiag);
-    }
+        if (requiresQualifiedName) {
+          return qualifiedNameDiagnostics(
+            importDeclaration,
+            matchesAfterImports,
+            makeDiag,
+          );
+        }
 
-    const aliasDiag = aliasDiagnostics(importDeclaration, matchesAfterImports, makeDiagHighlight);
+        const aliasDiag = aliasDiagnostics(
+          importDeclaration,
+          matchesAfterImports,
+          makeDiagHighlight,
+        );
 
-    const pickedImportDiag = await pickedImportsDiagnostics(importDeclaration, matchesAfterImports, makeDiag);
+        const pickedImportDiag = await pickedImportsDiagnostics(
+          importDeclaration,
+          matchesAfterImports,
+          makeDiag,
+        );
 
-    const importsAllDiag = await importAllDiagnostics(importDeclaration, matchesAfterImports, makeDiag);
+        const importsAllDiag = await importAllDiagnostics(
+          importDeclaration,
+          matchesAfterImports,
+          makeDiag,
+        );
 
-    return aliasDiag.concat(pickedImportDiag).concat(importsAllDiag);
-  }));
+        return aliasDiag.concat(pickedImportDiag).concat(importsAllDiag);
+      },
+    ),
+  );
 
   return diagnosticsByImport.reduce((acc, x) => acc.concat(x), []);
 }
@@ -120,10 +163,12 @@ function qualifiedNameDiagnostics(
   matcher: (regex: string) => IterableIterator<RegExpExecArray>,
   makeDiagnostic: (message: string) => vscode.Diagnostic,
 ): vscode.Diagnostic[] {
-  const identifierToSearch = importDeclaration.alias || importDeclaration.module;
+  const identifierToSearch =
+    importDeclaration.alias || importDeclaration.module;
 
   const matchesIterable = matcher(
-    `[^.\\w](${escapeDots(identifierToSearch)}[.]\\w)`);
+    `[^.\\w](${escapeDots(identifierToSearch)}[.]\\w)`,
+  );
 
   for (const m of matchesIterable) {
     // test if the match is legitimate
@@ -141,21 +186,30 @@ function qualifiedNameDiagnostics(
 function aliasDiagnostics(
   importDeclaration: ImportStatement,
   matcher: (regex: string) => IterableIterator<RegExpExecArray>,
-  makeDiagnostic: (message: string, highlightRegex: RegExp) => vscode.Diagnostic,
+  makeDiagnostic: (
+    message: string,
+    highlightRegex: RegExp,
+  ) => vscode.Diagnostic,
 ): vscode.Diagnostic[] {
   if (importDeclaration.alias == null) {
     return [];
   }
 
   const aliasMatchesIterable = matcher(
-    `[^.\\w](${importDeclaration.alias})[.]`);
+    `[^.\\w](${importDeclaration.alias})[.]`,
+  );
 
   for (const m of aliasMatchesIterable) {
     // test if the match is legitimate
     return [];
   }
 
-  return [makeDiagnostic(`Alias ${importDeclaration.alias} is not used.`, new RegExp(`\\sas ${importDeclaration.alias}`))];
+  return [
+    makeDiagnostic(
+      `Alias ${importDeclaration.alias} is not used.`,
+      new RegExp(`\\sas ${importDeclaration.alias}`),
+    ),
+  ];
 }
 
 /** Imports all from module.
@@ -172,7 +226,9 @@ async function importAllDiagnostics(
     return [];
   }
 
-  const importedModule: Module = await getGlobalModuleResolver().moduleFromName(importDeclaration.module);
+  const importedModule: Module = await getGlobalModuleResolver().moduleFromName(
+    importDeclaration.module,
+  );
 
   // Since we can't load the module we don't want to say anything about it.
   if (importedModule == null) {
@@ -197,14 +253,17 @@ async function importAllDiagnostics(
           return true;
         }
       } else if (exposed.type === 'constructor') {
-        const referencedCustomType =
-          importedModule.types.find(x => x.type === 'custom-type' && x.name === exposed.name) as CustomTypeDeclaration;
+        const referencedCustomType = importedModule.types.find(
+          x => x.type === 'custom-type' && x.name === exposed.name,
+        ) as CustomTypeDeclaration;
 
         if (referencedCustomType == null) {
           continue;
         }
 
-        const constructorNames = referencedCustomType.constructors.map(c => c.name);
+        const constructorNames = referencedCustomType.constructors.map(
+          c => c.name,
+        );
 
         if (nameMatchExists(constructorNames, matcher)) {
           return true;
@@ -234,51 +293,69 @@ async function pickedImportsDiagnostics(
   matcher: (regex: string) => IterableIterator<RegExpExecArray>,
   makeDiagnostic: (message: string, range: vscode.Range) => vscode.Diagnostic,
 ): Promise<vscode.Diagnostic[]> {
-  const results = await Promise.all(importDeclaration.exposing.map(async pickedImport => {
-    if (pickedImport.type === 'function' || pickedImport.type === 'type') {
-      if (nameMatchExists([pickedImport.name], matcher)) {
+  const results = await Promise.all(
+    importDeclaration.exposing.map(async pickedImport => {
+      if (pickedImport.type === 'function' || pickedImport.type === 'type') {
+        if (nameMatchExists([pickedImport.name], matcher)) {
+          return null;
+        }
+
+        const message = `Exposed ${pickedImport.type} ${
+          pickedImport.name
+        } from module ${importDeclaration.module} is not used.`;
+
+        return makeDiagnostic(message, locationToRange(pickedImport.location));
+      } else if (pickedImport.type === 'constructor') {
+        const referencedModule = await getGlobalModuleResolver().moduleFromName(
+          importDeclaration.module,
+        );
+
+        // Can't check what we can't load.
+        if (referencedModule == null) {
+          return null;
+        }
+
+        const referencedCustomType = referencedModule.types.find(
+          x => x.type === 'custom-type' && x.name === pickedImport.name,
+        ) as CustomTypeDeclaration;
+
+        // Don't bother checking if it's exposed from the other module because it will manifest itself as a compile error.
+        if (referencedCustomType == null) {
+          return null;
+        }
+
+        const constructorNames = referencedCustomType.constructors
+          .map(c => c.name)
+          .concat([referencedCustomType.name]);
+
+        if (nameMatchExists(constructorNames, matcher)) {
+          return null;
+        }
+
+        const message = `Custom type ${pickedImport.name} from ${
+          importDeclaration.module
+        } is not used.`;
+
+        return makeDiagnostic(message, locationToRange(pickedImport.location));
+      } else {
+        const _exhaustiveCheck: never = pickedImport;
         return null;
       }
-
-      const message = `Exposed ${pickedImport.type} ${pickedImport.name} from module ${importDeclaration.module} is not used.`;
-
-      return makeDiagnostic(message, locationToRange(pickedImport.location));
-    } else if (pickedImport.type === 'constructor') {
-      const referencedModule = await getGlobalModuleResolver().moduleFromName(importDeclaration.module);
-
-      // Can't check what we can't load.
-      if (referencedModule == null) {
-        return null;
-      }
-
-      const referencedCustomType =
-        referencedModule.types.find(x => x.type === 'custom-type' && x.name === pickedImport.name) as CustomTypeDeclaration;
-
-      // Don't bother checking if it's exposed from the other module because it will manifest itself as a compile error.
-      if (referencedCustomType == null) {
-        return null;
-      }
-
-      const constructorNames = referencedCustomType.constructors.map(c => c.name).concat([referencedCustomType.name]);
-
-      if (nameMatchExists(constructorNames, matcher)) {
-        return null;
-      }
-
-      const message = `Custom type ${pickedImport.name} from ${importDeclaration.module} is not used.`;
-
-      return makeDiagnostic(message, locationToRange(pickedImport.location));
-    } else {
-      const _exhaustiveCheck: never = pickedImport;
-      return null;
-    }
-  }));
+    }),
+  );
 
   const diagnostics = results.filter(x => x != null);
 
-  if (importDeclaration.exposing.length > 0 && importDeclaration.exposing.length === diagnostics.length) {
+  if (
+    importDeclaration.exposing.length > 0 &&
+    importDeclaration.exposing.length === diagnostics.length
+  ) {
     // Perhaps the module isn't being used at all
-    const qualifiedNameDiagnostic = qualifiedNameDiagnostics(importDeclaration, matcher, (msg) => makeDiagnostic(msg, null));
+    const qualifiedNameDiagnostic = qualifiedNameDiagnostics(
+      importDeclaration,
+      matcher,
+      msg => makeDiagnostic(msg, null),
+    );
 
     return diagnostics.concat(qualifiedNameDiagnostic);
   }
@@ -310,8 +387,13 @@ function escapeDots(value: string) {
   return value.replace(/[.]/g, '[.]');
 }
 
-function nameMatchExists(names: string[], matcher: (regex: string) => IterableIterator<RegExpExecArray>) {
-  const matchIterator = matcher(`.\\b(${names.map(escapeDots).join('|')})\\b[\\s\\S]?`);
+function nameMatchExists(
+  names: string[],
+  matcher: (regex: string) => IterableIterator<RegExpExecArray>,
+) {
+  const matchIterator = matcher(
+    `.\\b(${names.map(escapeDots).join('|')})\\b[\\s\\S]?`,
+  );
 
   for (const [match] of matchIterator) {
     if (match.startsWith('.') || match.endsWith('.')) {
@@ -326,7 +408,9 @@ function nameMatchExists(names: string[], matcher: (regex: string) => IterableIt
 
 function locationToRange(location: Location): vscode.Range {
   return new vscode.Range(
-    location.start.line - 1, location.start.column - 1,
-    location.end.line - 1, location.end.column - 1,
+    location.start.line - 1,
+    location.start.column - 1,
+    location.end.line - 1,
+    location.end.column - 1,
   );
 }

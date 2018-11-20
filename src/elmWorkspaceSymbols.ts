@@ -11,7 +11,6 @@ export interface ModuleSymbols {
 
 export class ElmWorkspaceSymbolProvider
   implements vscode.WorkspaceSymbolProvider {
-
   private symbolsByModule: { [moduleName: string]: ModuleSymbols };
   private symbolsByPath: { [modulePath: string]: ModuleSymbols };
   private workspaceIndexTime: Date;
@@ -25,7 +24,10 @@ export class ElmWorkspaceSymbolProvider
     await this.indexDocument(document);
   }
 
-  public async provideWorkspaceSymbols(query: string, cancelToken: vscode.CancellationToken): Promise<vscode.SymbolInformation[]> {
+  public async provideWorkspaceSymbols(
+    query: string,
+    cancelToken: vscode.CancellationToken,
+  ): Promise<vscode.SymbolInformation[]> {
     const [sourceModule, symbolName] = query.split(':', 2);
 
     if (symbolName == null) {
@@ -35,21 +37,28 @@ export class ElmWorkspaceSymbolProvider
     return this.searchModuleSymbols(sourceModule, symbolName);
   }
 
-  private async searchWorkspaceSymbols(symbol: string): Promise<SymbolInformation[]> {
+  private async searchWorkspaceSymbols(
+    symbol: string,
+  ): Promise<SymbolInformation[]> {
     if (this.workspaceIndexTime == null) {
       await this.indexWorkspace();
     }
 
     // When searching entire workspace use a lenient search
-    const matchingSymbols = Object.keys(this.symbolsByPath).map((modulePath: string) => {
-      const cached = this.symbolsByPath[modulePath];
-      return cached.symbols.filter(s => s.name.startsWith(symbol));
-    }).reduce((acc, x) => acc.concat(x), []);
+    const matchingSymbols = Object.keys(this.symbolsByPath)
+      .map((modulePath: string) => {
+        const cached = this.symbolsByPath[modulePath];
+        return cached.symbols.filter(s => s.name.startsWith(symbol));
+      })
+      .reduce((acc, x) => acc.concat(x), []);
 
     return matchingSymbols;
   }
 
-  private async searchModuleSymbols(moduleName: string, symbol: string): Promise<SymbolInformation[]> {
+  private async searchModuleSymbols(
+    moduleName: string,
+    symbol: string,
+  ): Promise<SymbolInformation[]> {
     const moduleSymbols = this.symbolsByModule[moduleName];
 
     if (moduleSymbols == null) {
@@ -66,11 +75,17 @@ export class ElmWorkspaceSymbolProvider
     const config = vscode.workspace.getConfiguration('elm');
     const maxFiles = config['maxWorkspaceFilesUsedBySymbols'];
     const excludePattern = config['workspaceFilesExcludePatternUsedBySymbols'];
-    const workspaceFiles = await vscode.workspace.findFiles('**/*.elm', excludePattern, maxFiles);
+    const workspaceFiles = await vscode.workspace.findFiles(
+      '**/*.elm',
+      excludePattern,
+      maxFiles,
+    );
 
     try {
       await Promise.all(
-        workspaceFiles.map(async uri => this.indexDocument(await vscode.workspace.openTextDocument(uri))),
+        workspaceFiles.map(async uri =>
+          this.indexDocument(await vscode.workspace.openTextDocument(uri)),
+        ),
       );
 
       this.workspaceIndexTime = new Date();
@@ -81,10 +96,16 @@ export class ElmWorkspaceSymbolProvider
 
   private async indexModule(moduleName: string): Promise<void> {
     const modulePath = moduleName.replace(/\./g, '/') + '.elm';
-    const matchedFiles = await vscode.workspace.findFiles('**/*/' + modulePath, null, 1);
+    const matchedFiles = await vscode.workspace.findFiles(
+      '**/*/' + modulePath,
+      null,
+      1,
+    );
 
     if (matchedFiles.length === 1) {
-      await this.indexDocument(await vscode.workspace.openTextDocument(matchedFiles[0]));
+      await this.indexDocument(
+        await vscode.workspace.openTextDocument(matchedFiles[0]),
+      );
     }
   }
 
