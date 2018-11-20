@@ -1,6 +1,6 @@
 ### 0.23.0 - 19.11.2018
 * corrected a spelling error (by @WEBhicham)
-* Replace inefficient regex to locate imports with simpler regex (by @rgson)
+* Replace inefficient regex to locate imports with simpler regex (by @joeandaverde)
 * Add json schema support for Elm's config files (by @stephenreddek)
 * Add support for running tests for Elm 0.19 (by @jackfranklin)
 
