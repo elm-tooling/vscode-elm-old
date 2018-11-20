@@ -1,12 +1,20 @@
 import * as vscode from 'vscode';
-
 import { SymbolInformation, TextDocument } from 'vscode';
 import { getGlobalModuleResolver } from './elmModuleResolver';
+import { Location } from 'elm-module-parser';
+import * as _ from 'lodash';
 
 export class ElmSymbolProvider implements vscode.DocumentSymbolProvider {
-  public async provideDocumentSymbols(doc: TextDocument, _) {
+  public async provideDocumentSymbols(doc: TextDocument): Promise<vscode.SymbolInformation[]> {
     return extractDocumentSymbols(doc);
   }
+}
+
+function locationToRange(location: Location): vscode.Range {
+  return new vscode.Range(
+    location.start.line - 1, location.start.column - 1,
+    location.end.line - 1, location.end.column - 1,
+  );
 }
 
 export async function extractDocumentSymbols(
@@ -17,20 +25,16 @@ export async function extractDocumentSymbols(
       doc.fileName,
     );
 
-    if (parsedModule == null) {
-      return [];
-    }
-
-    const moduleTypes = parsedModule.types
-      .map(t => {
+    const moduleTypes = _.flatMap(
+      parsedModule.types.map(t => {
         if (t.type === 'custom-type') {
-          const constructorDefn = new SymbolInformation(
+          const constructorDefinition = new SymbolInformation(
             t.name,
             vscode.SymbolKind.Class,
             parsedModule.name,
             new vscode.Location(
               doc.uri,
-              doc.positionAt(t.location.start.offset),
+              locationToRange(t.location),
             ),
           );
 
@@ -38,15 +42,15 @@ export async function extractDocumentSymbols(
             .map(ctor => {
               return new SymbolInformation(
                 ctor.name,
-                vscode.SymbolKind.Class,
+                vscode.SymbolKind.Constructor,
                 parsedModule.name,
                 new vscode.Location(
                   doc.uri,
-                  doc.positionAt(ctor.location.start.offset),
+                  locationToRange(ctor.location),
                 ),
               );
             })
-            .concat(constructorDefn);
+            .concat(constructorDefinition);
         } else if (t.type === 'type-alias') {
           const typeAliasSymbol = new SymbolInformation(
             t.name,
@@ -54,7 +58,7 @@ export async function extractDocumentSymbols(
             parsedModule.name,
             new vscode.Location(
               doc.uri,
-              doc.positionAt(t.location.start.offset),
+              locationToRange(t.location),
             ),
           );
 
@@ -63,35 +67,44 @@ export async function extractDocumentSymbols(
           const _exhaustiveCheck: never = t;
           return [];
         }
-      })
-      .reduce(
-        (
-          acc: SymbolInformation[],
-          c: SymbolInformation[],
-        ): SymbolInformation[] => acc.concat(c),
-        [],
-      );
+      }),
+    );
 
     const moduleFunctions = parsedModule.function_declarations.map(f => {
       return new SymbolInformation(
         f.name,
-        vscode.SymbolKind.Function,
+        vscode.SymbolKind.Variable,
         parsedModule.name,
-        new vscode.Location(doc.uri, doc.positionAt(f.location.start.offset)),
+        new vscode.Location(
+          doc.uri,
+          locationToRange(f.location),
+        ),
       );
     });
 
-    const moduleDefn = new SymbolInformation(
+    const portAnnotations = parsedModule.port_annotations.map(p => {
+      return new SymbolInformation(
+        p.name,
+        vscode.SymbolKind.Interface,
+        parsedModule.name,
+        new vscode.Location(
+          doc.uri,
+          locationToRange(p.location),
+        ),
+      );
+    });
+
+    const moduleDefinition = new SymbolInformation(
       parsedModule.name,
       vscode.SymbolKind.Module,
       parsedModule.name,
       new vscode.Location(
         doc.uri,
-        doc.positionAt(parsedModule.location.start.offset),
+        locationToRange(parsedModule.location),
       ),
     );
 
-    const allSymbols = moduleTypes.concat(moduleFunctions).concat(moduleDefn);
+    const allSymbols = _.concat(moduleDefinition, moduleTypes, moduleFunctions, portAnnotations);
 
     return allSymbols;
   } catch (error) {

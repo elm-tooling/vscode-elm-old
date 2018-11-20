@@ -40,7 +40,7 @@ declare global {
   }
 }
 
-Array.prototype.flatMap = function<T, V>(mapper: (value: T) => V[]) {
+Array.prototype.flatMap = function <T, V>(mapper: (value: T) => V[]) {
   return [].concat.apply([], this.map(mapper));
 };
 
@@ -52,9 +52,7 @@ function parseImports(elmCode: string) {
   return elmCode
     .split('\n')
     .filter(x => x.startsWith('import '))
-    .map(x =>
-      x.match(/import ([^\s]+)(?: as ([^\s]+))?(?: exposing (\(.+\)))?/),
-    )
+    .map(x => x.match(/import ([^\s]+)(?: as ([^\s]+))?(?: exposing (\(.+\)))?/))
     .filter(x => x != null)
     .map(matches => {
       const importedMembers = matches[3];
@@ -62,9 +60,9 @@ function parseImports(elmCode: string) {
         importedMembers === undefined
           ? null
           : importedMembers
-              .split(/[(),]/)
-              .map(x => x.trim())
-              .filter(x => x !== '');
+            .split(/[(),]/)
+            .map(x => x.trim())
+            .filter(x => x !== '');
 
       return {
         moduleName: matches[1],
@@ -186,9 +184,9 @@ import Platform.Sub as Sub exposing ( Sub )
           x.exposed === null
             ? false
             : x.exposed.some(
-                e => e === '..' || e.startsWith(classifiedQuery.name),
-              ),
-      )
+              e => e === '..' || e.startsWith(classifiedQuery.name),
+            ),
+    )
       .map(x => x.moduleName);
 
     result = modulesToSearch.flatMap(moduleName =>

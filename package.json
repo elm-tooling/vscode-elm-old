@@ -1,7 +1,7 @@
 {
   "name": "elm",
   "description": "Elm Language Support for Visual Studio Code",
-  "version": "0.22.0",
+  "version": "0.23.0",
   "publisher": "sbrink",
   "author": {
     "name": "Krzysztof Cieslak"
@@ -91,6 +91,16 @@
           "type": "string",
           "default": "elm",
           "description": "Command to run when executing elm compiler and its sub commands like make, repl etc, this is for versions of elm 0.19+"
+        },
+        "elm.elmTestCompiler": {
+          "type": "string",
+          "default": "elm-test",
+          "description": "Command to run when executing elm make on test files, for Elm 0.19 using elm-test 0.19.0-beta11 or later."
+        },
+        "elm.elmTestFileMatcher": {
+          "type": "string",
+          "default": "tests/",
+          "description": "A string to match against your test files, for Elm 0.19. Only useful if you don't put your tests into tests/."
         },
         "elm.makeSpecialFile": {
           "type": "string",
@@ -282,6 +292,16 @@
         "language": "elm",
         "path": "./snippets/elm.json"
       }
+    ],
+    "jsonValidation": [
+      {
+        "fileMatch": "elm.json",
+        "url": "./schemas/elm.schema.json"
+      },
+      {
+        "fileMatch": "elm-package.json",
+        "url": "./schemas/elm-package.schema.json"
+      }
     ]
   },
   "activationEvents": [
@@ -312,16 +332,18 @@
     "prettier": "prettier --single-quote --trailing-comma all --write \"{src,__{tests,mocks}__}/**/*.ts\""
   },
   "devDependencies": {
+    "@types/lodash": "^4.14.118",
+    "@types/mocha": "^2.2.32",
+    "@types/node": "^6.0.50",
+    "mocha": "^2.3.3",
+    "prettier": "^1.5.3",
     "typescript": "^2.4.0",
     "vscode": "1.1.0"
   },
   "dependencies": {
-    "@types/mocha": "^2.2.32",
-    "@types/node": "^6.0.50",
-    "elm-module-parser": "0.0.6",
+    "elm-module-parser": "0.1.9",
     "elm-oracle": "^0.2.0",
-    "mocha": "^2.3.3",
-    "prettier": "^1.5.3",
+    "lodash": "^4.17.11",
     "request": "^2.69.0",
     "rimraf": "^2.5.2",
     "tslint": "^5.4.3",

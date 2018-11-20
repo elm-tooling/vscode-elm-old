@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import {
   Module,
-  ImportStatement,
+  ModuleImport,
   CustomTypeDeclaration,
   Location,
 } from 'elm-module-parser';
@@ -159,7 +159,7 @@ export async function detectUnusedImports(
  *
  */
 function qualifiedNameDiagnostics(
-  importDeclaration: ImportStatement,
+  importDeclaration: ModuleImport,
   matcher: (regex: string) => IterableIterator<RegExpExecArray>,
   makeDiagnostic: (message: string) => vscode.Diagnostic,
 ): vscode.Diagnostic[] {
@@ -184,7 +184,7 @@ function qualifiedNameDiagnostics(
  *
  */
 function aliasDiagnostics(
-  importDeclaration: ImportStatement,
+  importDeclaration: ModuleImport,
   matcher: (regex: string) => IterableIterator<RegExpExecArray>,
   makeDiagnostic: (
     message: string,
@@ -218,7 +218,7 @@ function aliasDiagnostics(
  * last [ 1, 2, 3 ]
  */
 async function importAllDiagnostics(
-  importDeclaration: ImportStatement,
+  importDeclaration: ModuleImport,
   matcher: (regex: string) => IterableIterator<RegExpExecArray>,
   makeDiagnostic: (message: string) => vscode.Diagnostic,
 ): Promise<vscode.Diagnostic[]> {
@@ -269,7 +269,7 @@ async function importAllDiagnostics(
           return true;
         }
       } else {
-        const _exhaustiveCheck: never = exposed;
+        const _exhaustiveCheck: never = exposed.type;
       }
     }
 
@@ -289,7 +289,7 @@ async function importAllDiagnostics(
  *
  */
 async function pickedImportsDiagnostics(
-  importDeclaration: ImportStatement,
+  importDeclaration: ModuleImport,
   matcher: (regex: string) => IterableIterator<RegExpExecArray>,
   makeDiagnostic: (message: string, range: vscode.Range) => vscode.Diagnostic,
 ): Promise<vscode.Diagnostic[]> {
@@ -302,7 +302,7 @@ async function pickedImportsDiagnostics(
 
         const message = `Exposed ${pickedImport.type} ${
           pickedImport.name
-        } from module ${importDeclaration.module} is not used.`;
+          } from module ${importDeclaration.module} is not used.`;
 
         return makeDiagnostic(message, locationToRange(pickedImport.location));
       } else if (pickedImport.type === 'constructor') {
@@ -334,11 +334,11 @@ async function pickedImportsDiagnostics(
 
         const message = `Custom type ${pickedImport.name} from ${
           importDeclaration.module
-        } is not used.`;
+          } is not used.`;
 
         return makeDiagnostic(message, locationToRange(pickedImport.location));
       } else {
-        const _exhaustiveCheck: never = pickedImport;
+        const _exhaustiveCheck: never = pickedImport.type;
         return null;
       }
     }),

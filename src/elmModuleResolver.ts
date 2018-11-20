@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs';
-import { ModuleParser, Module } from 'elm-module-parser';
+import { parseElmModule, Module } from 'elm-module-parser';
 
 export class ElmModuleResolver {
   private sourceDirs = null;
@@ -40,7 +40,7 @@ export class ElmModuleResolver {
 
     if (textDocument != null) {
       try {
-        const parsedModule = ModuleParser(textDocument.getText());
+        const parsedModule = parseElmModule(textDocument.getText());
 
         this.cache[modulePath] = {
           modulePath: modulePath,
