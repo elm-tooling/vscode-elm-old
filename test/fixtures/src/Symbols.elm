@@ -1,5 +1,5 @@
 -- Comments should be ignored
-module Module where
+module Full.Module.Name where
 -- Imports should be ignored
 import Html exposing (..)
 

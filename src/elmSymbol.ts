@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import { SymbolInformation, TextDocument } from 'vscode';
-import { parseElmModule } from 'elm-module-parser';
+import { parseElmModule, Location } from 'elm-module-parser';
 import * as _ from 'lodash';
 
 export class ElmSymbolProvider implements vscode.DocumentSymbolProvider {
@@ -9,12 +9,19 @@ export class ElmSymbolProvider implements vscode.DocumentSymbolProvider {
   }
 }
 
+function locationToRange(location: Location): vscode.Range {
+  return new vscode.Range(
+    location.start.line - 1, location.start.column - 1,
+    location.end.line - 1, location.end.column - 1,
+  );
+}
+
 export function processDocument(doc: TextDocument): vscode.SymbolInformation[] {
   try {
     const parsedModule = parseElmModule(doc.getText());
 
-    const moduleTypes = _.flatMap(parsedModule.types
-      .map(t => {
+    const moduleTypes = _.flatMap(
+      parsedModule.types.map(t => {
         if (t.type === 'custom-type') {
           const constructorDefinition = new SymbolInformation(
             t.name,
@@ -22,7 +29,7 @@ export function processDocument(doc: TextDocument): vscode.SymbolInformation[] {
             parsedModule.name,
             new vscode.Location(
               doc.uri,
-              doc.positionAt(t.location.start.offset),
+              locationToRange(t.location),
             ),
           );
 
@@ -30,11 +37,11 @@ export function processDocument(doc: TextDocument): vscode.SymbolInformation[] {
             .map(ctor => {
               return new SymbolInformation(
                 ctor.name,
-                vscode.SymbolKind.Class,
+                vscode.SymbolKind.Constructor,
                 parsedModule.name,
                 new vscode.Location(
                   doc.uri,
-                  doc.positionAt(ctor.location.start.offset),
+                  locationToRange(ctor.location),
                 ),
               );
             })
@@ -46,7 +53,7 @@ export function processDocument(doc: TextDocument): vscode.SymbolInformation[] {
             parsedModule.name,
             new vscode.Location(
               doc.uri,
-              doc.positionAt(t.location.start.offset),
+              locationToRange(t.location),
             ),
           );
 
@@ -55,28 +62,29 @@ export function processDocument(doc: TextDocument): vscode.SymbolInformation[] {
           const _exhaustiveCheck: never = t;
           return [];
         }
-      }));
+      }),
+    );
 
     const moduleFunctions = parsedModule.function_declarations.map(f => {
       return new SymbolInformation(
         f.name,
-        vscode.SymbolKind.Function,
+        vscode.SymbolKind.Variable,
         parsedModule.name,
         new vscode.Location(
           doc.uri,
-          doc.positionAt(f.location.start.offset),
+          locationToRange(f.location),
         ),
       );
     });
 
-    const modulePorts = parsedModule.ports.map(p => {
+    const portAnnotations = parsedModule.port_annotations.map(p => {
       return new SymbolInformation(
         p.name,
         vscode.SymbolKind.Interface,
         parsedModule.name,
         new vscode.Location(
           doc.uri,
-          doc.positionAt(p.location.start.offset),
+          locationToRange(p.location),
         ),
       );
     });
@@ -85,10 +93,13 @@ export function processDocument(doc: TextDocument): vscode.SymbolInformation[] {
       parsedModule.name,
       vscode.SymbolKind.Module,
       parsedModule.name,
-      new vscode.Location(doc.uri, new vscode.Position(0, 0)),
+      new vscode.Location(
+        doc.uri,
+        locationToRange(parsedModule.location),
+      ),
     );
 
-    const allSymbols = moduleTypes.concat(moduleFunctions).concat(moduleDefinition);
+    const allSymbols = _.concat(moduleDefinition, moduleTypes, moduleFunctions, portAnnotations);
 
     return allSymbols;
   } catch (error) {
