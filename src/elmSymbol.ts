@@ -1,20 +1,13 @@
 import * as vscode from 'vscode';
 import { SymbolInformation, TextDocument } from 'vscode';
 import { getGlobalModuleResolver } from './elmModuleResolver';
-import { Location } from 'elm-module-parser';
 import * as _ from 'lodash';
+import { locationToRange } from './elmUtils';
 
 export class ElmSymbolProvider implements vscode.DocumentSymbolProvider {
   public async provideDocumentSymbols(doc: TextDocument): Promise<vscode.SymbolInformation[]> {
     return extractDocumentSymbols(doc);
   }
-}
-
-function locationToRange(location: Location): vscode.Range {
-  return new vscode.Range(
-    location.start.line - 1, location.start.column - 1,
-    location.end.line - 1, location.end.column - 1,
-  );
 }
 
 export async function extractDocumentSymbols(

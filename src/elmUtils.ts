@@ -2,7 +2,7 @@ import * as cp from 'child_process';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
-
+import { Location } from 'elm-module-parser';
 import { window, workspace } from 'vscode';
 
 export const isWindows = process.platform === 'win32';
@@ -52,7 +52,6 @@ export function execCmd(
     onStdout,
     onStderr,
     onExit,
-    cmdArguments,
   } = options;
   let childProcess,
     firstResponse = true,
@@ -135,6 +134,15 @@ export function execCmd(
       childProcess.kill('SIGINT');
     }
   }
+}
+
+export function locationToRange(location: Location): vscode.Range {
+  return new vscode.Range(
+    location.start.line - 1,
+    location.start.column - 1,
+    location.end.line - 1,
+    location.end.column - 1,
+  );
 }
 
 export function findProjAndElmVersion(dir: string): [string, string] {

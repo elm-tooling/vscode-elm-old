@@ -3,10 +3,10 @@ import {
   Module,
   ModuleImport,
   CustomTypeDeclaration,
-  Location,
 } from 'elm-module-parser';
 import { getGlobalModuleResolver } from './elmModuleResolver';
 import * as _ from 'lodash';
+import { locationToRange } from './elmUtils';
 
 let unusedImportDiagnostics: vscode.DiagnosticCollection = null;
 
@@ -410,13 +410,4 @@ function nameMatchExists(
   }
 
   return false;
-}
-
-function locationToRange(location: Location): vscode.Range {
-  return new vscode.Range(
-    location.start.line - 1,
-    location.start.column - 1,
-    location.end.line - 1,
-    location.end.column - 1,
-  );
 }
