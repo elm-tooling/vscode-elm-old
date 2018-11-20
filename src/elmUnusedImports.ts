@@ -11,7 +11,7 @@ import * as _ from 'lodash';
 let unusedImportDiagnostics: vscode.DiagnosticCollection = null;
 
 export function activateUnusedImportsDiagnostics() {
-  if (unusedImportDiagnostics != null) {
+  if (!_.isNil(unusedImportDiagnostics)) {
     return;
   }
 
@@ -97,7 +97,7 @@ export async function detectUnusedImports(
           const importText = document.getText(importRange);
           const matches = importText.match(highlightRegex);
 
-          if (matches != null) {
+          if (!_.isNil(matches)) {
             const matchStart =
               importDeclaration.location.start.offset + matches.index;
             const matchEnd = matchStart + matches[0].length;
@@ -117,7 +117,7 @@ export async function detectUnusedImports(
 
         const requiresQualifiedName =
           !importDeclaration.exposes_all &&
-          importDeclaration.exposing.length === 0;
+          _.isEmpty(importDeclaration.exposing);
 
         if (requiresQualifiedName) {
           return qualifiedNameDiagnostics(
@@ -145,12 +145,12 @@ export async function detectUnusedImports(
           makeDiag,
         );
 
-        return aliasDiag.concat(pickedImportDiag).concat(importsAllDiag);
+        return _.concat(aliasDiag, pickedImportDiag, importsAllDiag);
       },
     ),
   );
 
-  return diagnosticsByImport.reduce((acc, x) => acc.concat(x), []);
+  return _.flatten(diagnosticsByImport);
 }
 
 /**No items exposed from referenced module.
@@ -197,7 +197,7 @@ function aliasDiagnostics(
     highlightRegex: RegExp,
   ) => vscode.Diagnostic,
 ): vscode.Diagnostic[] {
-  if (importDeclaration.alias == null) {
+  if (_.isNil(importDeclaration.alias)) {
     return [];
   }
 
@@ -237,7 +237,7 @@ async function importAllDiagnostics(
   );
 
   // Since we can't load the module we don't want to say anything about it.
-  if (importedModule == null) {
+  if (_.isNil(importedModule)) {
     return [];
   }
 
@@ -263,7 +263,7 @@ async function importAllDiagnostics(
           x => x.type === 'custom-type' && x.name === exposed.name,
         ) as CustomTypeDeclaration;
 
-        if (referencedCustomType == null) {
+        if (_.isNil(referencedCustomType)) {
           continue;
         }
 
@@ -317,7 +317,7 @@ async function pickedImportsDiagnostics(
         );
 
         // Can't check what we can't load.
-        if (referencedModule == null) {
+        if (_.isNil(referencedModule)) {
           return null;
         }
 
@@ -326,7 +326,7 @@ async function pickedImportsDiagnostics(
         ) as CustomTypeDeclaration;
 
         // Don't bother checking if it's exposed from the other module because it will manifest itself as a compile error.
-        if (referencedCustomType == null) {
+        if (_.isNil(referencedCustomType)) {
           return null;
         }
 
@@ -350,10 +350,10 @@ async function pickedImportsDiagnostics(
     }),
   );
 
-  const diagnostics = results.filter(x => x != null);
+  const diagnostics = results.filter(x => !_.isNil(x));
 
   if (
-    importDeclaration.exposing.length > 0 &&
+    !_.isEmpty(importDeclaration.exposing) &&
     importDeclaration.exposing.length === diagnostics.length
   ) {
     // Perhaps the module isn't being used at all
