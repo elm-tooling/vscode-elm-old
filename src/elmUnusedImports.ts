@@ -6,6 +6,7 @@ import {
   Location,
 } from 'elm-module-parser';
 import { getGlobalModuleResolver } from './elmModuleResolver';
+import * as _ from 'lodash';
 
 let unusedImportDiagnostics: vscode.DiagnosticCollection = null;
 
@@ -14,7 +15,7 @@ export function activateUnusedImportsDiagnostics() {
     return;
   }
 
-  unusedImportDiagnostics = vscode.languages.createDiagnosticCollection('elm');
+  unusedImportDiagnostics = vscode.languages.createDiagnosticCollection('elm-unused-imports');
 
   const isEnabled = (): boolean =>
     vscode.workspace.getConfiguration('elm').get('enableUnusedImports', true);
@@ -51,13 +52,18 @@ export async function detectUnusedImports(
     document.fileName,
   );
 
-  if (parsedModule == null) {
+  if (_.isNil(parsedModule)) {
+    return [];
+  }
+
+  const explicitImports = parsedModule.imports.filter(x => x.type === 'import');
+
+  if (_.isEmpty(explicitImports)) {
     return [];
   }
 
   const moduleText = document.getText();
-
-  const lastImport = parsedModule.imports[parsedModule.imports.length - 1];
+  const lastImport = explicitImports[explicitImports.length - 1];
   const nextNewline = (offset: number) => moduleText.indexOf('\n', offset);
   const offsetAfterImports = nextNewline(lastImport.location.end.offset);
   const textAfterImports = moduleText.substr(offsetAfterImports);
@@ -75,7 +81,7 @@ export async function detectUnusedImports(
   }
 
   const diagnosticsByImport = await Promise.all(
-    parsedModule.imports.map(
+    explicitImports.map(
       async (importDeclaration): Promise<vscode.Diagnostic[]> => {
         const importRange = locationToRange(importDeclaration.location);
 
