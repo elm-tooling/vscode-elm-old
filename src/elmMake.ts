@@ -54,7 +54,6 @@ function execMake(editor: vscode.TextEditor, warn: boolean): void {
       oc.clear();
     }
     let file = editor.document.fileName;
-
     let [cwd, makeCommand, args] = getMakeAndArguments(file, warn);
 
     if (utils.isWindows) {

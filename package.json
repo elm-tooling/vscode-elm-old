@@ -327,15 +327,18 @@
     "prettier": "prettier --single-quote --trailing-comma all --write \"{src,__{tests,mocks}__}/**/*.ts\""
   },
   "devDependencies": {
+    "@types/lodash": "^4.14.118",
+    "@types/mocha": "^2.2.32",
+    "@types/node": "^6.0.50",
+    "mocha": "^2.3.3",
+    "prettier": "^1.5.3",
     "typescript": "^2.4.0",
     "vscode": "1.1.0"
   },
   "dependencies": {
-    "@types/mocha": "^2.2.32",
-    "@types/node": "^6.0.50",
+    "elm-module-parser": "0.1.9",
     "elm-oracle": "^0.2.0",
-    "mocha": "^2.3.3",
-    "prettier": "^1.5.3",
+    "lodash": "^4.17.11",
     "request": "^2.69.0",
     "rimraf": "^2.5.2",
     "tslint": "^5.4.3",

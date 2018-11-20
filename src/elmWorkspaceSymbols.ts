@@ -1,99 +1,123 @@
 import * as vscode from 'vscode';
 
-import { TextDocument } from 'vscode';
+import { TextDocument, SymbolInformation } from 'vscode';
 import { processDocument } from './elmSymbol';
 
 const config = vscode.workspace.getConfiguration('elm');
 
 export class ElmWorkspaceSymbolProvider
   implements vscode.WorkspaceSymbolProvider {
-  private symbols: Thenable<vscode.SymbolInformation[]>;
+  private symbolsByContainer: { [key: string]: vscode.SymbolInformation[] };
+  private symbolsByUri: { [uri: string]: vscode.SymbolInformation[] };
+  private symbolsByName: { [symbolName: string]: vscode.SymbolInformation[] };
+  private workspaceIndexTime: Date;
+
   public constructor(private languagemode: vscode.DocumentFilter) {
-    this.symbols = null;
+    this.symbolsByContainer = {};
+    this.symbolsByUri = {};
+    this.symbolsByName = {};
   }
 
-  public update(document: TextDocument) {
-    if (this.symbols != null) {
-      this.symbols.then(s => {
-        let otherSymbols = s.filter(
-          docSymbol => docSymbol.location.uri !== document.uri,
-        );
-
-        symbolsFromFile(document).then(symbolInfo => {
-          let updated = otherSymbols.concat(symbolInfo);
-          this.symbols = Promise.resolve(updated);
-        });
-      });
-    }
+  public async update(document: TextDocument) {
+    await this.indexDocument(document);
   }
 
-  provideWorkspaceSymbols = (
+  public async provideWorkspaceSymbols(
     query: string,
     token: vscode.CancellationToken,
-  ): Thenable<vscode.SymbolInformation[]> => {
-    if (this.symbols != null) {
-      return this.symbols;
-    } else {
-      let result = Promise.resolve(processWorkspace(query));
-      this.symbols = result;
-      return result;
+  ): Promise<vscode.SymbolInformation[]> {
+    const [sourceModule, symbolName] = query.split(':', 2);
+
+    if (symbolName == null) {
+      return this.searchWorkspaceSymbols(sourceModule);
     }
-  };
-}
-function symbolsFromFile(document): Thenable<vscode.SymbolInformation[]> {
-  let processed = processTextDocuments([document]).then(
-    val => {
-      let res = val[0] as vscode.SymbolInformation[];
-      return res;
-    },
-    err => {
-      return [] as vscode.SymbolInformation[];
-    },
-  );
-  return processed;
-}
 
-function openTextDocuments(uris: vscode.Uri[]): Thenable<TextDocument[]> {
-  return Promise.all(
-    uris.map(uri => vscode.workspace.openTextDocument(uri).then(doc => doc)),
-  );
-}
+    return this.searchModuleSymbols(sourceModule, symbolName);
+  }
 
-function processTextDocuments(
-  documents: TextDocument[],
-): Thenable<vscode.SymbolInformation[][]> {
-  return Promise.all(documents.map(document => processDocument(document)));
-}
+  private async searchWorkspaceSymbols(
+    symbol: string,
+  ): Promise<SymbolInformation[]> {
+    if (this.workspaceIndexTime == null) {
+      await this.indexWorkspace();
+    }
 
-function processWorkspace(query: string): Thenable<vscode.SymbolInformation[]> {
-  let maxFiles = config['maxWorkspaceFilesUsedBySymbols'];
-  let excludePattern = config['workspaceFilesExcludePatternUsedBySymbols'];
-  let docs = vscode.workspace
-    .findFiles('**/*.elm', excludePattern, maxFiles)
-    .then(
-      workspaceFiles => {
-        let openedTextDocuments = openTextDocuments(workspaceFiles);
-        let processedTextDocuments = openedTextDocuments.then(
-          results => {
-            return processTextDocuments(results);
-          },
-          err => {
-            return [];
-          },
-        );
-        let symbolInformation = processedTextDocuments.then(
-          symbols => {
-            return [].concat.apply([], symbols) as vscode.SymbolInformation[];
-          },
-          err => {
-            return [] as vscode.SymbolInformation[];
-          },
-        );
-        return symbolInformation;
-      },
-      fileError => {
-        return [];
-      },
+    const matchingSymbols: SymbolInformation[] = Object.keys(
+      this.symbolsByName,
+    ).reduce((acc: SymbolInformation[], k: string) => {
+      if (k.startsWith(symbol)) {
+        return acc.concat(this.symbolsByName[k]);
+      } else {
+        return acc;
+      }
+    }, []);
+
+    return matchingSymbols;
+  }
+
+  private async searchModuleSymbols(
+    moduleName: string,
+    symbol: string,
+  ): Promise<SymbolInformation[]> {
+    const containerSymbols = this.symbolsByContainer[moduleName];
+
+    if (containerSymbols == null) {
+      await this.indexModule(moduleName);
+    }
+
+    return (this.symbolsByContainer[moduleName] || []).filter(
+      s => s.name === symbol,
     );
-  return <any>docs;
+  }
+
+  private async indexWorkspace() {
+    const maxFiles = config['maxWorkspaceFilesUsedBySymbols'];
+    const excludePattern = config['workspaceFilesExcludePatternUsedBySymbols'];
+    const workspaceFiles = await vscode.workspace.findFiles(
+      '**/*.elm',
+      excludePattern,
+      maxFiles,
+    );
+
+    try {
+      await Promise.all(
+        workspaceFiles.map(async uri =>
+          this.indexDocument(await vscode.workspace.openTextDocument(uri)),
+        ),
+      );
+
+      this.workspaceIndexTime = new Date();
+    } catch (error) {
+      return;
+    }
+  }
+
+  private async indexModule(moduleName: string): Promise<void> {
+    const modulePath = moduleName.replace(/\./g, '/') + '.elm';
+    const matchedFiles = await vscode.workspace.findFiles(
+      '**/*/' + modulePath,
+      null,
+      1,
+    );
+
+    if (matchedFiles.length === 1) {
+      await this.indexDocument(
+        await vscode.workspace.openTextDocument(matchedFiles[0]),
+      );
+    }
+  }
+
+  private async indexDocument(document: TextDocument) {
+    const updatedSymbols = await processDocument(document);
+
+    updatedSymbols.forEach(s => {
+      this.symbolsByContainer[s.containerName] = (
+        this.symbolsByContainer[s.containerName] || []
+      ).concat(s);
+      this.symbolsByUri[s.location.uri.toString()] = (
+        this.symbolsByContainer[s.location.uri.toString()] || []
+      ).concat(s);
+      this.symbolsByName[s.name] = (this.symbolsByName[s.name] || []).concat(s);
+    });
+  }
 }
