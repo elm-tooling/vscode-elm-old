@@ -2,9 +2,9 @@
 
 import * as vscode from 'vscode';
 import { ElmWorkspaceSymbolProvider } from './elmWorkspaceSymbols';
-import { getGlobalModuleResolver } from './elmModuleResolver';
 import { ModuleImport } from 'elm-module-parser';
 import * as _ from 'lodash';
+import { getGlobalProjectManager } from './elmProjectManager';
 
 export class ElmDefinitionProvider implements vscode.DefinitionProvider {
   public constructor(
@@ -24,9 +24,7 @@ export class ElmDefinitionProvider implements vscode.DefinitionProvider {
     }
 
     try {
-      const parsedModule = await getGlobalModuleResolver().moduleFromPath(
-        document.fileName,
-      );
+      const parsedModule = await getGlobalProjectManager().moduleFromPath(document.fileName);
 
       const word = document.getText(wordRange);
       const symbolName = word.substring(word.lastIndexOf('.') + 1);

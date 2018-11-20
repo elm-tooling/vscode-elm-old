@@ -1,8 +1,8 @@
 import * as vscode from 'vscode';
 import { SymbolInformation, TextDocument } from 'vscode';
-import { getGlobalModuleResolver } from './elmModuleResolver';
 import * as _ from 'lodash';
 import { locationToRange } from './elmUtils';
+import { getGlobalProjectManager } from './elmProjectManager';
 
 export class ElmSymbolProvider implements vscode.DocumentSymbolProvider {
   public async provideDocumentSymbols(doc: TextDocument): Promise<vscode.SymbolInformation[]> {
@@ -14,7 +14,7 @@ export async function extractDocumentSymbols(
   doc: TextDocument,
 ): Promise<vscode.SymbolInformation[]> {
   try {
-    const parsedModule = await getGlobalModuleResolver().moduleFromPath(
+    const parsedModule = await getGlobalProjectManager().moduleFromPath(
       doc.fileName,
     );
 

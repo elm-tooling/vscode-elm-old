@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import { TextDocument, SymbolInformation } from 'vscode';
 import { extractDocumentSymbols } from './elmSymbol';
-import { getGlobalModuleResolver } from './elmModuleResolver';
+import { getGlobalProjectManager } from './elmProjectManager';
 
 export interface ModuleSymbols {
   modulePath: string;
@@ -111,7 +111,7 @@ export class ElmWorkspaceSymbolProvider
 
   private async indexDocument(document: TextDocument): Promise<void> {
     const documentPath = document.fileName;
-    getGlobalModuleResolver().invalidatePath(documentPath);
+    getGlobalProjectManager().invalidatePath(documentPath);
 
     // Clean up existing index entries for this document
     const existingSymbols = this.symbolsByPath[documentPath];

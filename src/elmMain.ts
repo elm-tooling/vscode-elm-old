@@ -18,8 +18,8 @@ import { ElmHoverProvider } from './elmInfo';
 import { ElmSymbolProvider } from './elmSymbol';
 import { ElmWorkspaceSymbolProvider } from './elmWorkspaceSymbols';
 import { configuration } from './elmConfiguration';
-import { getGlobalModuleResolver } from './elmModuleResolver';
 import { activateUnusedImportsDiagnostics } from './elmUnusedImports';
+import { getGlobalProjectManager } from './elmProjectManager';
 
 const ELM_MODE: vscode.DocumentFilter = { language: 'elm', scheme: 'file' };
 const config: vscode.WorkspaceConfiguration = vscode.workspace.getConfiguration(
@@ -40,7 +40,7 @@ export function activate(ctx: vscode.ExtensionContext) {
       document.languageId === ELM_MODE.language &&
       document.uri.scheme === ELM_MODE.scheme
     ) {
-      getGlobalModuleResolver().invalidatePath(document.fileName);
+      getGlobalProjectManager().invalidatePath(document.fileName);
       workspaceProvider.update(document);
     }
   });

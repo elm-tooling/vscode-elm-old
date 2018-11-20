@@ -343,6 +343,7 @@
   "dependencies": {
     "elm-module-parser": "0.1.9",
     "elm-oracle": "^0.2.0",
+    "elm-project-inspect": "^0.0.4",
     "lodash": "^4.17.11",
     "request": "^2.69.0",
     "rimraf": "^2.5.2",

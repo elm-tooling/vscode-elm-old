@@ -4,9 +4,10 @@ import {
   ModuleImport,
   CustomTypeDeclaration,
 } from 'elm-module-parser';
-import { getGlobalModuleResolver } from './elmModuleResolver';
 import * as _ from 'lodash';
 import { locationToRange } from './elmUtils';
+import { getGlobalProjectManager } from './elmProjectManager';
+import { ElmProjectDefinition } from '../node_modules/elm-project-inspect/dist';
 
 let unusedImportDiagnostics: vscode.DiagnosticCollection = null;
 
@@ -48,11 +49,14 @@ export function activateUnusedImportsDiagnostics() {
 export async function detectUnusedImports(
   document: vscode.TextDocument,
 ): Promise<vscode.Diagnostic[]> {
-  const parsedModule: Module = await getGlobalModuleResolver().moduleFromPath(
-    document.fileName,
-  );
+  const modulePath = document.fileName;
 
-  if (_.isNil(parsedModule)) {
+  const projectManager = getGlobalProjectManager();
+
+  const parsedModule: Module = await projectManager.moduleFromPath(modulePath);
+  const elmProject = await projectManager.projectDefinitionForPath(modulePath);
+
+  if (_.isNil(parsedModule) || _.isNil(elmProject)) {
     return [];
   }
 
@@ -134,12 +138,14 @@ export async function detectUnusedImports(
         );
 
         const pickedImportDiag = await pickedImportsDiagnostics(
+          elmProject,
           importDeclaration,
           matchesAfterImports,
           makeDiag,
         );
 
         const importsAllDiag = await importAllDiagnostics(
+          elmProject,
           importDeclaration,
           matchesAfterImports,
           makeDiag,
@@ -224,6 +230,7 @@ function aliasDiagnostics(
  * last [ 1, 2, 3 ]
  */
 async function importAllDiagnostics(
+  elmProject: ElmProjectDefinition,
   importDeclaration: ModuleImport,
   matcher: (regex: string) => IterableIterator<RegExpExecArray>,
   makeDiagnostic: (message: string) => vscode.Diagnostic,
@@ -232,7 +239,8 @@ async function importAllDiagnostics(
     return [];
   }
 
-  const importedModule: Module = await getGlobalModuleResolver().moduleFromName(
+  const importedModule: Module = await getGlobalProjectManager().moduleFromName(
+    elmProject.path,
     importDeclaration.module,
   );
 
@@ -295,6 +303,7 @@ async function importAllDiagnostics(
  *
  */
 async function pickedImportsDiagnostics(
+  elmProject: ElmProjectDefinition,
   importDeclaration: ModuleImport,
   matcher: (regex: string) => IterableIterator<RegExpExecArray>,
   makeDiagnostic: (message: string, range: vscode.Range) => vscode.Diagnostic,
@@ -312,7 +321,8 @@ async function pickedImportsDiagnostics(
 
         return makeDiagnostic(message, locationToRange(pickedImport.location));
       } else if (pickedImport.type === 'constructor') {
-        const referencedModule = await getGlobalModuleResolver().moduleFromName(
+        const referencedModule = await getGlobalProjectManager().moduleFromName(
+          elmProject.path,
           importDeclaration.module,
         );
 
