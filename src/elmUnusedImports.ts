@@ -1,9 +1,5 @@
 import * as vscode from 'vscode';
-import {
-  Module,
-  ModuleImport,
-  CustomTypeDeclaration,
-} from 'elm-module-parser';
+import { Module, ModuleImport, CustomTypeDeclaration } from 'elm-module-parser';
 import * as _ from 'lodash';
 import { locationToRange } from './elmUtils';
 import { getGlobalProjectManager } from './elmProjectManager';
@@ -16,7 +12,9 @@ export function activateUnusedImportsDiagnostics() {
     return;
   }
 
-  unusedImportDiagnostics = vscode.languages.createDiagnosticCollection('elm-unused-imports');
+  unusedImportDiagnostics = vscode.languages.createDiagnosticCollection(
+    'elm-unused-imports',
+  );
 
   const isEnabled = (): boolean =>
     vscode.workspace.getConfiguration('elm').get('enableUnusedImports', true);
@@ -321,7 +319,7 @@ async function pickedImportsDiagnostics(
 
         const message = `Exposed ${pickedImport.type} ${
           pickedImport.name
-          } from module ${importDeclaration.module} is not used.`;
+        } from module ${importDeclaration.module} is not used.`;
 
         return makeDiagnostic(message, locationToRange(pickedImport.location));
       } else if (pickedImport.type === 'constructor') {
@@ -354,7 +352,7 @@ async function pickedImportsDiagnostics(
 
         const message = `Custom type ${pickedImport.name} from ${
           importDeclaration.module
-          } is not used.`;
+        } is not used.`;
 
         return makeDiagnostic(message, locationToRange(pickedImport.location));
       } else {

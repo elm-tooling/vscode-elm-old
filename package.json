@@ -326,10 +326,10 @@
     "vscode:prepublish": "npm run build",
     "build": "tsc -p ./",
     "watch": "tsc -watch -p ./",
-    "lint": "tslint \"src/**/*.ts\" && prettier \"{src,__{tests,mocks}__}/**/*.ts\"  --single-quote --trailing-comma all --list-different",
+    "lint": "tslint \"src/**/*.ts\" && prettier {src,test}/**/*.ts --list-different",
     "test": "node ./node_modules/vscode/bin/test",
     "postinstall": "node ./node_modules/vscode/bin/install",
-    "prettier": "prettier --single-quote --trailing-comma all --write \"{src,__{tests,mocks}__}/**/*.ts\""
+    "prettier": "prettier --write {src,test}/**/*.ts"
   },
   "devDependencies": {
     "@types/lodash": "^4.14.118",

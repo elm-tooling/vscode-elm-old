@@ -46,13 +46,7 @@ export function execCmd(
   cmd: string,
   options: ExecCmdOptions = {},
 ): ExecutingCmd {
-  const {
-    fileName,
-    onStart,
-    onStdout,
-    onStderr,
-    onExit,
-  } = options;
+  const { fileName, onStart, onStdout, onStderr, onExit } = options;
   let childProcess,
     firstResponse = true,
     wasKilledbyUs = false;

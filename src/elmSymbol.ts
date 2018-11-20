@@ -5,7 +5,9 @@ import { locationToRange } from './elmUtils';
 import { getGlobalProjectManager } from './elmProjectManager';
 
 export class ElmSymbolProvider implements vscode.DocumentSymbolProvider {
-  public async provideDocumentSymbols(doc: TextDocument): Promise<vscode.SymbolInformation[]> {
+  public async provideDocumentSymbols(
+    doc: TextDocument,
+  ): Promise<vscode.SymbolInformation[]> {
     return extractDocumentSymbols(doc);
   }
 }
@@ -25,10 +27,7 @@ export async function extractDocumentSymbols(
             t.name,
             vscode.SymbolKind.Class,
             parsedModule.name,
-            new vscode.Location(
-              doc.uri,
-              locationToRange(t.location),
-            ),
+            new vscode.Location(doc.uri, locationToRange(t.location)),
           );
 
           return t.constructors
@@ -37,10 +36,7 @@ export async function extractDocumentSymbols(
                 ctor.name,
                 vscode.SymbolKind.Constructor,
                 parsedModule.name,
-                new vscode.Location(
-                  doc.uri,
-                  locationToRange(ctor.location),
-                ),
+                new vscode.Location(doc.uri, locationToRange(ctor.location)),
               );
             })
             .concat(constructorDefinition);
@@ -49,10 +45,7 @@ export async function extractDocumentSymbols(
             t.name,
             vscode.SymbolKind.Class,
             parsedModule.name,
-            new vscode.Location(
-              doc.uri,
-              locationToRange(t.location),
-            ),
+            new vscode.Location(doc.uri, locationToRange(t.location)),
           );
 
           return [typeAliasSymbol];
@@ -68,10 +61,7 @@ export async function extractDocumentSymbols(
         f.name,
         vscode.SymbolKind.Variable,
         parsedModule.name,
-        new vscode.Location(
-          doc.uri,
-          locationToRange(f.location),
-        ),
+        new vscode.Location(doc.uri, locationToRange(f.location)),
       );
     });
 
@@ -80,10 +70,7 @@ export async function extractDocumentSymbols(
         p.name,
         vscode.SymbolKind.Interface,
         parsedModule.name,
-        new vscode.Location(
-          doc.uri,
-          locationToRange(p.location),
-        ),
+        new vscode.Location(doc.uri, locationToRange(p.location)),
       );
     });
 
@@ -91,13 +78,15 @@ export async function extractDocumentSymbols(
       parsedModule.name,
       vscode.SymbolKind.Module,
       parsedModule.name,
-      new vscode.Location(
-        doc.uri,
-        locationToRange(parsedModule.location),
-      ),
+      new vscode.Location(doc.uri, locationToRange(parsedModule.location)),
     );
 
-    const allSymbols = _.concat(moduleDefinition, moduleTypes, moduleFunctions, portAnnotations);
+    const allSymbols = _.concat(
+      moduleDefinition,
+      moduleTypes,
+      moduleFunctions,
+      portAnnotations,
+    );
 
     return allSymbols;
   } catch (error) {

@@ -60,12 +60,9 @@ function parseErrorsElm019(line) {
         overview: problem.title,
         subregion: '',
         details: problem.message
-          .map(
-            message =>
-              typeof message === 'string'
-                ? message
-                : '#' + message.string + '#',
-        )
+          .map(message =>
+            typeof message === 'string' ? message : '#' + message.string + '#',
+          )
           .join(''),
         region: problem.region,
         type: 'error',
@@ -80,9 +77,9 @@ function parseErrorsElm019(line) {
       overview: errorObject.title,
       subregion: '',
       details: errorObject.message
-        .map(
-          message => (typeof message === 'string' ? message : message.string),
-      )
+        .map(message =>
+          typeof message === 'string' ? message : message.string,
+        )
         .join(''),
       region: {
         start: {
