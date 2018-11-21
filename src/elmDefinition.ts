@@ -21,60 +21,56 @@ export class ElmDefinitionProvider implements vscode.DefinitionProvider {
       return null;
     }
 
-    try {
-      const parsedModule = await getGlobalProjectManager()
-        .moduleFromPath(document.fileName);
+    const currentModule = await getGlobalProjectManager()
+      .moduleFromPath(document.fileName);
 
-      const word = document.getText(wordRange);
-      const symbolName = word.substring(word.lastIndexOf('.') + 1);
-      const moduleAlias = word.substring(0, word.lastIndexOf('.'));
+    const word = document.getText(wordRange);
+    const symbolName = word.substring(word.lastIndexOf('.') + 1);
+    const moduleAlias = word.substring(0, word.lastIndexOf('.'));
 
-      const matchingImports: ModuleImport[] = parsedModule.imports.filter(i => {
-        if (moduleAlias === '') {
-          const matchedExposing = i.exposing.find(e => {
-            return e.name === symbolName;
-          });
-
-          return matchedExposing != null;
-        } else {
-          return i.alias === moduleAlias || i.module === moduleAlias;
-        }
-      });
-
-      const modulesToSearch = _.isEmpty(matchingImports)
-        ? [parsedModule.name]
-        : matchingImports.map(x => x.module);
-
-      const [firstStrongMatch] = _.flatten(await Promise.all(modulesToSearch.map(m => {
-        return this.workspaceSymbolProvider.provideWorkspaceSymbols(`${m}:${symbolName}`, token);
-      })));
-
-      if (!_.isNil(firstStrongMatch)) {
-        return firstStrongMatch.location;
-      } else if (moduleAlias === '') {
-        const allImported = parsedModule.imports.filter(i => {
-          return (
-            i.exposes_all || i.exposing.find(e => e.type === 'constructor')
-          );
+    const matchingImports: ModuleImport[] = currentModule.imports.filter(i => {
+      if (moduleAlias === '') {
+        const matchedExposing = i.exposing.find(e => {
+          return e.name === symbolName;
         });
 
-        // This could find non-exposed symbols
-        const fuzzyMatches = await Promise.all(
-          allImported.map(i => {
-            return this.workspaceSymbolProvider.provideWorkspaceSymbols(
-              `${i.module}:${symbolName}`,
-              token,
-            );
-          }),
-        );
-
-        const [firstFuzzy] = _.flatten(fuzzyMatches);
-
-        return _.isNil(firstFuzzy) ? null : firstFuzzy.location;
+        return matchedExposing != null;
       } else {
-        return null;
+        return i.alias === moduleAlias || i.module === moduleAlias;
       }
-    } catch (error) {
+    });
+
+    const modulesToSearch = _.isEmpty(matchingImports)
+      ? [currentModule.name]
+      : matchingImports.map(x => x.module);
+
+    const [firstStrongMatch] = _.flatten(await Promise.all(modulesToSearch.map(m => {
+      return this.workspaceSymbolProvider.provideWorkspaceSymbols(`${m}:${symbolName}`, token);
+    })));
+
+    if (!_.isNil(firstStrongMatch)) {
+      return firstStrongMatch.location;
+    } else if (moduleAlias === '') {
+      const allImported = currentModule.imports.filter(i => {
+        return (
+          i.exposes_all || i.exposing.find(e => e.type === 'constructor')
+        );
+      });
+
+      // This could find non-exposed symbols
+      const fuzzyMatches = await Promise.all(
+        allImported.map(i => {
+          return this.workspaceSymbolProvider.provideWorkspaceSymbols(
+            `${i.module}:${symbolName}`,
+            token,
+          );
+        }),
+      );
+
+      const [firstFuzzy] = _.flatten(fuzzyMatches);
+
+      return _.isNil(firstFuzzy) ? null : firstFuzzy.location;
+    } else {
       return null;
     }
   }
