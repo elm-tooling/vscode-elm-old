@@ -588,11 +588,6 @@ elm-module-parser@0.1.10:
   resolved "https://registry.yarnpkg.com/elm-module-parser/-/elm-module-parser-0.1.10.tgz#bac99796dfa1029374605bc2006772db7b4d4df0"
   integrity sha512-+Vr84xmMIbaLHilmhS3zj9pGx1YJwY+Pp+W0Xwuj5Jm9dT2WrmHOZS5Utilewoc2+aTFhlIn6O0ZC1sx3dJohA==
 
-elm-module-parser@^0.1.9:
-  version "0.1.9"
-  resolved "https://registry.yarnpkg.com/elm-module-parser/-/elm-module-parser-0.1.9.tgz#93180d0bbcee7c665977c103bfdfd5eb256340ce"
-  integrity sha512-z2Z7kH/HtaWdAXyQYEzRZRoYOWB4X3IceVLcsIwUZYJ7HE+Rab5sAV2Q5Tz8CD6hQzNNk1YjeZ/V4nQ/jfoW8Q==
-
 elm-oracle@^0.2.0:
   version "0.2.0"
   resolved "https://registry.yarnpkg.com/elm-oracle/-/elm-oracle-0.2.0.tgz#3bc442b602c8c57e066560ffceb224e66a489db7"
@@ -601,12 +596,11 @@ elm-oracle@^0.2.0:
     rest "^1.3.1"
     when "^3.7.3"
 
-elm-project-inspect@0.0.6:
-  version "0.0.6"
-  resolved "https://registry.yarnpkg.com/elm-project-inspect/-/elm-project-inspect-0.0.6.tgz#9f4132f7e58825859cfc3464b76a6946b8440c69"
-  integrity sha512-q9tYaGWFM16gU8diFU1OWzWFv9dkVhDZX1S9uIVLn1xjQ+rzVQmTdADDWW8Wcas3vUVZ6iFbYYL8ZvScWvfPsA==
+elm-project-inspect@0.0.7:
+  version "0.0.7"
+  resolved "https://registry.yarnpkg.com/elm-project-inspect/-/elm-project-inspect-0.0.7.tgz#09a1904ab1f95a867d663e54cd7159701fa83ad2"
+  integrity sha512-1j19Tj64aGVKenGRAPoQmFB3swdk3lAcQY9pVUWeKvxGxiFKFfIUp3IBb+YNQaEx6rAlVnJRMWNLt6zOQgVs6A==
   dependencies:
-    elm-module-parser "^0.1.9"
     fast-glob "^2.2.3"
     lodash "^4.17.11"
 

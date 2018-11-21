@@ -3,8 +3,8 @@
 import * as vscode from 'vscode';
 import { ElmWorkspaceSymbolProvider } from './elmWorkspaceSymbols';
 import { ModuleImport } from 'elm-module-parser';
-import * as _ from 'lodash';
 import { getGlobalProjectManager } from './elmProjectManager';
+import * as _ from 'lodash';
 
 export class ElmDefinitionProvider implements vscode.DefinitionProvider {
   public constructor(
@@ -19,20 +19,19 @@ export class ElmDefinitionProvider implements vscode.DefinitionProvider {
   ): Promise<vscode.Location> {
     const wordRange = document.getWordRangeAtPosition(position);
 
-    if (wordRange == null) {
+    if (_.isNil(wordRange)) {
       return null;
     }
 
     try {
-      const parsedModule = await getGlobalProjectManager().moduleFromPath(
-        document.fileName,
-      );
+      const parsedModule = await getGlobalProjectManager()
+        .moduleFromPath(document.fileName);
 
       const word = document.getText(wordRange);
       const symbolName = word.substring(word.lastIndexOf('.') + 1);
       const moduleAlias = word.substring(0, word.lastIndexOf('.'));
 
-      const exactMatchingImport: ModuleImport = parsedModule.imports.find(i => {
+      const matchingImports: ModuleImport[] = parsedModule.imports.filter(i => {
         if (moduleAlias === '') {
           const matchedExposing = i.exposing.find(e => {
             return e.name === symbolName;
@@ -44,20 +43,16 @@ export class ElmDefinitionProvider implements vscode.DefinitionProvider {
         }
       });
 
-      const moduleToSearch =
-        exactMatchingImport != null
-          ? exactMatchingImport.module
-          : parsedModule.name;
+      const modulesToSearch = _.isEmpty(matchingImports)
+        ? [parsedModule.name]
+        : matchingImports.map(x => x.module);
 
-      const query = `${moduleToSearch}:${symbolName}`;
+      const [firstStrongMatch] = _.flatten(await Promise.all(modulesToSearch.map(m => {
+        return this.workspaceSymbolProvider.provideWorkspaceSymbols(`${m}:${symbolName}`, token);
+      })));
 
-      const exactMatch = await this.workspaceSymbolProvider.provideWorkspaceSymbols(
-        query,
-        token,
-      );
-
-      if (exactMatch.length > 0) {
-        return exactMatch[0].location;
+      if (!_.isNil(firstStrongMatch)) {
+        return firstStrongMatch.location;
       } else if (moduleAlias === '') {
         const allImported = parsedModule.imports.filter(i => {
           return (
@@ -75,9 +70,9 @@ export class ElmDefinitionProvider implements vscode.DefinitionProvider {
           }),
         );
 
-        const firstFuzzy = _.flatMap(fuzzyMatches, m => m)[0];
+        const [firstFuzzy] = _.flatten(fuzzyMatches);
 
-        return firstFuzzy != null ? firstFuzzy.location : null;
+        return _.isNil(firstFuzzy) ? null : firstFuzzy.location;
       } else {
         return null;
       }
