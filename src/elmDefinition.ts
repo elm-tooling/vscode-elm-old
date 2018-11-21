@@ -1,5 +1,3 @@
-'use strict';
-
 import * as vscode from 'vscode';
 import { ElmWorkspaceSymbolProvider } from './elmWorkspaceSymbols';
 import { ModuleImport } from 'elm-module-parser';
