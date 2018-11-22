@@ -1,4 +1,5 @@
 import vscode = require('vscode');
+import * as _ from 'lodash';
 
 export class ElmCodeActionProvider implements vscode.CodeActionProvider {
   public provideCodeActions(
@@ -17,6 +18,7 @@ export class ElmCodeActionProvider implements vscode.CodeActionProvider {
       0,
       currentWord.lastIndexOf('.'),
     );
+
     let currentWordSuffix = currentWord.substr(
       currentWord.lastIndexOf('.') + 1,
     );
@@ -130,12 +132,12 @@ export class ElmCodeActionProvider implements vscode.CodeActionProvider {
             arguments: [range],
           },
         ];
-      } else if (diag.message.match(unusedImportedVariableCriteria)) {
+      } else if (diag.message.match(unusedImportCriteria)) {
         return [
           {
-            title: 'Remove unused variable',
+            title: `Remove unused import: ${document.getText(diag.range)}`,
             command: 'elm.removeUnusedImportedVariable',
-            arguments: [range],
+            arguments: [diag.range],
           },
         ];
       } else if (diag.message.match(debugLogCriteria)) {
@@ -260,20 +262,34 @@ function removeUnusedImportedVariable(range: vscode.Range) {
     vscode.window.showInformationMessage('Language is not Elm');
     return;
   }
-  let variableToFix = editor.document.getText(range);
+
   let nextCharacters = editor.document.getText(
-    range.with(range.end.translate(0, 0), range.end.translate(0, 100)),
-  );
-  let previousCharacters = editor.document.getText(
-    range.with(range.start.translate(0, -15), range.start.translate(0, 0)),
+    range.with(
+      range.end.translate(0, 0),
+      range.end.translate(0, 100),
+    ),
   );
 
-  // between commas	or first variable
-  if (
+  let previousCharacters = editor.document.getText(
+    range.with(
+      range.start.with(range.start.line, Math.max(0, range.start.character - 15)),
+      range.start,
+    ),
+  );
+
+  if (!range.isEmpty && nextCharacters.trim() === '' && previousCharacters.trim() === '') {
+    // entire line
+    editor.edit(editBuilder => {
+      editBuilder.delete(range);
+    });
+
+    editor.document.save();
+  } else if (
     nextCharacters.trim().startsWith(',') &&
     (previousCharacters.trim().endsWith(',') ||
       previousCharacters.trim().endsWith('('))
   ) {
+    // between commas	or first variable
     let nextCharacterIndex = nextCharacters.indexOf(',') + 1;
     if (nextCharacters[nextCharacterIndex] === ' ') {
       nextCharacterIndex += 1;

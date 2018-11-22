@@ -106,16 +106,13 @@ export async function detectUnusedImports(
           if (!_.isNil(matches)) {
             const matchStart =
               importDeclaration.location.start.offset + matches.index;
+
             const matchEnd = matchStart + matches[0].length;
 
-            return new vscode.Diagnostic(
-              new vscode.Range(
-                document.positionAt(matchStart),
-                document.positionAt(matchEnd),
-              ),
-              message,
-              vscode.DiagnosticSeverity.Information,
-            );
+            return makeDiag(message, new vscode.Range(
+              document.positionAt(matchStart),
+              document.positionAt(matchEnd),
+            ));
           }
 
           return null;
