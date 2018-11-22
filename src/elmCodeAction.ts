@@ -30,7 +30,7 @@ export class ElmCodeActionProvider implements vscode.CodeActionProvider {
       'Hint: The record fields do not match up. Maybe you made one of these typos?';
     let unnecessaryParensCriteria = /UnnecessaryParens/;
     let unusedVariableCriteria = /UnusedVariable/;
-    let unusedImportedVariableCriteria = /UnusedImportedVariable/;
+    let unusedImportCriteria = /Unused Import/;
     let debugLogCriteria = /DebugLog/;
 
     let suggestionsCriterias = [
