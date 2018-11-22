@@ -44,12 +44,12 @@ export class ElmDefinitionProvider implements vscode.DefinitionProvider {
       ? [currentModule.name]
       : matchingImports.map(x => x.module);
 
-    const [firstStrongMatch] = _.flatten(await Promise.all(modulesToSearch.map(m => {
+    const strongMatches = _.flatten(await Promise.all(modulesToSearch.map(m => {
       return this.workspaceSymbolProvider.provideWorkspaceSymbols(`${m}:${symbolName}`, token);
     })));
 
-    if (!_.isNil(firstStrongMatch)) {
-      return firstStrongMatch.location;
+    if (!_.isEmpty(strongMatches)) {
+      return _(strongMatches).sortBy(m => m.kind).last().location;
     } else if (moduleAlias === '') {
       const allImported = currentModule.imports.filter(i => {
         return (
