@@ -341,7 +341,7 @@
     "vscode": "1.1.21"
   },
   "dependencies": {
-    "elm-module-parser": "0.1.10",
+    "elm-module-parser": "^0.1.11",
     "elm-oracle": "^0.2.0",
     "elm-project-inspect": "0.0.7",
     "lodash": "^4.17.11",

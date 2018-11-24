@@ -583,10 +583,10 @@ ecc-jsbn@~0.1.1:
     jsbn "~0.1.0"
     safer-buffer "^2.1.0"
 
-elm-module-parser@0.1.10:
-  version "0.1.10"
-  resolved "https://registry.yarnpkg.com/elm-module-parser/-/elm-module-parser-0.1.10.tgz#bac99796dfa1029374605bc2006772db7b4d4df0"
-  integrity sha512-+Vr84xmMIbaLHilmhS3zj9pGx1YJwY+Pp+W0Xwuj5Jm9dT2WrmHOZS5Utilewoc2+aTFhlIn6O0ZC1sx3dJohA==
+elm-module-parser@^0.1.11:
+  version "0.1.11"
+  resolved "https://registry.yarnpkg.com/elm-module-parser/-/elm-module-parser-0.1.11.tgz#48488bef8bcc80e832a56639e45719ac1a9da3d4"
+  integrity sha512-BIat1Ln50+x9J4o5y0Ek9z+yuJ8UBlFxgiztJlJMEJ/yTt4yG9fr3DBB0R5qDyTujtDwQyx/AtTksmTmG+m1Dg==
 
 elm-oracle@^0.2.0:
   version "0.2.0"
