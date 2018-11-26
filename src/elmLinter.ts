@@ -190,7 +190,7 @@ function checkForErrors(filename): Promise<IElmIssue[]> {
       errorLinesFromElmMake.close();
       if (err && err.code === 'ENOENT') {
         vscode.window.showInformationMessage(
-          "The 'elm-make' compiler is not available.  Install Elm from http://elm-lang.org/.",
+          `The elm compiler is not available (${makeCommand}). Install Elm from https://elm-lang.org.`,
         );
         resolve([]);
       } else {
