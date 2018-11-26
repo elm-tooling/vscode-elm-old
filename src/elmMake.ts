@@ -20,6 +20,8 @@ function getMakeAndArguments(file, warn: boolean): [string, string, string[]] {
     vscode.workspace.rootPath,
   );
   const specialFile: string = <string>config.get('makeSpecialFile');
+  const isTestFile = elmTest.fileIsTestFile(file);
+
   if (specialFile.length > 0) {
     file = path.resolve(cwd, specialFile);
   }
@@ -30,8 +32,6 @@ function getMakeAndArguments(file, warn: boolean): [string, string, string[]] {
   if (warn) {
     args018.push('--warn');
   }
-
-  const isTestFile = elmTest.fileIsTestFile(file);
 
   const args019 = ['make', file, '--output=' + name];
   const args = utils.isElm019(elmVersion) ? args019 : args018;

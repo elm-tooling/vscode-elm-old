@@ -125,12 +125,14 @@ function checkForErrors(filename): Promise<IElmIssue[]> {
       filename,
       vscode.workspace.rootPath,
     );
+    const isTestFile = elmTest.fileIsTestFile(filename);
     let make;
+
     if (utils.isWindows) {
       filename = '"' + filename + '"';
     }
 
-    const isTestFile = elmTest.fileIsTestFile(filename);
+
 
     const args018 = [filename, '--report', 'json', '--output', '/dev/null'];
     const args019 = [
