@@ -1,3 +1,8 @@
+### 0.24.0 - 26.11.2018
+* Improved Symbol Search / Goto Definition (by @joeandaverde)
+* Fix wrong missing compiler error message (by @andys8)
+* Check isTestFile before normalizing path on windows (by @Krzysztof-Cieslak)
+
 ### 0.23.0 - 19.11.2018
 * corrected a spelling error (by @WEBhicham)
 * Replace inefficient regex to locate imports with simpler regex (by @joeandaverde)
