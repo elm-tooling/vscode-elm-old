@@ -468,10 +468,10 @@ ecc-jsbn@~0.1.1:
     jsbn "~0.1.0"
     safer-buffer "^2.1.0"
 
-elm-module-parser@0.1.9:
-  version "0.1.9"
-  resolved "https://registry.yarnpkg.com/elm-module-parser/-/elm-module-parser-0.1.9.tgz#93180d0bbcee7c665977c103bfdfd5eb256340ce"
-  integrity sha512-z2Z7kH/HtaWdAXyQYEzRZRoYOWB4X3IceVLcsIwUZYJ7HE+Rab5sAV2Q5Tz8CD6hQzNNk1YjeZ/V4nQ/jfoW8Q==
+elm-module-parser@0.1.12:
+  version "0.1.12"
+  resolved "https://registry.yarnpkg.com/elm-module-parser/-/elm-module-parser-0.1.12.tgz#87399270f9f8272c6ba0d64187813a6106fec95c"
+  integrity sha512-+Z6KQBKOCPdrYNvma4EIEjhBvbw+dr1Owr3IGirm47uhCjtUaBbFSsY7l3N9hyBMMbW1gtoS84yhMWCNtPVqgA==
 
 elm-oracle@^0.2.0:
   version "0.2.0"
