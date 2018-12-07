@@ -65,7 +65,7 @@ function parseErrorsElm019(line) {
               typeof message === 'string'
                 ? message
                 : '#' + message.string + '#',
-        )
+          )
           .join(''),
         region: problem.region,
         type: 'error',
@@ -82,7 +82,7 @@ function parseErrorsElm019(line) {
       details: errorObject.message
         .map(
           message => (typeof message === 'string' ? message : message.string),
-      )
+        )
         .join(''),
       region: {
         start: {
@@ -125,9 +125,13 @@ function checkForErrors(filename): Promise<IElmIssue[]> {
       filename,
       vscode.workspace.rootPath,
     );
+    const specialFile: string = <string>config.get('makeSpecialFile');
     const isTestFile = elmTest.fileIsTestFile(filename);
     let make;
 
+    if (specialFile.length > 0) {
+      filename = path.resolve(cwd, specialFile);
+    }
     if (utils.isWindows) {
       filename = '"' + filename + '"';
     }
