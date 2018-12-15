@@ -17,12 +17,12 @@ export class ElmWorkspaceSymbolProvider
     this.symbolsByUri = {};
   }
 
-  public async update(document: TextDocument) {
+  public async update(document: TextDocument): Promise<void> {
     await this.indexDocument(document);
   }
 
-  public async remove(uri: vscode.Uri) {
-    await this.removeDocument(uri);
+  public remove(uri: vscode.Uri): void {
+    this.removeDocument(uri);
   }
 
   public async provideWorkspaceSymbols(
@@ -68,7 +68,7 @@ export class ElmWorkspaceSymbolProvider
     );
   }
 
-  private async indexWorkspace() {
+  private async indexWorkspace(): Promise<void> {
     const maxFiles = config['maxWorkspaceFilesUsedBySymbols'];
     const excludePattern = config['workspaceFilesExcludePatternUsedBySymbols'];
     const workspaceFiles = await vscode.workspace.findFiles(
@@ -119,7 +119,7 @@ export class ElmWorkspaceSymbolProvider
     delete this.symbolsByUri[uri.toString()];
   }
 
-  private async indexDocument(document: TextDocument) {
+  private async indexDocument(document: TextDocument): Promise<void> {
     const updatedSymbols = await processDocument(document);
 
     this.removeDocument(document.uri);
