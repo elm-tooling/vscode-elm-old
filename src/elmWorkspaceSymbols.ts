@@ -21,6 +21,10 @@ export class ElmWorkspaceSymbolProvider
     await this.indexDocument(document);
   }
 
+  public async remove(uri: vscode.Uri) {
+    await this.removeDocument(uri);
+  }
+
   public async provideWorkspaceSymbols(
     query: string,
     token: vscode.CancellationToken,
@@ -101,14 +105,24 @@ export class ElmWorkspaceSymbolProvider
     }
   }
 
+  private removeDocument(uri: vscode.Uri): void {
+    if (!_.has(this.symbolsByUri, uri.toString())) {
+      return;
+    }
+
+    const firstSymbol = _.first(this.symbolsByUri[uri.toString()]);
+
+    if (!_.isNil(firstSymbol)) {
+      delete this.symbolsByContainer[firstSymbol.containerName];
+    }
+
+    delete this.symbolsByUri[uri.toString()];
+  }
+
   private async indexDocument(document: TextDocument) {
     const updatedSymbols = await processDocument(document);
 
-    // Clear old symbols
-    updatedSymbols.forEach(s => {
-      this.symbolsByContainer[s.containerName] = [];
-      this.symbolsByUri[s.location.uri.toString()] = [];
-    });
+    this.removeDocument(document.uri);
 
     // Update new symbols
     updatedSymbols.forEach(s => {
