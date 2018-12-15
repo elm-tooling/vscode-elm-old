@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 
 import { TextDocument, SymbolInformation } from 'vscode';
 import { processDocument } from './elmSymbol';
+import * as _ from 'lodash';
 
 const config = vscode.workspace.getConfiguration('elm');
 
@@ -9,13 +10,11 @@ export class ElmWorkspaceSymbolProvider
   implements vscode.WorkspaceSymbolProvider {
   private symbolsByContainer: { [key: string]: vscode.SymbolInformation[] };
   private symbolsByUri: { [uri: string]: vscode.SymbolInformation[] };
-  private symbolsByName: { [symbolName: string]: vscode.SymbolInformation[] };
   private workspaceIndexTime: Date;
 
   public constructor(private languagemode: vscode.DocumentFilter) {
     this.symbolsByContainer = {};
     this.symbolsByUri = {};
-    this.symbolsByName = {};
   }
 
   public async update(document: TextDocument) {
@@ -42,15 +41,10 @@ export class ElmWorkspaceSymbolProvider
       await this.indexWorkspace();
     }
 
-    const matchingSymbols: SymbolInformation[] = Object.keys(
-      this.symbolsByName,
-    ).reduce((acc: SymbolInformation[], k: string) => {
-      if (k.startsWith(symbol)) {
-        return acc.concat(this.symbolsByName[k]);
-      } else {
-        return acc;
-      }
-    }, []);
+    const matchingSymbols: SymbolInformation[] = _.values(this.symbolsByContainer)
+      .reduce((acc: SymbolInformation[], moduleSymbols: SymbolInformation[]) => {
+        return acc.concat(moduleSymbols.filter(x => symbol.startsWith(x.name)));
+      }, []);
 
     return matchingSymbols;
   }
@@ -110,14 +104,21 @@ export class ElmWorkspaceSymbolProvider
   private async indexDocument(document: TextDocument) {
     const updatedSymbols = await processDocument(document);
 
+    // Clear old symbols
+    updatedSymbols.forEach(s => {
+      this.symbolsByContainer[s.containerName] = [];
+      this.symbolsByUri[s.location.uri.toString()] = [];
+    });
+
+    // Update new symbols
     updatedSymbols.forEach(s => {
       this.symbolsByContainer[s.containerName] = (
         this.symbolsByContainer[s.containerName] || []
       ).concat(s);
+
       this.symbolsByUri[s.location.uri.toString()] = (
-        this.symbolsByContainer[s.location.uri.toString()] || []
+        this.symbolsByUri[s.location.uri.toString()] || []
       ).concat(s);
-      this.symbolsByName[s.name] = (this.symbolsByName[s.name] || []).concat(s);
     });
   }
 }
