@@ -1,11 +1,8 @@
 import * as vscode from 'vscode';
-import * as cp from 'child_process';
 import WebSocket = require('ws');
 const request = require('request');
-import * as utils from './elmUtils';
 import * as path from 'path';
-import * as readline from 'readline';
-import { isWindows, execCmd, ExecutingCmd } from './elmUtils';
+import { execCmd, ExecutingCmd } from './elmUtils';
 import { runLinter, IElmIssue, IElmIssueRegion } from './elmLinter';
 
 enum ElmAnalyseServerState {
@@ -86,7 +83,6 @@ export class ElmAnalyse {
       const config: vscode.WorkspaceConfiguration = vscode.workspace.getConfiguration(
         'elm',
       );
-      const analyseCommand: string = <string>config.get('analyseCommand');
       const port: string = <string>config.get('analysePort');
       const wsPath = 'ws://localhost:' + port + '/state';
       if (this.analyseSocket) {
@@ -103,14 +99,14 @@ export class ElmAnalyse {
           this.elmAnalyseIssues = [];
           const state = JSON.parse(stateJson);
           const messages: IElmAnalyseMessage[] = state.messages;
-          var failedMessages = messages
+          let failedMessages = messages
             .map(message => this.parseMessage(cwd, message))
             .filter(result => !result.success);
           if (failedMessages.length > 0) {
-            var items = failedMessages.map(
+            let items = failedMessages.map(
               result => "Type: '" + result.messageType + "' - " + result.reason,
             );
-            var messageText =
+            let messageText =
               items.length +
               ' of ' +
               messages.length +
@@ -209,8 +205,8 @@ export class ElmAnalyse {
   }
 
   private parseMessageInfoFileRanges(messageInfoData: IElmAnalyseMessageData) {
-    var messageInfoFileRanges: number[][];
-    var messageInfoProperties = <any>messageInfoData.properties;
+    let messageInfoFileRanges: number[][];
+    let messageInfoProperties = <any>messageInfoData.properties;
     if (messageInfoProperties.hasOwnProperty('range')) {
       messageInfoFileRanges = [messageInfoProperties.range];
     } else if (

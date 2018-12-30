@@ -62,7 +62,7 @@ export function execCmd(
     let cmdArguments = options ? options.cmdArguments : [];
 
     const dummyPath = path.join(vscode.workspace.rootPath, 'dummyfile');
-    const [cwdCurrent, elmVersion] = detectProjectRootAndElmVersion(
+    const [cwdCurrent, _] = detectProjectRootAndElmVersion(
       fileName || dummyPath,
       workspace.rootPath,
     );
