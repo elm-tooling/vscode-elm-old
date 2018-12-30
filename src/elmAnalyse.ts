@@ -1,9 +1,9 @@
+import * as path from 'path';
 import * as vscode from 'vscode';
+import { IElmIssue, IElmIssueRegion, runLinter } from './elmLinter';
+import { detectProjectRootAndElmVersion, execCmd, ExecutingCmd } from './elmUtils';
 import WebSocket = require('ws');
 const request = require('request');
-import * as path from 'path';
-import { execCmd, ExecutingCmd } from './elmUtils';
-import { runLinter, IElmIssue, IElmIssueRegion } from './elmLinter';
 
 enum ElmAnalyseServerState {
   NotRunning = 1,
@@ -38,6 +38,8 @@ export class ElmAnalyse {
   private analyse: ExecutingCmd;
   private updateLinterInterval;
   private unprocessedMessage = false;
+  private cwd: string;
+  private version: string;
   private oc: vscode.OutputChannel = vscode.window.createOutputChannel(
     'Elm Analyse',
   );
@@ -193,7 +195,7 @@ export class ElmAnalyse {
           details: description,
           region: this.correctRegion(messageInfoFileRegion),
           type: 'warning',
-          file: path.join(cwd, message.file),
+          file: path.join(this.cwd, message.file),
         };
         this.elmAnalyseIssues.push(issue);
       });
@@ -281,6 +283,13 @@ export class ElmAnalyse {
     fileName: string,
     forceRestart = false,
   ): Thenable<boolean> {
+    const [cwdCurrent, version] = detectProjectRootAndElmVersion(
+      fileName,
+      vscode.workspace.rootPath,
+    );
+    this.cwd = cwdCurrent;
+    this.version = version;
+
     if (this.analyse.isRunning) {
       vscode.window.showErrorMessage(
         'Elm-analyse is already running in vscode. Please run the stop command if you want to restart elm-analyse.',
