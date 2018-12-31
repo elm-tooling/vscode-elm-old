@@ -183,17 +183,13 @@ export class ElmAnalyse {
       const messageInfoFileRegions = this.parseMessageInfoFileRanges(
         message.data,
       ).map(this.convertRangeToRegion);
-      const description = this.correctRangeWithinDescription(
-        messageInfoFileRegions,
-        message.data.description,
-      );
       messageInfoFileRegions.forEach(messageInfoFileRegion => {
         const issue: IElmIssue = {
           tag: 'analyser',
           overview: message.type,
           subregion: '',
-          details: description,
-          region: this.correctRegion(messageInfoFileRegion),
+          details: message.data.description,
+          region: messageInfoFileRegion,
           type: 'warning',
           file: path.join(this.cwd, message.file),
         };
@@ -236,43 +232,6 @@ export class ElmAnalyse {
       end: {
         line: range[2],
         column: range[3],
-      },
-    };
-  }
-
-  private correctRangeWithinDescription(
-    originalRegions: IElmIssueRegion[],
-    originalDescription: string,
-  ): string {
-    function formatRegion(region: IElmIssueRegion): string {
-      return `((${region.start.line},${region.start.column}),(${
-        region.end.line
-      },${region.end.column}))`;
-    }
-
-    return originalRegions.reduce(
-      (currentDescription, originalRegion): string => {
-        const correctedRegion = this.correctRegion(originalRegion);
-        const originalRegionText = formatRegion(originalRegion);
-        const correctedRegionText = formatRegion(correctedRegion);
-        return currentDescription.replace(
-          originalRegionText,
-          correctedRegionText,
-        );
-      },
-      originalDescription,
-    );
-  }
-
-  private correctRegion(region: IElmIssueRegion): IElmIssueRegion {
-    return {
-      start: {
-        line: region.start.line + 1,
-        column: region.start.column + 1,
-      },
-      end: {
-        line: region.end.line + 1,
-        column: region.end.column + 1,
       },
     };
   }
