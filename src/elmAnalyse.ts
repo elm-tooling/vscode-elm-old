@@ -1,12 +1,9 @@
+import * as path from 'path';
 import * as vscode from 'vscode';
-import * as cp from 'child_process';
+import { IElmIssue, IElmIssueRegion, runLinter } from './elmLinter';
+import { detectProjectRootAndElmVersion, execCmd, ExecutingCmd } from './elmUtils';
 import WebSocket = require('ws');
 const request = require('request');
-import * as utils from './elmUtils';
-import * as path from 'path';
-import * as readline from 'readline';
-import { isWindows, execCmd, ExecutingCmd } from './elmUtils';
-import { runLinter, IElmIssue, IElmIssueRegion } from './elmLinter';
 
 enum ElmAnalyseServerState {
   NotRunning = 1,
@@ -41,6 +38,8 @@ export class ElmAnalyse {
   private analyse: ExecutingCmd;
   private updateLinterInterval;
   private unprocessedMessage = false;
+  private cwd: string;
+  private version: string;
   private oc: vscode.OutputChannel = vscode.window.createOutputChannel(
     'Elm Analyse',
   );
@@ -86,7 +85,6 @@ export class ElmAnalyse {
       const config: vscode.WorkspaceConfiguration = vscode.workspace.getConfiguration(
         'elm',
       );
-      const analyseCommand: string = <string>config.get('analyseCommand');
       const port: string = <string>config.get('analysePort');
       const wsPath = 'ws://localhost:' + port + '/state';
       if (this.analyseSocket) {
@@ -103,14 +101,14 @@ export class ElmAnalyse {
           this.elmAnalyseIssues = [];
           const state = JSON.parse(stateJson);
           const messages: IElmAnalyseMessage[] = state.messages;
-          var failedMessages = messages
+          let failedMessages = messages
             .map(message => this.parseMessage(cwd, message))
             .filter(result => !result.success);
           if (failedMessages.length > 0) {
-            var items = failedMessages.map(
+            let items = failedMessages.map(
               result => "Type: '" + result.messageType + "' - " + result.reason,
             );
-            var messageText =
+            let messageText =
               items.length +
               ' of ' +
               messages.length +
@@ -185,19 +183,15 @@ export class ElmAnalyse {
       const messageInfoFileRegions = this.parseMessageInfoFileRanges(
         message.data,
       ).map(this.convertRangeToRegion);
-      const description = this.correctRangeWithinDescription(
-        messageInfoFileRegions,
-        message.data.description,
-      );
       messageInfoFileRegions.forEach(messageInfoFileRegion => {
         const issue: IElmIssue = {
           tag: 'analyser',
           overview: message.type,
           subregion: '',
-          details: description,
-          region: this.correctRegion(messageInfoFileRegion),
+          details: message.data.description,
+          region: messageInfoFileRegion,
           type: 'warning',
-          file: path.join(cwd, message.file),
+          file: path.join(this.cwd, message.file),
         };
         this.elmAnalyseIssues.push(issue);
       });
@@ -209,8 +203,8 @@ export class ElmAnalyse {
   }
 
   private parseMessageInfoFileRanges(messageInfoData: IElmAnalyseMessageData) {
-    var messageInfoFileRanges: number[][];
-    var messageInfoProperties = <any>messageInfoData.properties;
+    let messageInfoFileRanges: number[][];
+    let messageInfoProperties = <any>messageInfoData.properties;
     if (messageInfoProperties.hasOwnProperty('range')) {
       messageInfoFileRanges = [messageInfoProperties.range];
     } else if (
@@ -242,49 +236,19 @@ export class ElmAnalyse {
     };
   }
 
-  private correctRangeWithinDescription(
-    originalRegions: IElmIssueRegion[],
-    originalDescription: string,
-  ): string {
-    function formatRegion(region: IElmIssueRegion): string {
-      return `((${region.start.line},${region.start.column}),(${
-        region.end.line
-      },${region.end.column}))`;
-    }
-
-    return originalRegions.reduce(
-      (currentDescription, originalRegion): string => {
-        const correctedRegion = this.correctRegion(originalRegion);
-        const originalRegionText = formatRegion(originalRegion);
-        const correctedRegionText = formatRegion(correctedRegion);
-        return currentDescription.replace(
-          originalRegionText,
-          correctedRegionText,
-        );
-      },
-      originalDescription,
-    );
-  }
-
-  private correctRegion(region: IElmIssueRegion): IElmIssueRegion {
-    return {
-      start: {
-        line: region.start.line + 1,
-        column: region.start.column + 1,
-      },
-      end: {
-        line: region.end.line + 1,
-        column: region.end.column + 1,
-      },
-    };
-  }
-
   private startAnalyseProcess(
     analyseCommand: string,
     analysePort: string,
     fileName: string,
     forceRestart = false,
   ): Thenable<boolean> {
+    const [cwdCurrent, version] = detectProjectRootAndElmVersion(
+      fileName,
+      vscode.workspace.rootPath,
+    );
+    this.cwd = cwdCurrent;
+    this.version = version;
+
     if (this.analyse.isRunning) {
       vscode.window.showErrorMessage(
         'Elm-analyse is already running in vscode. Please run the stop command if you want to restart elm-analyse.',
