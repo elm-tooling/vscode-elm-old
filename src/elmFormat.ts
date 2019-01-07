@@ -106,7 +106,7 @@ function clearStatus(statusBarItem: StatusBarItem) {
 }
 
 function statusBarMessage(statusBarItem: StatusBarItem) {
-  return function(err) {
+  return function(err: { message: string }) {
     const message = (<string>err.message).includes('SYNTAX PROBLEM')
       ? 'Running elm-format failed. Check the file for syntax errors.'
       : 'Running elm-format failed. Install from ' +

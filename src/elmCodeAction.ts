@@ -177,8 +177,6 @@ function annotateFunction(msg: string) {
     return;
   }
   let position = vscode.window.activeTextEditor.selection.active;
-  let wordRange = editor.document.getWordRangeAtPosition(position);
-  let currentWord: string = editor.document.getText(wordRange);
   let msgList = msg.split('\n');
   if (msgList.length >= 1) {
     let annotation = msgList.map((val: string) => val.trim()).join(' ');
@@ -243,7 +241,6 @@ function changeVariableTo_(range: vscode.Range) {
     vscode.window.showInformationMessage('Language is not Elm');
     return;
   }
-  let variableToFix = editor.document.getText(range);
   editor.edit(editBuilder => {
     editBuilder.replace(range, '_');
   });
@@ -260,7 +257,6 @@ function removeUnusedImportedVariable(range: vscode.Range) {
     vscode.window.showInformationMessage('Language is not Elm');
     return;
   }
-  let variableToFix = editor.document.getText(range);
   let nextCharacters = editor.document.getText(
     range.with(range.end.translate(0, 0), range.end.translate(0, 100)),
   );

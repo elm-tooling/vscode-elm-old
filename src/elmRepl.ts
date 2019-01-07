@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import * as utils from './elmUtils';
-import { TextEditor, window, workspace } from 'vscode';
+import { TextEditor, window } from 'vscode';
 
 let replTerminal: vscode.Terminal;
 
@@ -12,7 +12,7 @@ function getElmRepl(): string {
   const dummyPath = path.join(vscode.workspace.rootPath, 'dummyfile');
   const repl018Command: string = 'elm-repl';
   const compiler: string = <string>config.get('compiler');
-  const [cwd, elmVersion] = utils.detectProjectRootAndElmVersion(
+  const [_, elmVersion] = utils.detectProjectRootAndElmVersion(
     dummyPath,
     vscode.workspace.rootPath,
   );

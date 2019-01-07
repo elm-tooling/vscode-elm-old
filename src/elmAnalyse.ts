@@ -7,7 +7,7 @@ import {
   ExecutingCmd,
 } from './elmUtils';
 import WebSocket = require('ws');
-const request = require('request');
+import request = require('request');
 
 enum ElmAnalyseServerState {
   NotRunning = 1,
@@ -43,7 +43,6 @@ export class ElmAnalyse {
   private updateLinterInterval;
   private unprocessedMessage = false;
   private cwd: string;
-  private version: string;
   private oc: vscode.OutputChannel = vscode.window.createOutputChannel(
     'Elm Analyse',
   );
@@ -85,7 +84,6 @@ export class ElmAnalyse {
 
   private initSocketClient() {
     try {
-      const cwd: string = vscode.workspace.rootPath;
       const config: vscode.WorkspaceConfiguration = vscode.workspace.getConfiguration(
         'elm',
       );
@@ -103,10 +101,10 @@ export class ElmAnalyse {
       this.analyseSocket.on('message', stateJson => {
         try {
           this.elmAnalyseIssues = [];
-          const state = JSON.parse(stateJson);
+          const state = JSON.parse(stateJson.toString());
           const messages: IElmAnalyseMessage[] = state.messages;
           let failedMessages = messages
-            .map(message => this.parseMessage(cwd, message))
+            .map(message => this.parseMessage(message))
             .filter(result => !result.success);
           if (failedMessages.length > 0) {
             let items = failedMessages.map(
@@ -116,7 +114,8 @@ export class ElmAnalyse {
               items.length +
               ' of ' +
               messages.length +
-              ' messages from Elm-analyse could not be parsed. Check if you are running at least elm-analyse 0.14.2 or higher and has been configured correctly.';
+              ' messages from Elm-analyse could not be parsed. Check if you are running at least ' +
+              'elm-analyse 0.14.2 or higher and has been configured correctly.';
             vscode.window
               .showErrorMessage(messageText, 'Show details')
               .then(item => {
@@ -136,7 +135,7 @@ export class ElmAnalyse {
           );
         }
       });
-      this.analyseSocket.on('error', e => {
+      this.analyseSocket.on('error', () => {
         vscode.window.showErrorMessage(
           'Running websocket against Elm-analyse failed. Check if elm-analyse has been configured correctly.',
         );
@@ -149,7 +148,6 @@ export class ElmAnalyse {
   }
 
   private parseMessage(
-    cwd: string,
     message: IElmAnalyseMessage,
   ): IElmAnalyseMessageParseResult {
     function generateError(reason: string): IElmAnalyseMessageParseResult {
@@ -159,8 +157,10 @@ export class ElmAnalyse {
         messageType: message.type || null,
       };
     }
-    function generateMissingError(path: string): IElmAnalyseMessageParseResult {
-      return generateError(path + ' is missing');
+    function generateMissingError(
+      missingPath: string,
+    ): IElmAnalyseMessageParseResult {
+      return generateError(missingPath + ' is missing');
     }
 
     try {
@@ -246,12 +246,11 @@ export class ElmAnalyse {
     fileName: string,
     forceRestart = false,
   ): Thenable<boolean> {
-    const [cwdCurrent, version] = detectProjectRootAndElmVersion(
+    const [cwdCurrent, _] = detectProjectRootAndElmVersion(
       fileName,
       vscode.workspace.rootPath,
     );
     this.cwd = cwdCurrent;
-    this.version = version;
 
     if (this.analyse.isRunning) {
       vscode.window.showErrorMessage(
@@ -302,8 +301,6 @@ export class ElmAnalyse {
       return;
     }
     try {
-      const cwd: string = vscode.workspace.rootPath;
-
       const config: vscode.WorkspaceConfiguration = vscode.workspace.getConfiguration(
         'elm',
       );
@@ -389,7 +386,7 @@ function checkElmAnalyseServerState(
 function getElmAnalyseServerInfo(url: string): Thenable<any> {
   const titleRegex = /(<\s*title[^>]*>(.+?)<\s*\/\s*title)>/gi;
   return new Promise((resolve, reject) => {
-    request(url, (err, _, body) => {
+    request(url, (err, _, body: string) => {
       if (err) {
         reject(err);
       } else {

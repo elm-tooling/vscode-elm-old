@@ -9,7 +9,6 @@ import { ElmCompletionProvider } from './elmAutocomplete';
 import { runLinter, IElmIssue } from './elmLinter';
 import { activateRepl } from './elmRepl';
 import { activateMake } from './elmMake';
-// import {activateMakeWarn} from './elmMakeWarn';
 import { activatePackage } from './elmPackage';
 import { activateClean } from './elmClean';
 import { ElmAnalyse } from './elmAnalyse';

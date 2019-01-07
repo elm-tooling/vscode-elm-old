@@ -2,13 +2,10 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import * as utils from './elmUtils';
 
-const request = require('request');
+import request = require('request');
 let packageTerminal: vscode.Terminal;
 
-function getInstallPackageCommand(packageName): string {
-  const config: vscode.WorkspaceConfiguration = vscode.workspace.getConfiguration(
-    'elm',
-  );
+function getInstallPackageCommand(packageName: string): string {
   const dummyPath = path.join(vscode.workspace.rootPath, 'dummyfile');
   const [_, elmVersion] = utils.detectProjectRootAndElmVersion(
     dummyPath,
@@ -79,7 +76,7 @@ function transformToPackageQuickPickItems(
 function transformToPackageVersionQuickPickItems(
   selectedPackage: ElmPackageQuickPickItem,
 ): vscode.QuickPickItem[] {
-  return selectedPackage.info.map(version => {
+  return selectedPackage.info.map((version: string) => {
     return { label: version, description: null };
   });
 }
@@ -123,11 +120,13 @@ function installPackageInTerminal(packageToInstall: string) {
 
 function getJSON(): Promise<any[]> {
   return new Promise((resolve, reject) => {
-    request('https://package.elm-lang.org/all-packages', (err, _, body) => {
+    request(
+      'https://package.elm-lang.org/all-packages',
+      (err, _, body: string) => {
       if (err) {
         reject(err);
       } else {
-        let json;
+        let json: any[] | PromiseLike<any[]>;
         try {
           json = JSON.parse(body);
         } catch (e) {
@@ -135,7 +134,8 @@ function getJSON(): Promise<any[]> {
         }
         resolve(json);
       }
-    });
+    },
+    );
   });
 }
 

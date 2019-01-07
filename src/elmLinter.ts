@@ -49,7 +49,7 @@ function elmMakeIssueToDiagnostic(issue: IElmIssue): vscode.Diagnostic {
   );
 }
 
-function parseErrorsElm019(line) {
+function parseErrorsElm019(line: string) {
   const returnLines = [];
   const errorObject = JSON.parse(line);
 
@@ -60,7 +60,7 @@ function parseErrorsElm019(line) {
         overview: problem.title,
         subregion: '',
         details: problem.message
-          .map(message =>
+          .map((message: { string: string }) =>
             typeof message === 'string' ? message : '#' + message.string + '#',
           )
           .join(''),
@@ -77,7 +77,7 @@ function parseErrorsElm019(line) {
       overview: errorObject.title,
       subregion: '',
       details: errorObject.message
-        .map(message =>
+        .map((message: { string: string }) =>
           typeof message === 'string' ? message : message.string,
         )
         .join(''),
@@ -101,7 +101,7 @@ function parseErrorsElm019(line) {
   return returnLines;
 }
 
-function parseErrorsElm018(line) {
+function parseErrorsElm018(line: string) {
   if (line.startsWith('Successfully generated')) {
     // ignore compiler successes
     return [];
@@ -110,7 +110,7 @@ function parseErrorsElm018(line) {
   return <IElmIssue[]>JSON.parse(line);
 }
 
-function checkForErrors(filename): Promise<IElmIssue[]> {
+function checkForErrors(filename: string): Promise<IElmIssue[]> {
   return new Promise((resolve, reject) => {
     const config: vscode.WorkspaceConfiguration = vscode.workspace.getConfiguration(
       'elm',
@@ -124,7 +124,7 @@ function checkForErrors(filename): Promise<IElmIssue[]> {
     );
     const specialFile: string = <string>config.get('makeSpecialFile');
     const isTestFile = elmTest.fileIsTestFile(filename);
-    let make;
+    let make: cp.ChildProcess;
 
     if (specialFile.length > 0) {
       filename = path.resolve(cwd, specialFile);
@@ -187,7 +187,7 @@ function checkForErrors(filename): Promise<IElmIssue[]> {
       });
     }
 
-    make.on('error', err => {
+    make.on('error', (err: { code: string }) => {
       errorLinesFromElmMake.close();
       if (err && err.code === 'ENOENT') {
         vscode.window.showInformationMessage(
@@ -199,7 +199,7 @@ function checkForErrors(filename): Promise<IElmIssue[]> {
       }
     });
 
-    make.on('close', (code, signal) => {
+    make.on('close', () => {
       errorLinesFromElmMake.close();
 
       if (elm018stderr.length) {

@@ -5,11 +5,7 @@ import * as vscode from 'vscode';
 import { askOracle } from './elmDelphi';
 import { isWindows } from './elmUtils';
 
-import {
-  detectProjectRoot,
-  pluginPath,
-  detectProjectRootAndElmVersion,
-} from './elmUtils';
+import { pluginPath, detectProjectRootAndElmVersion } from './elmUtils';
 
 export interface IOracleResult {
   name: string;
