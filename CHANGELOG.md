@@ -1,3 +1,9 @@
+### 0.25.0 - 07.01.2019
+* Fix issue with elm module parser using object spread in raw javascript (not transpiled). (by @joeandaverde)
+* Fix issue with improperly invaliding old symbols in cache. (by @joeandaverde)
+* Fix elm analyse path (by @Razzeee)
+* The linter should also respect the module in "Make special path" (by @ccapndave)
+
 ### 0.24.0 - 26.11.2018
 * Improved Symbol Search / Goto Definition (by @joeandaverde)
 * Fix wrong missing compiler error message (by @andys8)
