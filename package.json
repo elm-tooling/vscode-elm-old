@@ -335,7 +335,7 @@
     "mocha": "^2.3.3",
     "prettier": "^1.5.3",
     "typescript": "^2.4.0",
-    "vscode": "1.1.0"
+    "vscode": "^1.1.26"
   },
   "dependencies": {
     "elm-module-parser": "0.1.12",
