@@ -1,7 +1,11 @@
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { IElmIssue, IElmIssueRegion, runLinter } from './elmLinter';
-import { detectProjectRootAndElmVersion, execCmd, ExecutingCmd } from './elmUtils';
+import {
+  detectProjectRootAndElmVersion,
+  execCmd,
+  ExecutingCmd,
+} from './elmUtils';
 import WebSocket = require('ws');
 const request = require('request');
 

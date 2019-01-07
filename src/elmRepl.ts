@@ -48,7 +48,7 @@ function send(editor: TextEditor, msg: string) {
     startRepl();
   }
   const // Multiline input has to have '\' at the end of each line
-  inputMsg = msg.replace(/\n/g, '\\\n') + '\n';
+    inputMsg = msg.replace(/\n/g, '\\\n') + '\n';
 
   replTerminal.sendText('\n', false); // workaround to avoid repl commands on the same line
   replTerminal.sendText(inputMsg, false);

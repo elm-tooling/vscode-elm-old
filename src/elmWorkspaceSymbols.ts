@@ -45,10 +45,11 @@ export class ElmWorkspaceSymbolProvider
       await this.indexWorkspace();
     }
 
-    const matchingSymbols: SymbolInformation[] = _.values(this.symbolsByContainer)
-      .reduce((acc: SymbolInformation[], moduleSymbols: SymbolInformation[]) => {
-        return acc.concat(moduleSymbols.filter(x => symbol.startsWith(x.name)));
-      }, []);
+    const matchingSymbols: SymbolInformation[] = _.values(
+      this.symbolsByContainer,
+    ).reduce((acc: SymbolInformation[], moduleSymbols: SymbolInformation[]) => {
+      return acc.concat(moduleSymbols.filter(x => symbol.startsWith(x.name)));
+    }, []);
 
     return matchingSymbols;
   }
