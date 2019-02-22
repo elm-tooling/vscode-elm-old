@@ -117,7 +117,7 @@ export function getDocumentSymbols(doc: TextDocument): DocumentSymbol[] {
         if (t.type === 'custom-type') {
 
 
-          const constructorSymbol = new DocumentSymbol(// parent is parsedModule, can use this to find the range rather than selection range
+          const customTypeSymbol = new DocumentSymbol(
             t.name,
             "",
             vscode.SymbolKind.Class,
@@ -135,7 +135,7 @@ export function getDocumentSymbols(doc: TextDocument): DocumentSymbol[] {
                 locationToRange(ctor.location)
               );
             })
-            .concat(constructorSymbol);
+            .concat(customTypeSymbol);
         } else if (t.type === 'type-alias') {
           const typeAliasSymbol = new DocumentSymbol(
             t.name,
