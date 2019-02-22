@@ -1,11 +1,11 @@
 import * as vscode from 'vscode';
-import { SymbolInformation, TextDocument } from 'vscode';
+import { SymbolInformation, TextDocument, DocumentSymbol } from 'vscode';
 import { parseElmModule, Location } from 'elm-module-parser';
 import * as _ from 'lodash';
 
 export class ElmSymbolProvider implements vscode.DocumentSymbolProvider {
-  public async provideDocumentSymbols(doc: TextDocument): Promise<vscode.SymbolInformation[]> {
-    return processDocument(doc);
+  public async provideDocumentSymbols(doc: TextDocument): Promise<DocumentSymbol[]> {
+    return getDocumentSymbols(doc);
   }
 }
 
@@ -16,7 +16,7 @@ function locationToRange(location: Location): vscode.Range {
   );
 }
 
-export function processDocument(doc: TextDocument): vscode.SymbolInformation[] {
+export function processDocument(doc: TextDocument): SymbolInformation[] {
   try {
     const parsedModule = parseElmModule(doc.getText());
 
@@ -97,6 +97,88 @@ export function processDocument(doc: TextDocument): vscode.SymbolInformation[] {
         doc.uri,
         locationToRange(parsedModule.location),
       ),
+    );
+
+    const allSymbols = _.concat(moduleDefinition, moduleTypes, moduleFunctions, portAnnotations);
+
+    return allSymbols;
+  } catch (error) {
+    return [];
+  }
+}
+
+
+export function getDocumentSymbols(doc: TextDocument): DocumentSymbol[] {
+  try {
+    const parsedModule = parseElmModule(doc.getText());
+
+    const moduleTypes = _.flatMap(
+      parsedModule.types.map(t => {
+        if (t.type === 'custom-type') {
+
+
+          const constructorSymbol = new DocumentSymbol(// parent is parsedModule, can use this to find the range rather than selection range
+            t.name,
+            "",
+            vscode.SymbolKind.Class,
+            locationToRange(t.location),
+            locationToRange(t.location)
+          );
+
+          return t.constructors
+            .map(ctor => {
+              return new DocumentSymbol(
+                ctor.name,
+                "",
+                vscode.SymbolKind.Constructor,
+                locationToRange(ctor.location),
+                locationToRange(ctor.location)
+              );
+            })
+            .concat(constructorSymbol);
+        } else if (t.type === 'type-alias') {
+          const typeAliasSymbol = new DocumentSymbol(
+            t.name,
+            "",
+            vscode.SymbolKind.Class,
+            locationToRange(t.location),
+            locationToRange(t.location),
+          );
+
+          return [typeAliasSymbol];
+        } else {
+          const _exhaustiveCheck: never = t;
+          return [];
+        }
+      }),
+    );
+
+    const moduleFunctions = parsedModule.function_declarations.map(f => {
+      return new DocumentSymbol(
+        f.name,
+        "",
+        vscode.SymbolKind.Variable,
+        locationToRange(f.location),
+        locationToRange(f.location),
+      );
+    });
+
+    const portAnnotations = parsedModule.port_annotations.map(p => {
+      return new DocumentSymbol(
+        p.name,
+        "",
+        vscode.SymbolKind.Interface,
+        locationToRange(p.location),
+        locationToRange(p.location)
+      );
+    });
+
+    const moduleDefinition = new DocumentSymbol(
+      parsedModule.name,
+      "",
+      vscode.SymbolKind.Module,
+      locationToRange(parsedModule.location),
+      locationToRange(parsedModule.location)
     );
 
     const allSymbols = _.concat(moduleDefinition, moduleTypes, moduleFunctions, portAnnotations);
