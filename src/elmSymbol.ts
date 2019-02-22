@@ -125,17 +125,20 @@ export function getDocumentSymbols(doc: TextDocument): DocumentSymbol[] {
             locationToRange(t.location)
           );
 
-          return t.constructors
-            .map(ctor => {
-              return new DocumentSymbol(
+          const ctorSymbols = t.constructors
+            .map(ctor =>
+              new DocumentSymbol(
                 ctor.name,
                 "",
                 vscode.SymbolKind.Constructor,
                 locationToRange(ctor.location),
                 locationToRange(ctor.location)
-              );
-            })
-            .concat(customTypeSymbol);
+              )
+            );
+
+          customTypeSymbol.children = ctorSymbols;
+
+          return ctorSymbols.concat(customTypeSymbol);
         } else if (t.type === 'type-alias') {
           const typeAliasSymbol = new DocumentSymbol(
             t.name,
