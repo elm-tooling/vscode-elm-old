@@ -112,11 +112,9 @@ export function getDocumentSymbols(doc: TextDocument): DocumentSymbol[] {
   try {
     const parsedModule = parseElmModule(doc.getText());
 
-    const moduleTypes = _.flatMap(
+    const moduleTypes =
       parsedModule.types.map(t => {
         if (t.type === 'custom-type') {
-
-
           const customTypeSymbol = new DocumentSymbol(
             t.name,
             "",
@@ -137,8 +135,8 @@ export function getDocumentSymbols(doc: TextDocument): DocumentSymbol[] {
             );
 
           customTypeSymbol.children = ctorSymbols;
+          return customTypeSymbol;
 
-          return ctorSymbols.concat(customTypeSymbol);
         } else if (t.type === 'type-alias') {
           const typeAliasSymbol = new DocumentSymbol(
             t.name,
@@ -148,13 +146,13 @@ export function getDocumentSymbols(doc: TextDocument): DocumentSymbol[] {
             locationToRange(t.location),
           );
 
-          return [typeAliasSymbol];
+          return typeAliasSymbol;
+
         } else {
-          const _exhaustiveCheck: never = t;
-          return [];
+          return null;
         }
-      }),
-    );
+      });
+
 
     const moduleFunctions = parsedModule.function_declarations.map(f => {
       return new DocumentSymbol(
