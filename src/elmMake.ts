@@ -40,8 +40,9 @@ function getMakeAndArguments(file, warn: boolean): [string, string, string[]] {
       ? elmTestCompiler
       : compiler
     : make018Command;
+  const makeCommandParts = makeCommand.split(" ");
 
-  return [cwd, makeCommand, args];
+  return [cwd, makeCommandParts[0], [...args, ...makeCommandParts.slice(1)]];
 }
 
 function execMake(editor: vscode.TextEditor, warn: boolean): void {

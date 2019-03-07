@@ -157,7 +157,11 @@ function checkForErrors(filename): Promise<IElmIssue[]> {
     if (utils.isWindows) {
       make = cp.exec(makeCommand + ' ' + args.join(' '), { cwd: cwd });
     } else {
-      make = cp.spawn(makeCommand, args, { cwd: cwd });
+      const makeCommandParts = makeCommand.split(" ");
+      make = cp.spawn(
+        makeCommandParts[0],
+        [...args, ...makeCommandParts.slice(1)], { cwd: cwd }
+      );
     }
     // output is actually optional
     // (fixed in https://github.com/Microsoft/vscode/commit/b4917afe9bdee0e9e67f4094e764f6a72a997c70,
