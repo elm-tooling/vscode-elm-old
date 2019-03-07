@@ -40,9 +40,7 @@ function getMakeAndArguments(file, warn: boolean): [string, string, string[]] {
       ? elmTestCompiler
       : compiler
     : make018Command;
-  const makeCommandParts = makeCommand.split(" ");
-
-  return [cwd, makeCommandParts[0], [...args, ...makeCommandParts.slice(1)]];
+  return [cwd, makeCommand, args];
 }
 
 function execMake(editor: vscode.TextEditor, warn: boolean): void {
@@ -57,12 +55,7 @@ function execMake(editor: vscode.TextEditor, warn: boolean): void {
     let file = editor.document.fileName;
     let [cwd, makeCommand, args] = getMakeAndArguments(file, warn);
 
-    if (utils.isWindows) {
-      make = cp.exec(makeCommand + ' ' + args.join(' '), { cwd: cwd });
-    } else {
-      make = cp.spawn(makeCommand, args, { cwd: cwd });
-    }
-
+    make = cp.exec(makeCommand + ' ' + args.join(' '), { cwd: cwd });
     make.stdout.on('data', (data: Buffer) => {
       if (data) {
         oc.append(data.toString());

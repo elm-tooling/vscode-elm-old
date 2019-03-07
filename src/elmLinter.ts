@@ -154,16 +154,9 @@ function checkForErrors(filename): Promise<IElmIssue[]> {
         : compiler
       : make018Command;
 
-    if (utils.isWindows) {
-      make = cp.exec(makeCommand + ' ' + args.join(' '), { cwd: cwd });
-    } else {
-      const makeCommandParts = makeCommand.split(" ");
-      make = cp.spawn(
-        makeCommandParts[0],
-        [...args, ...makeCommandParts.slice(1)], { cwd: cwd }
-      );
-    }
-    // output is actually optional
+    make = cp.exec(makeCommand + ' ' + args.join(' '), { cwd: cwd });
+
+      // output is actually optional
     // (fixed in https://github.com/Microsoft/vscode/commit/b4917afe9bdee0e9e67f4094e764f6a72a997c70,
     // but unreleased at this time)
     const errorLinesFromElmMake = readline.createInterface({
