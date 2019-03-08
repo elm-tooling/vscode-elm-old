@@ -2,14 +2,14 @@ import * as utils from './elmUtils';
 import * as vscode from 'vscode';
 import * as path from 'path';
 
-export function fileIsTestFile(filename) {
+export function fileIsTestFile(filename: string) {
   const config: vscode.WorkspaceConfiguration = vscode.workspace.getConfiguration(
     'elm',
   );
-  const elmTestLocationMatcher: string = <string>(
+  const testMatcher: string = <string>(
     config.get('elmTestFileMatcher')
   );
-  const [cwd, elmVersion] = utils.detectProjectRootAndElmVersion(
+  const [_, elmVersion] = utils.detectProjectRootAndElmVersion(
     filename,
     vscode.workspace.rootPath,
   );
@@ -18,8 +18,13 @@ export function fileIsTestFile(filename) {
     return false;
   }
 
-  const pathFromRoute = path.relative(vscode.workspace.rootPath, filename);
-  const isTestFile = pathFromRoute.indexOf(elmTestLocationMatcher) > -1;
+  const pathFromRoot = path.relative(vscode.workspace.rootPath, filename);
+  const pathParts = path.parse(pathFromRoot);
+  const pathNormalized = path.posix.format(pathParts);
 
+  const testMatcherParts = path.parse(testMatcher);
+  const testMatcherNormalized = path.posix.format(testMatcherParts);
+
+  const isTestFile = pathNormalized.includes(testMatcherNormalized);
   return isTestFile;
 }
