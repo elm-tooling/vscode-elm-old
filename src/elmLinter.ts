@@ -49,7 +49,7 @@ function elmMakeIssueToDiagnostic(issue: IElmIssue): vscode.Diagnostic {
   );
 }
 
-function parseErrorsElm019(line) {
+function parseErrorsElm019(line, file) {
   const returnLines = [];
   const errorObject = JSON.parse(line);
 
@@ -69,7 +69,7 @@ function parseErrorsElm019(line) {
           .join(''),
         region: problem.region,
         type: 'error',
-        file: error.path,
+        file,
       }));
 
       returnLines.push(...problems);
@@ -129,7 +129,9 @@ function checkForErrors(fullFilename): Promise<IElmIssue[]> {
     const isTestFile = elmTest.fileIsTestFile(fullFilename);
     let make;
 
-    let filename = path.relative(cwd, fullFilename);
+    let filename = utils.isElm019(elmVersion)
+      ? path.relative(cwd, fullFilename)
+      : fullFilename;
 
     if (specialFile.length > 0) {
       filename = path.resolve(cwd, specialFile);
@@ -174,7 +176,7 @@ function checkForErrors(fullFilename): Promise<IElmIssue[]> {
 
     errorLinesFromElmMake.on('line', line => {
       if (utils.isElm019(elmVersion)) {
-        const newLines = parseErrorsElm019(line);
+        const newLines = parseErrorsElm019(line, fullFilename);
         newLines.forEach(l => lines.push(l));
       } else {
         const newLines = parseErrorsElm018(line);
