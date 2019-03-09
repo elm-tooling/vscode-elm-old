@@ -612,6 +612,26 @@
       "prefix": "todo",
       "body": "-- TODO: $0",
       "description": "TODO comment"
+    },
+    "Html text": {
+      "prefix": "html.text",
+      "body": "text \"${1:some text}\"",
+      "description": "text : String -> Html msg"
+    },
+    "Html div": {
+      "prefix": "html.div",
+      "body": [
+        "div [ ${1:attributes} ]",
+        "\t[ ${2:child1}",
+        "\t, ${3:child2}",
+        "\t]"
+      ],
+      "description": "text : String -> Html msg"
+    },
+    "Html h1": {
+      "prefix": "html.h1",
+      "body": "h1 [ ${1:attributes} ] [ text \"${2:title}\" ]",
+      "description": "h1 : List (Attribute msg) -> List (Html msg) -> Html msg"
     }
   }
 }
