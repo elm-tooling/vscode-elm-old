@@ -124,10 +124,10 @@
       "body": [
         "case ${1:expression} of",
         "    ${2:option1} ->",
-        "        $3",
+        "        ${3}",
         "",
         "    ${4:option2} ->",
-        "        $5"
+        "        ${5}"
       ],
       "description": "Case of expression with 2 alternatives"
     },
@@ -135,7 +135,7 @@
       "prefix": "comment",
       "body": [
         "{-",
-        "$0",
+        "${0}",
         "-}"
       ],
       "description": "Multi-line comment"
@@ -143,9 +143,9 @@
     "Record": {
       "prefix": "record",
       "body": [
-        "${recordName} =",
-        "    { ${key1} = ${value1}",
-        "    , ${key2} = ${value2}",
+        "${1:recordName} =",
+        "    { ${2:key1} = ${3:value1}",
+        "    , ${4:key2} = ${5:value2}",
         "    }"
       ],
       "description": "Record"
@@ -153,9 +153,9 @@
     "RecordType": {
       "prefix": "recordtype",
       "body": [
-        "type alias ${recordName} =",
-        "    { ${key1} : ${ValueType1}",
-        "    , ${key2} : ${ValueType2}",
+        "type alias ${1:recordName} =",
+        "    { ${2:key1} : ${3:ValueType1}",
+        "    , ${4:key2} : ${5:ValueType2}",
         "    }"
       ],
       "description": "Record type"
@@ -163,23 +163,23 @@
     "Update record": {
       "prefix": "recordupdate",
       "body": [
-        "{ ${1:recordName} | ${2:key} = $0 }"
+        "{ ${1:recordName} | ${2:key} = ${3} }"
       ],
       "description": "Update record"
     },
     "Anonymous function": {
       "prefix": "anonymous",
       "body": [
-        "\\ ${argument} -> ${argument}$0"
+        "\\ ${1:argument} -> ${1:argument}"
       ],
       "description": "Anonymous function"
     },
     "Union type": {
       "prefix": "union",
       "body": [
-        "type ${Typename}",
-        "    = ${Value1}",
-        "    | ${Value2}"
+        "type ${1:Typename}",
+        "    = ${2:Value1}",
+        "    | ${3:Value2}"
       ],
       "description": "Union type"
     },
@@ -187,17 +187,17 @@
       "prefix": "msg",
       "body": [
         "type Msg",
-        "    = NoOp",
-        "    | ${Message}"
+        "    = ${1:Message}",
+        "    | ${2:Message}"
       ],
       "description": "Default message union type"
     },
     "Function": {
-      "prefix": "fun",
+      "prefix": "func",
       "body": [
-        "${functionName} : ${ArgumentType} -> ${ReturnType}",
-        "${functionName} ${argumentName} =",
-        "    ${functionBody}"
+        "${1:functionName} : ${2:ArgumentType} -> ${3:ReturnType}",
+        "${1:functionName} ${4:arguments} =",
+        "    ${5}"
       ],
       "description": "Function with type annotation"
     },
@@ -205,23 +205,23 @@
       "prefix": "letin",
       "body": [
         "let",
-        "    $1",
+        "    ${1}",
         "in",
-        "$0"
+        "${0}"
       ],
       "description": "Let expression"
     },
     "Update function": {
       "prefix": "update",
       "body": [
-        "update : Msg -> Model -> ( Model, Cmd Msg )",
+        "update : Msg -> Model -> ${1|Model, ( Model\\, Cmd Msg )|}",
         "update msg model =",
         "    case msg of",
-        "        NoOp ->",
-        "            ( model, Cmd.none )",
+        "        ${2:option1} ->",
+        "            ${1|Model, ( Model\\, Cmd Msg )|}",
         "",
-        "        ${option1} ->",
-        "            $0"
+        "        ${3:option2} ->",
+        "            ${1|Model, ( Model\\, Cmd Msg )|}"
       ],
       "description": "Default update function"
     },
@@ -230,21 +230,21 @@
       "body": [
         "view : Model -> Html Msg",
         "view model =",
-        "    $0"
+        "    ${0}"
       ],
       "description": "Default view function"
     },
     "Incoming port": {
       "prefix": "portin",
       "body": [
-        "port ${portName} : (${Typename} -> msg) -> Sub msg"
+        "port ${1:portName} : (${2:Typename} -> msg) -> Sub msg"
       ],
       "description": "Incoming port"
     },
     "Outgoing port": {
       "prefix": "portout",
       "body": [
-        "port ${portName} : ${Typename} -> Cmd msg"
+        "port ${1:portName} : ${2:Typename} -> Cmd msg"
       ],
       "description": "Outgoing port"
     },
@@ -332,7 +332,7 @@
     "Browser.sandbox": {
       "prefix": "Browser.sandbox",
       "body": [
-        "module ${Name} exposing (Model, Msg, update, view, subscriptions, init)",
+        "module Main exposing (Model, Msg, update, view, subscriptions, init)",
         "",
         "import Html exposing (..)",
         "import Browser",
@@ -348,27 +348,27 @@
         "",
         "",
         "type alias Model =",
-        "    { ${property} : ${propertyType}",
+        "    { ${1:property} : ${2:propertyType}",
         "    }",
         "",
         "",
         "init : Model",
         "init =",
-        "    Model ${modelInitialValue}",
+        "    Model ${3:modelInitialValue}",
         "",
         "",
         "type Msg",
-        "    = ${Msg1}",
-        "    | ${Msg2}",
+        "    = ${4:Msg1}",
+        "    | ${5:Msg2}",
         "",
         "",
         "update : Msg -> Model -> Model",
         "update msg model =",
         "    case msg of",
-        "        ${Msg1} ->",
+        "        ${6:Msg1} ->",
         "            model",
         "",
-        "        ${Msg2} ->",
+        "        ${7:Msg2} ->",
         "            model",
         "",
         "",
@@ -378,20 +378,20 @@
         "        [ text \"New Sandbox\" ]",
         "",
         "",
-        "$0"
+        "${0}"
       ],
       "description": "Browser Sandbox"
     },
     "Browser.element": {
       "prefix": "Browser.element",
       "body": [
-        "module ${Name} exposing (Model, Msg, update, view, subscriptions, init)",
+        "module Main exposing (Model, Msg, update, view, subscriptions, init)",
         "",
         "import Html exposing (..)",
         "import Browser",
         "",
         "",
-        "main : Program ${flags} Model Msg",
+        "main : Program flags Model Msg",
         "main =",
         "    Browser.element",
         "        { init = init",
@@ -404,27 +404,27 @@
         "type alias Model =",
         "    { key : Nav.Key",
         "    , url : Url.Url",
-        "    , ${property} : ${propertyType}",
+        "    , property : propertyType",
         "    }",
         "",
         "",
-        "init : ${flags} -> (Model, Cmd Msg)",
+        "init : flags -> (Model, Cmd Msg)",
         "init flags =",
-        "    (Model ${modelInitialValue}, Cmd.none)",
+        "    (Model modelInitialValue, Cmd.none)",
         "",
         "",
         "type Msg",
-        "    = ${Msg1}",
-        "    | ${Msg2}",
+        "    = ${1:Msg1}",
+        "    | ${2:Msg2}",
         "",
         "",
         "update : Msg -> Model -> (Model, Cmd Msg)",
         "update msg model =",
         "    case msg of",
-        "        ${Msg1} ->",
+        "        ${1:Msg1} ->",
         "            (model, Cmd.none)",
         "",
-        "        ${Msg2} ->",
+        "        ${2:Msg2} ->",
         "            (model, Cmd.none)",
         "",
         "",
@@ -436,23 +436,23 @@
         "view : Model -> Html Msg",
         "view model =",
         "    div []",
-        "        [ text \"New Sandbox\" ]",
+        "        [ text \"New Element\" ]",
         "",
         "",
-        "$0"
+        "${0}"
       ],
       "description": "Browser Element"
     },
     "Browser.document": {
       "prefix": "Browser.document",
       "body": [
-        "module ${Name} exposing (Model, Msg, update, view, subscriptions, init)",
+        "module Main exposing (Model, Msg, update, view, subscriptions, init)",
         "",
         "import Html exposing (..)",
         "import Browser",
         "",
         "",
-        "main : Program ${flags} Model Msg",
+        "main : Program flags Model Msg",
         "main =",
         "    Browser.document",
         "        { init = init",
@@ -463,27 +463,27 @@
         "",
         "",
         "type alias Model =",
-        "    { ${property} : ${propertyType}",
+        "    { property : propertyType",
         "    }",
         "",
         "",
-        "init : ${flags} -> (Model, Cmd Msg)",
+        "init : flags -> (Model, Cmd Msg)",
         "init flags =",
-        "    (Model ${modelInitialValue}, Cmd.none)",
+        "    (Model modelInitialValue, Cmd.none)",
         "",
         "",
         "type Msg",
-        "    = ${Msg1}",
-        "    | ${Msg2}",
+        "    = ${1:Msg1}",
+        "    | ${2:Msg2}",
         "",
         "",
         "update : Msg -> Model -> (Model, Cmd Msg)",
         "update msg model =",
         "    case msg of",
-        "        ${Msg1} ->",
+        "        ${1:Msg1} ->",
         "            (model, Cmd.none)",
         "",
-        "        ${Msg2} ->",
+        "        ${2:Msg2} ->",
         "            (model, Cmd.none)",
         "",
         "",
@@ -502,14 +502,14 @@
         "    }",
         "",
         "",
-        "$0"
+        "${0}"
       ],
       "description": "Browser Document"
     },
     "Browser.application": {
       "prefix": "Browser.application",
       "body": [
-        "module ${Name} exposing (Model, init, Msg, update, view, subscriptions)",
+        "module Main exposing (Model, init, Msg, update, view, subscriptions)",
         "",
         "import Html exposing (..)",
         "import Browser",
@@ -517,7 +517,7 @@
         "import Url",
         "",
         "",
-        "main : Program ${flags} Model Msg",
+        "main : Program flags Model Msg",
         "main =",
         "    Browser.application",
         "        { init = init",
@@ -532,18 +532,18 @@
         "type alias Model =",
         "    { key : Nav.Key",
         "    , url : Url.Url",
-        "    , ${property} : ${propertyType}",
+        "    , property : propertyType",
         "    }",
         "",
         "",
-        "init : ${flags} -> Url.Url -> Nav.Key -> (Model, Cmd Msg)",
+        "init : flags -> Url.Url -> Nav.Key -> (Model, Cmd Msg)",
         "init flags url key =",
-        "    (Model ${modelInitialValue}, Cmd.none)",
+        "    (Model modelInitialValue, Cmd.none)",
         "",
         "",
         "type Msg",
-        "    = ${Msg1}",
-        "    | ${Msg2}",
+        "    = ${1:Msg1}",
+        "    | ${2:Msg2}",
         "    | UrlRequested Browser.UrlRequest",
         "    | UrlChanged Url.Url",
         "",
@@ -551,10 +551,10 @@
         "update : Msg -> Model -> (Model, Cmd Msg)",
         "update msg model =",
         "    case msg of",
-        "        ${Msg1} ->",
+        "        ${1:Msg1} ->",
         "            (model, Cmd.none)",
         "",
-        "        ${Msg2} ->",
+        "        ${2:Msg2} ->",
         "            (model, Cmd.none)",
         "",
         "        UrlRequested urlRequest ->",
@@ -586,7 +586,7 @@
         "    }",
         "",
         "",
-        "$0"
+        "${0}"
       ],
       "description": "Browser Application"
     },
@@ -594,7 +594,7 @@
       "prefix": "describe",
       "body": [
         "describe \"${1:name}\"",
-        "    [ $0",
+        "    [ ${0}",
         "    ]"
       ],
       "description": "describe block in Elm-test"
@@ -604,13 +604,13 @@
       "body": [
         "test \"${1:name}\" <|",
         "    \\_ ->",
-        "        $0"
+        "        ${0}"
       ],
       "description": "test block in Elm-test"
     },
     "todo": {
       "prefix": "todo",
-      "body": "-- TODO: $0",
+      "body": "-- TODO: ${0}",
       "description": "TODO comment"
     }
   }
