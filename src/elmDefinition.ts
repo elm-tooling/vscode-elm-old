@@ -27,28 +27,35 @@ export class ElmDefinitionProvider implements vscode.DefinitionProvider {
     try {
       const parsedModule = parseElmModule(document.getText());
 
-      let symbolName = word.substring(word.lastIndexOf('.') + 1);
-      let moduleAlias = word.substring(0, word.lastIndexOf('.'));
-
-      const exactMatchingImport: ModuleImport = parsedModule.imports.find(
-        i => {
-          if (moduleAlias === '') {
-            const matchedExposing = i.exposing.find(e => {
-              return e.name === symbolName;
-            });
-
-            return matchedExposing != null;
-          } else {
-            return i.alias === moduleAlias || i.module === moduleAlias;
-          }
-        },
-      );
-
-      const moduleToSearch =
-        exactMatchingImport != null
-          ? exactMatchingImport.module
-          : parsedModule.name;
-
+      let symbolName;
+      let moduleAlias;
+      let moduleToSearch;
+      if (parsedModule.imports.some(i => {
+        return i.location && i.location.start.line - 1 === wordRange.start.line && i.module === word
+      })) {
+        symbolName = "";
+        moduleAlias = word;
+        moduleToSearch = word;
+      } else {
+        symbolName = word.substring(word.lastIndexOf('.') + 1);
+        moduleAlias = word.substring(0, word.lastIndexOf('.'));
+        const exactMatchingImport: ModuleImport = parsedModule.imports.find(
+          i => {
+            if (moduleAlias === '') {
+              const matchedExposing = i.exposing.find(e => {
+                return e.name === symbolName;
+              });
+              return matchedExposing != null;
+            } else {
+              return i.alias === moduleAlias || i.module === moduleAlias;
+            }
+          },
+        );
+        moduleToSearch =
+          exactMatchingImport != null
+            ? exactMatchingImport.module
+            : parsedModule.name;
+      }
       const query = `${moduleToSearch}:${symbolName}`;
 
       const exactMatch = await this.workspaceSymbolProvider.provideWorkspaceSymbols(

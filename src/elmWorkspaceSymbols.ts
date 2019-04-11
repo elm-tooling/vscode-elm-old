@@ -31,7 +31,7 @@ export class ElmWorkspaceSymbolProvider
   ): Promise<vscode.SymbolInformation[]> {
     const [sourceModule, symbolName] = query.split(':', 2);
 
-    if (symbolName == null) {
+    if (symbolName === undefined || symbolName === "") {
       return this.searchWorkspaceSymbols(sourceModule);
     }
 
