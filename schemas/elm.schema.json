@@ -76,7 +76,7 @@
           "description": "The version of elm your project is targeting",
           "type": "string",
           "pattern": "\\d+\\.\\d+\\.\\d+",
-          "enum": [ "0.19.0" ]
+          "enum": [ "0.19.0", "0.19.1" ]
         },
         "dependencies": {
           "description": "A list of elm dependencies that your project needs for in production.",
