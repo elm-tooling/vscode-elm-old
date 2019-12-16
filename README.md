@@ -1,3 +1,7 @@
+### This project is deprecated. For modern Elm support in VSCode use https://marketplace.visualstudio.com/items?itemName=Elmtooling.elm-ls-vscode (GitHub: https://github.com/elm-tooling/elm-language-client-vscode)
+
+---
+
 # Elm support for Visual Studio Code
 
 ![Error highlighting](images/errorHighlighting.gif)
