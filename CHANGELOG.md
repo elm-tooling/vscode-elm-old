@@ -1,3 +1,7 @@
+### 0.26.0 - 16.12.2019
+
+* Project deprecated. Use https://github.com/elm-tooling/elm-language-client-vscode instead
+
 ### 0.25.0 - 07.01.2019
 * Fix issue with elm module parser using object spread in raw javascript (not transpiled). (by @joeandaverde)
 * Fix issue with improperly invaliding old symbols in cache. (by @joeandaverde)
